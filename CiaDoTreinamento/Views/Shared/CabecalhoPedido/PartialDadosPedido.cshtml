@@ -1,0 +1,508 @@
+﻿@model CODE.CabecalhoPedido
+
+@{
+	string mensagemErro;
+
+	//GET AGENTES VENDAS
+	List<CODE.Funcionario> funcionarios = CODE.FuncionarioBLL.getAllFuncionarios(out mensagemErro);
+	//funcionarios = funcionarios.Where(x => x.Perfil.Codigo == 1).ToList();
+	List<SelectListItem> listaAgentes = new List<SelectListItem>();
+	foreach (CODE.Funcionario item in funcionarios)
+	{
+		listaAgentes.Add(new SelectListItem() {
+			Text = item.Nome,
+			Value = item.Codigo.ToString()
+		});
+	}
+
+	//GET CONDIÇÕES DE PAGAMENTO
+	CODE.CondicaoPagamentoBLL condicaoPagamentoBLL = new CODE.CondicaoPagamentoBLL();
+	List<CODE.CondicaoPagamento> condicoes = condicaoPagamentoBLL.getCondicoes(null, null, out mensagemErro);
+	List<SelectListItem> listaCondicoes = new List<SelectListItem>();
+	foreach (CODE.CondicaoPagamento item in condicoes)
+	{
+		listaCondicoes.Add(new SelectListItem() {
+			Text = item.Descricao,
+			Value = item.Codigo.ToString()
+		});
+	}
+
+	//GET PARCEIROS HOTÉIS
+	CODE.ParceiroBLL parceiroBLL = new CODE.ParceiroBLL();
+	List<CODE.Parceiro> parceirosHoteis = parceiroBLL.getParceiros(null, null, null, Model.Cliente.Cidade.Codigo, "Hotéis", out mensagemErro);
+	List<SelectListItem> listaParceirosHotel = new List<SelectListItem>();
+	foreach (CODE.Parceiro item in parceirosHoteis)
+	{
+		listaParceirosHotel.Add(new SelectListItem() {
+			Text = item.Descricao,
+			Value = item.Codigo.ToString()
+		});
+	}
+
+	//GET PARCEIROS SALAS
+	List<CODE.Parceiro> parceirosSalas = parceiroBLL.getParceiros(null, null, null, Model.Cliente.Cidade.Codigo, "Sala Alugada", out mensagemErro);
+	List<SelectListItem> listaParceirosSalas = new List<SelectListItem>();
+	foreach (CODE.Parceiro item in parceirosSalas)
+	{
+		listaParceirosSalas.Add(new SelectListItem()
+		{
+			Text = item.Descricao,
+			Value = item.Codigo.ToString()
+		});
+	}
+
+	//GET CONTAS
+	CODE.ContaBancariaBLL contaBancariaBLL = new CODE.ContaBancariaBLL();
+	List<CODE.ContaBancaria> contas = contaBancariaBLL.getContas(null, out mensagemErro);
+	List<SelectListItem> listaContas = new List<SelectListItem>();
+	foreach (CODE.ContaBancaria item in contas)
+	{
+		listaContas.Add(new SelectListItem() {
+			Text = item.Descricao,
+			Value = item.Codigo.ToString()
+	});
+}
+}
+
+<div class="panel">
+	<header class="panel-heading">
+		<h4 class="accordion-toggle" data-toggle="collapse" href="#divDadosPedidoCollapse" aria-expanded="true">DADOS DO PEDIDO</h4>
+	</header>
+	<div id="divDadosPedidoCollapse" class="panel-collapse collapse show">
+		<div class="panel-body">
+			<div class="form-group form-group--float col-sm-12">
+				@Html.TextBoxFor(x => x.ValorTotal, new { @class = "form-control", @readonly = "readonly" })
+				<label>Valor Total C/ Encargos</label>
+				<i class="form-group__bar"></i>
+			</div>
+
+			<div class="form-group form-group--float col-sm-12">
+				@Html.TextBoxFor(x => x.ValorBoletos, new { @class = "form-control", @readonly = "readonly" })
+				<label>Valor Boletos</label>
+				<i class="form-group__bar"></i>
+			</div>
+
+			<div class="input-group form-group form-group--float">
+				<span class="input-group-addon"><a class="zmdi zmdi-edit" onclick="return jsAplicarDesconto(1);"></a></span>
+				<div class="form-group">
+					<label>&nbsp; Desconto (Percentual)</label>
+					@Html.TextBoxFor(x => Model.PercentualDesconto, new { @class = "form-control", @readonly = "readonly" })
+					<i class="form-group__bar"></i>
+				</div>
+			</div>
+
+			<div class="input-group form-group form-group--float">
+				<span class="input-group-addon"><a class="zmdi zmdi-edit" onclick="return jsAplicarDesconto(2);"></a></span>
+				<div class="form-group">
+					<label>&nbsp; Desconto (Valor)</label>
+					@Html.TextBoxFor(x => Model.ValorDesconto, new { @class = "form-control", @readonly = "readonly" })
+					<i class="form-group__bar"></i>
+				</div>
+			</div>
+
+			<div class="row" style="padding-left: 15px;">
+				<div class="col-sm-1 btn-group--colors" data-toggle="buttons">
+					<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.CobrarISS, new { @id = "chkCobrarEncargos" })</label>
+				</div>
+				<label class="control-label col-sm-45">Cobrar Encargos</label>
+				<div class="col-sm-1 btn-group--colors" data-toggle="buttons">
+					<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.CobrarBoletos, new { @id = "chkCobrarBoletos" })</label>
+				</div>
+				<label class="control-label col-sm-45">Cobrar Boletos</label>
+			</div>
+			<br />
+			<div class="form-group col-sm-12">
+				<label>Vendedor</label>
+				@Html.DropDownListFor(x => Model.FuncionarioVendedor.Codigo, listaAgentes, "Selecione o Vendedor...", new { @class = "select2" })
+				<i class="form-group__bar"></i>
+			</div>
+
+			<div class="form-group form-group--float col-sm-12">
+				@Html.TextBoxFor(x => x.Cliente.RazaoSocial, new { @class = "form-control", @readonly = "readonly" })
+				<label>Cliente</label>
+				<i class="form-group__bar"></i>
+			</div>
+
+			<div class="form-group col-sm-12">
+				<label>Condição de Pagamento</label>
+				@Html.DropDownListFor(x => Model.CondicaoPagamento.Codigo, listaCondicoes, "Selecione a condição de pagamento...", new { @class = "select2" })
+				<i class="form-group__bar"></i>
+			</div>
+
+			<div class="form-group col-sm-12">
+				<label>Hotel</label>
+				@Html.DropDownListFor(x => Model.ParceiroHotel.Codigo, listaParceirosHotel, "Selecione o hotel...", new { @class = "select2" })
+				<i class="form-group__bar"></i>
+			</div>
+
+			<div class="form-group col-sm-12">
+				<label>Sala para Treinamento</label>
+				@Html.DropDownListFor(x => Model.ParceiraSalaTreinamento.Codigo, listaParceirosSalas, "Selecione a sala...", new { @class = "select2" })
+				<i class="form-group__bar"></i>
+			</div>
+
+			<div class="row" style="padding-left: 15px;">
+				<div class="col-sm-1 btn-group--colors" data-toggle="buttons">
+					<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.EnviarPorCorreio, new { @id = "chkEnviarPorCorreio" })</label>
+				</div>
+				<label class="control-label col-sm-11">&nbsp;Enviar por Correio</label>
+			</div>
+			<br />
+			<div class="form-group col-sm-12">
+				<label>Conta Bancária</label>
+				@Html.DropDownListFor(x => Model.ContaBancaria.Codigo, listaContas, "Selecione a conta...", new { @class = "select2" })
+				<i class="form-group__bar"></i>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	$(document).ready(function () {
+
+		$('#chkCobrarEncargos').on('change', function () {
+			if (getCookie("CODIGO_PERFIL") == '1') {
+
+				var autorizado = false;
+
+				swal({
+					title: '<i>Solicite autorização ao supervisor!</i>',
+					type: 'warning',
+					html:
+					'<input type="text" class="form-control" id="swal-input1" placeholder="Usuário">' +
+					'<br />' +
+					'<input type="password" class="form-control" id="swal-input2" placeholder="Senha">',
+					showCancelButton: true,
+					confirmButtonText: 'Confirmar',
+					showLoaderOnConfirm: true,
+					preConfirm: () => {
+						return new Promise((resolve) => {
+
+							//VALIDAR USUÁRIO
+							var data = {
+								usuario: $('#swal-input1').val(),
+								senha: $('#swal-input2').val()
+							}
+
+							$.ajax({
+								type: "POST",
+								url: "/CabecalhoPedido/ValidaPermissaoUsuario/",
+								data: data,
+								success: function (result) {
+									if (result.sucesso) {
+										autorizado = result.autorizado;
+									} else {
+										OpenAlert('Atenção!', result.mensagemErro, 'danger');
+									}
+									resolve();
+								}
+							});
+						})
+					},
+					allowOutsideClick: false
+				}).then((result) => {
+					if (autorizado) {
+						updateCobrarEncargos();
+					} else {
+						OpenAlert("Atenção!", "O usuário informado não possui autorização para executar a ação!", 'warning');
+					}
+				}).catch((msg) => {
+					console.log(msg);
+				});
+
+			} else {
+				updateCobrarEncargos();
+			}
+		});
+
+		$('#chkCobrarBoletos').on('change', function () {
+
+			if (getCookie("CODIGO_PERFIL") == '1') {
+
+				var autorizado = false;
+
+				swal({
+					title: '<i>Solicite autorização ao supervisor!</i>',
+					type: 'warning',
+					html:
+					'<input type="text" class="form-control" id="swal-input1" placeholder="Usuário">' +
+					'<br />' +
+					'<input type="password" class="form-control" id="swal-input2" placeholder="Senha">',
+					showCancelButton: true,
+					confirmButtonText: 'Confirmar',
+					showLoaderOnConfirm: true,
+					preConfirm: () => {
+						return new Promise((resolve) => {
+
+							//VALIDAR USUÁRIO
+							var data = {
+								usuario: $('#swal-input1').val(),
+								senha: $('#swal-input2').val()
+							}
+
+							$.ajax({
+								type: "POST",
+								url: "/CabecalhoPedido/ValidaPermissaoUsuario/",
+								data: data,
+								success: function (result) {
+									if (result.sucesso) {
+										autorizado = result.autorizado;
+									} else {
+										OpenAlert('Atenção!', result.mensagemErro, 'danger');
+									}
+									resolve();
+								}
+							});
+						})
+					},
+					allowOutsideClick: false
+				}).then((result) => {
+					if (autorizado) {
+						updateCondicaoBoletos();
+					} else {
+						OpenAlert("Atenção!", "O usuário informado não possui autorização para executar a ação!", 'warning');
+					}
+				}).catch((msg) => {
+					console.log(msg);
+				});
+
+			} else {
+				updateCondicaoBoletos();
+			}
+		});
+
+		$('#CondicaoPagamento_Codigo').on('change', function () {
+			if (getCookie("CODIGO_PERFIL") == '1') {
+
+				var autorizado = false;
+
+				swal({
+					title: '<i>Solicite autorização ao supervisor!</i>',
+					type: 'warning',
+					html:
+					'<input type="text" class="form-control" id="swal-input1" placeholder="Usuário">' +
+					'<br />' +
+					'<input type="password" class="form-control" id="swal-input2" placeholder="Senha">',
+					showCancelButton: true,
+					confirmButtonText: 'Confirmar',
+					showLoaderOnConfirm: true,
+					preConfirm: () => {
+						return new Promise((resolve) => {
+
+							//VALIDAR USUÁRIO
+							var data = {
+								usuario: $('#swal-input1').val(),
+								senha: $('#swal-input2').val()
+							}
+
+							$.ajax({
+								type: "POST",
+								url: "/CabecalhoPedido/ValidaPermissaoUsuario/",
+								data: data,
+								success: function (result) {
+									if (result.sucesso) {
+										autorizado = result.autorizado;
+									} else {
+										OpenAlert('Atenção!', result.mensagemErro, 'danger');
+									}
+									resolve();
+								}
+							});
+						})
+					},
+					allowOutsideClick: false
+				}).then((result) => {
+					if (autorizado) {
+						updateCondicaoBoletos();
+					} else {
+						OpenAlert("Atenção!", "O usuário informado não possui autorização para executar a ação!", 'warning');
+					}
+				}).catch((msg) => {
+					console.log(msg);
+				});
+
+			} else {
+				updateCondicaoBoletos();
+			}
+		});
+	});
+
+	function updateCondicaoBoletos() {
+
+		var data = {
+			codigoPedido: $('#hfCodigoPedido').val(),
+			codigoCondicao: $('#CondicaoPagamento_Codigo').val(),
+			cobrarBoletos: $('#chkCobrarBoletos').is(":checked")
+		}
+
+		$.ajax({
+			type: "POST",
+			url: "/CabecalhoPedido/UpdateCobrarBoletos/",
+			data: data,
+			success: function (result) {
+				if (result.sucesso) {
+					$('#ValorBoletos').val(mascaraValor(parseFloat(result.valorBoletos).toFixed(2).toString().replace(".", ",")));
+					$('#CondicaoPagamento_Codigo').val(result.codigoCondicao);
+				} else {
+					OpenAlert('Atenção!', result.mensagemErro, 'danger');
+				}
+			}
+		});
+	}
+
+	function updateCobrarEncargos() {
+		var data = {
+			codigoPedido: $('#hfCodigoPedido').val(),
+			cobrarEncargos: $('#chkCobrarEncargos').is(":checked")
+		}
+
+		$.ajax({
+			type: "POST",
+			url: "/CabecalhoPedido/UpdateCobrarEncargos/",
+			data: data,
+			success: function (result) {
+				if (result.sucesso) {
+					$('#ValorTotal').val(mascaraValor(result.valorTotal));
+					UpdatePartialViewItensPedido();
+				} else {
+					OpenAlert('Atenção!', result.mensagemErro, 'danger');
+				}
+			}
+		});
+	}
+
+	function atualizarTotal() {
+		updateCobrarEncargos();
+	}
+
+	function jsAplicarDesconto(tipo) {
+
+		if (getCookie("CODIGO_PERFIL") == '1') {
+
+			var autorizado = false;
+
+			swal({
+				title: '<i>Solicite autorização ao supervisor!</i>',
+				type: 'warning',
+				html:
+				'<input type="text" class="form-control" id="swal-input1" placeholder="Usuário">' +
+				'<br />' +
+				'<input type="password" class="form-control" id="swal-input2" placeholder="Senha">',
+				showCancelButton: true,
+				confirmButtonText: 'Confirmar',
+				showLoaderOnConfirm: true,
+				preConfirm: () => {
+					return new Promise((resolve) => {
+
+						//VALIDAR USUÁRIO
+						var data = {
+							usuario: $('#swal-input1').val(),
+							senha: $('#swal-input2').val()
+						}
+
+						$.ajax({
+							type: "POST",
+							url: "/CabecalhoPedido/ValidaPermissaoUsuario/",
+							data: data,
+							success: function (result) {
+								if (result.sucesso) {
+									autorizado = result.autorizado;
+								} else {
+									OpenAlert('Atenção!', result.mensagemErro, 'danger');
+								}
+								resolve();
+							}
+						});
+					})
+				},
+				allowOutsideClick: false
+			}).then((result) => {
+				if (autorizado) {
+					updateDesconto(tipo);
+				} else {
+					OpenAlert("Atenção!", "O usuário informado não possui autorização para executar a ação!", 'warning');
+				}
+			}).catch((msg) => {
+				console.log(msg);
+			});
+
+		} else {
+			updateDesconto(tipo);
+		}
+	}
+
+	function updateDesconto(tipo) {
+		if (tipo == 1) {
+			//DESCONTO POR PERCENTUAL
+			swal({
+				title: "Informe o percentual de desconto!",
+				type: 'info',
+				html: "<input type='text' id='txtPercentualDesconto' class='form-control' onkeypress='return jsSomenteNumero(arguments[0] || window.event)' />",
+				showCloseButton: true,
+				showCancelButton: true
+			}).then(function (result) {
+				if ($('#txtPercentualDesconto').val() != "") {
+					//IMPLEMENTAR REGRA
+					$.ajax({
+						type: "POST",
+						url: "/CabecalhoPedido/UpdateDescontoCabecalhoPedidoPercentual/",
+						data: {
+							codigoPedido: '@Html.Raw(Model.Codigo)',
+							percentualDesconto: $('#txtPercentualDesconto').val(),
+							cobrarEncargos: $('#chkCobrarEncargos').is(":checked")
+						},
+						success: function (result) {
+							if (result.sucesso) {
+
+								$('#ValorTotal').val(result.valorTotal);
+								$('#PercentualDesconto').val(result.percentualDesconto);
+								$('#ValorDesconto').val(result.valorDesconto);
+
+								UpdatePartialViewItensPedido();
+							} else {
+								OpenAlert('Atenção!', result.mensagemErro, 'danger');
+							}
+						}
+					});
+				}
+			});
+
+		} else {
+			//DESCONTO POR VALOR
+			swal({
+				title: "Informe o valor do desconto!",
+				type: 'info',
+				html: "<input type='text' id='txtValorDesconto' class='form-control' onkeypress='return jsSomenteNumeroVirgula(arguments[0] || window.event)' />",
+				showCloseButton: true,
+				showCancelButton: true
+			}).then(function (result) {
+				if ($('#txtValorDesconto').val() != "") {
+					//IMPLEMENTAR REGRA
+					$.ajax({
+						type: "POST",
+						url: "/CabecalhoPedido/UpdateDescontoCabecalhoPedidoValor/",
+						data: {
+							codigoPedido: '@Html.Raw(Model.Codigo)',
+							valorDesconto: $('#txtValorDesconto').val(),
+							cobrarEncargos: $('#chkCobrarEncargos').is(":checked")
+						},
+						success: function (result) {
+							if (result.sucesso) {
+
+								$('#ValorTotal').val(result.valorTotal);
+								$('#PercentualDesconto').val(result.percentualDesconto);
+								$('#ValorDesconto').val(result.valorDesconto);
+
+								UpdatePartialViewItensPedido();
+							} else {
+								OpenAlert('Atenção!', result.mensagemErro, 'danger');
+							}
+						}
+					});
+				}
+			});
+		}
+	}
+
+</script>

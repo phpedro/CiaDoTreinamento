@@ -1,0 +1,217 @@
+﻿@model CODE.Parceiro
+
+@{
+	//GET ESTADOS
+	List<SelectListItem> listaEstados = CODE.Uteis.RetornarEstadosComboCompleto();
+}
+
+<section id="main-content">
+	<section class="content">
+		<div class="panel">
+			<header class="panel-heading">
+				<h4>@Html.Raw(Model == null ? "NOVO PARCEIRO" : "EDITAR PARCEIRO")</h4>
+				<div class="top-nav">
+					<button id="btnVoltar" class="btn btn-primary" onclick="return jsVoltar();"><span aria-hidden="true" class="zmdi zmdi-arrow-left"></span> &nbsp; VOLTAR</button>
+					@if (Model == null)
+					{
+						<button id="btnLimpar" class="btn btn-primary" onclick="return jsLimpar();"><span aria-hidden="true" class="zmdi zmdi-close"></span> &nbsp; LIMPAR</button>
+					}
+					<button id="btnSalvar" class="btn btn-primary" onclick="return jsSalvar();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; SALVAR</button>
+				</div>
+			</header>
+			<div class="panel-body">
+				@using (Html.BeginForm("Salvar", "Parceiro", FormMethod.Post, new { @name = "formNovo", @id = "formNovo" }))
+				{
+					@Html.HiddenFor(x => Model.Codigo, new { @class = "form-control" })
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Descricao, new { @class = "form-control noBlank" })
+							<label class="required">Nome</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label class="required">ESTADO</label>
+							@Html.DropDownListFor(x => Model.Cidade.Estado, listaEstados, "Selecione o Estado...", new { @class = "select2", @onchange = "return preencheDDLCidades(this.value, $('#Cidade_Codigo'));" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label class="required">CIDADE</label>
+							@Html.DropDownListFor(x => Model.Cidade.Codigo, new List<SelectListItem>(), "Todas as Cidades", new { @class = "select2" })
+							@Html.HiddenFor(x => Model.Cidade.Codigo, new { @id = "hfCodigoCidade" })
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Endereco, new { @class = "form-control noBlank" })
+							<label class="required">Endereço</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Bairro, new { @class = "form-control noBlank" })
+							<label>Bairro</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.TipoParceiro, new { @class = "form-control noBlank" })
+							<label class="required">Tipo Parceiro</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Observacao, new { @class = "form-control noBlank" })
+							<label>Observação</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Responsavel, new { @class = "form-control noBlank" })
+							<label>Nome Responsável</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Email, new { @class = "form-control noBlank" })
+							<label>Email</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Custo, new { @class = "form-control noBlank", @onkeypress= "return jsSomenteDecimal(arguments[0] || window.event)" })
+							<label>Custo</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="col-sm-4 chkRow">
+							<div class="col-sm-2 btn-group--colors" data-toggle="buttons">
+								<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PassaCartao)</label>
+							</div>
+							<label class="control-label">Passa Cartão</label>
+						</div>
+					</div>
+
+					<br />
+					@Html.Partial("PartialTelefones")
+				}
+			</div>
+		</div>
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	var tela;
+
+	$(document).ready(function () {
+
+		if (!tela) {
+			jsCarregarCampos();
+		}
+		var me = tela;
+
+		if (me.Codigo.val() != "") {
+			preencheDDLCidades(me.Estado.val(), me.Cidade_Codigo, me.hfCodigoCidade.val());
+		}
+
+	});
+
+	function jsCarregarCampos() {
+
+		tela = {
+			Codigo: $('#Codigo'),
+			Descricao: $('#Descricao'),
+			Estado: $('#Cidade_Estado'),
+			Cidade_Codigo: $('#Cidade_Codigo'),
+			hfCodigoCidade: $('#hfCodigoCidade'),
+			Endereco: $('#Endereco'),
+			Bairro: $('#Bairro'),
+			TipoParceiro: $('#TipoParceiro'),
+			Observacao: $('#Observacao'),
+			Responsavel: $('#Responsavel'),
+			Email: $('#Email'),
+			Custo: $('#Custo'),
+			PassaCartao: $('#PassaCartao')
+
+		}
+	}
+
+	function jsVoltar() {
+		jsLimpar();
+		window.location.assign("@Url.Action("List", "Parceiro")");
+	}
+
+	function jsLimpar() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		me.Codigo.val('');
+		me.Descricao.val('');
+		me.Estado.val('').trigger('change');
+		me.Cidade_Codigo.val('').trigger('change');
+		me.Endereco.val('');
+		me.Bairro.val('');
+		me.TipoParceiro.val('');
+		me.Observacao.val('');
+		me.Responsavel.val('');
+		me.Email.val('');
+		me.Custo.val('');
+
+		jsRemoverFocus(me.Descricao);
+		jsRemoverFocus(me.Endereco);
+		jsRemoverFocus(me.Bairro);
+		jsRemoverFocus(me.TipoParceiro);
+		jsRemoverFocus(me.Observacao);
+		jsRemoverFocus(me.Responsavel);
+		jsRemoverFocus(me.Email);
+		jsRemoverFocus(me.Custo);
+
+		jsLimparTabelaTelefones();
+
+		jsLoading(false);
+
+		return false;
+	}
+
+	function jsSalvar() {
+
+		jsLoading(true);
+
+		if (!jsValidaCampos()) {
+			jsLoading(false);
+			return false;
+		}
+
+		document.getElementById('formNovo').submit();
+
+	}
+
+	function jsValidaCampos() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		if (me.Descricao.val() == "") {
+			OpenAlert("Atenção!", "Informe o nome do parceiro!", "danger");
+			me.Descricao.focus();
+			return false;
+		} else if (me.Estado.val() == "") {
+			OpenAlert("Atenção!", "Informe o estado do parceiro!", "danger");
+			return false;
+		} else if (me.Cidade_Codigo.val() == "") {
+			OpenAlert("Atenção!", "Informe a cidade do parceiro!", "danger");
+			return false;
+		} else if (me.Endereco.val() == "") {
+			OpenAlert("Atenção!", "Informe o endereço do parceiro!", "danger");
+			me.Endereco.focus();
+			return false;
+		} else if (me.TipoParceiro.val() == "") {
+			OpenAlert("Atenção!", "Informe o tipo do parceiro!", "danger");
+			me.TipoParceiro.focus();
+			return false;
+		}
+
+		return true;
+
+	}
+
+</script>

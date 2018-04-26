@@ -1,0 +1,114 @@
+﻿@model CODE.CabecalhoPedido
+
+@{
+	ViewBag.codigoPedido = Model.Codigo;
+}
+
+<section id="main-content">
+	<section class="content">
+		<div class="panel">
+			@Html.HiddenFor(x => Model.Codigo, new { @id="hfCodigoPedido" })
+			<header class="panel-heading">
+				<h4 class="accordion-toggle" data-toggle="collapse" href="#divNovoPedidoItensCollapse" aria-expanded="false">NOVO PEDIDO - ITENS</h4>
+				<div class="top-nav">
+					<button id="btnSalvar" class="btn btn-primary" onclick="jsSalvar();"><span aria-hidden="true" class="zmdi zmdi-assignment-check"></span> &nbsp; FECHAR PEDIDO</button>
+				</div>
+			</header>
+			<div id="divNovoPedidoItensCollapse" class="panel-collapse collapse show">
+				<div class="panel-body" style="display: flex">
+					<div class="col-sm-8">
+						<!--PARTIAL PRODUTOS-->
+						@Html.Partial("Produto/PartialProdutos")
+						<br />
+						<!--PARTIAL DADOS DO CLIENTE-->
+						@Html.Partial("Cliente/PartialClienteResumido")
+						<br />
+						<!--PARTIAL CONFIRMAR PEDIDOS-->
+						<div id="divConfirmarItensPedido">
+							@Html.Partial("CabecalhoPedido/PartialConfirmarPedido", Model.Codigo)
+						</div>
+					</div>
+					<div class="col-sm-4">
+						<!--PARTIAL DADOS DO PEDIDO-->
+						<div id="divDadosPedido">
+							@Html.Partial("CabecalhoPedido/PartialDadosPedido")
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</section>
+@Html.Partial("Produto/PartialItemPedido")
+
+<script type="text/javascript">
+
+	function jsSalvar() {
+		swal({
+			title: 'Realizou contrato verbal?',
+			text: "",
+			type: 'warning',
+			showCancelButton: true,
+			confirmButtonColor: '#3085d6',
+			cancelButtonColor: '#d33',
+			confirmButtonText: 'SIM',
+			cancelButtonText: 'NÃO',
+			showLoaderOnConfirm: true,
+			preConfirm: (data) => {
+				return new Promise((resolve, reject) => {
+					//IMPLEMENTAR MÉTODO DE GRAVAÇÃO
+					var _codigoHotel = null;
+					var _codigoSala = null;
+
+					if ($('#ParceiroHotel_Codigo').val() != null && $('#ParceiroHotel_Codigo').val() != "") {
+						_codigoHotel = $('#ParceiroHotel_Codigo').val();
+					}
+
+					if ($('#ParceiraSalaTreinamento').val() != null && $('#ParceiraSalaTreinamento').val() != "") {
+						_codigoSala = $('#ParceiraSalaTreinamento').val();
+					}
+
+					$.ajax({
+						type: "POST",
+						url: "/CabecalhoPedido/FecharPedido/",
+						data: {
+							codigoPedido: $('#hfCodigoPedido').val(),
+							codigoVendedor: $('#FuncionarioVendedor_Codigo').val(),
+							codigoHotel: _codigoHotel,
+							codigoSalaTreinamento: _codigoSala,
+							enviarPorCorreio: $('#chkEnviarPorCorreio').is(':checked'),
+							codigoConta: $('#ContaBancaria_Codigo').val()
+						},
+						success: function (result) {
+							if (result.sucesso) {
+								resolve();
+							}
+							else {
+								reject();
+								swal.close();
+								OpenAlert("Atenção!", result.mensagemErro, "danger");
+								return false;
+							}
+						}
+					});
+				})
+			},
+			allowOutsideClick: false
+		}).then((result) => {
+
+			if (result) {
+				swal(
+					'Sucesso!',
+					'Pedido fechado!.',
+					'success'
+				)
+
+				setTimeout(function () {
+
+					window.location = '/Cliente/Edit?id=' + '@Model.Cliente.Codigo';
+
+				 }, 1500);
+			}
+		})
+	}
+</script>

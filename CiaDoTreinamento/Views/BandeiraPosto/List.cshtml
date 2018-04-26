@@ -1,0 +1,61 @@
+﻿@model List<CODE.BandeiraPosto>
+
+<section id="main-content">
+	<section class="content">
+		<div class="panel">
+			<header class="panel-heading">
+				<h4>BANDEIRAS POSTOS</h4>
+				<div class="top-nav">
+					<button id="btnNovo" class="btn btn-primary" onclick="jsNovo();"><span aria-hidden="true" class="zmdi zmdi-file-plus"></span> &nbsp; NOVO</button>
+				</div>
+			</header>
+			<div class="panel-body">
+				<div class="table-responsive">
+					<table id="data-table" class="table table-bordered table-striped">
+						<thead class="thead-default">
+							<tr>
+								<th class="center">AÇÕES</th>
+								<th class="center">CÓDIGO</th>
+								<th class="center">DESCRIÇÃO</th>
+							</tr>
+						</thead>
+						<tbody>
+							@foreach (CODE.BandeiraPosto bandeira in Model)
+							{
+								<tr>
+									<td class="center">
+										<a href="#" title="Editar" onclick="jsEditar(@Html.Raw(bandeira.Codigo))"><span aria-hidden="true" class="zmdi zmdi-border-color"></span></a>
+										&nbsp;
+										<a href="#" title="Excluir" onclick="jsExcluir(@Html.Raw(bandeira.Codigo))"><span aria-hidden="true" class="zmdi zmdi-delete"></span></a>
+									</td>
+									<td class="center">
+										@bandeira.Codigo
+									</td>
+									<td class="center">
+										@bandeira.Descricao
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	function jsEditar(codigoBandeira) {
+		window.location.assign("@Url.Action("Edit", "BandeiraPosto")?codigoBandeira=" + codigoBandeira);
+	}
+
+	function jsExcluir(codigoBandeira) {
+		window.location.assign("@Url.Action("Delete", "BandeiraPosto")?codigoBandeira=" + codigoBandeira);
+	}
+
+	function jsNovo() {
+		window.location.assign("@Url.Action("Edit", "BandeiraPosto")");
+	}
+
+</script>

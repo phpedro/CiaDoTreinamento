@@ -1,0 +1,537 @@
+﻿@model CODE.CabecalhoPedido
+
+@{
+	string mensagemErro;
+
+	//GET PRODUTOS
+	CODE.ProdutoBLL produtoBLL = new CODE.ProdutoBLL();
+	List<CODE.Produto.ProdutoTela> listaProdutos = produtoBLL.GetProdutosTela(out mensagemErro, true);
+
+	List<CODE.Produto.ProdutoTela> listaProdutosTreinamento = listaProdutos.Where(x => x.CategoriaProduto == "Treinamentos").ToList();
+	List<CODE.Produto.ProdutoTela> listaProdutosDocumento = listaProdutos.Where(x => x.CategoriaProduto == "Documentos").ToList();
+	List<CODE.Produto.ProdutoTela> listaProdutosLaudo = listaProdutos.Where(x => x.CategoriaProduto == "Laudos").ToList();
+	List<CODE.Produto.ProdutoTela> listaProdutos2Via = listaProdutos.Where(x => x.CategoriaProduto == "2ª Via").ToList();
+	List<CODE.Produto.ProdutoTela> listaProdutosOutros = listaProdutos.Where(x => x.CategoriaProduto == "Outros").ToList();
+
+	//GET PRODUTOS VENDIDOS
+	int codigoPedido = ViewBag.codigoPedido;
+	List<CODE.ItemPedido> listaItensVendidos = new List<CODE.ItemPedido>();
+	if (codigoPedido != 0) {
+		CODE.ItemPedidoBLL itemPedidoBLL = new CODE.ItemPedidoBLL();
+		listaItensVendidos = itemPedidoBLL.getItemPedido(null, codigoPedido, out mensagemErro);
+	}
+}
+
+<div class="panel">
+	<header class="panel-heading">
+		<h4 class="accordion-toggle" data-toggle="collapse" href="#divProdutosCollapse" aria-expanded="false">PRODUTOS</h4>
+	</header>
+	<div id="divProdutosCollapse" class="panel-collapse collapse show">
+		<div class="panel-body">
+			<div>
+				<ul id="tabs">
+					<li><a name="tab-treinamento">TREINAMENTOS</a></li>
+					<li><a name="tab-documentos">DOCUMENTOS</a></li>
+					<li><a name="tab-laudo">LAUDOS</a></li>
+					<li><a name="tab-2Via">2ª VIA</a></li>
+					<li><a name="tab-outros">OUTROS</a></li>
+				</ul>
+				<div id="content_tabs">
+					<!--TREINAMENTOS-->
+					<div id="tab-treinamento">
+						<div class="table-responsive" style="overflow: hidden"> 
+							<table id="data-table" class="table table-striped table-bordered">
+								<thead class="thead-default">
+									<tr>
+										<th>PRODUTO</th>
+										<th>QUANTIDADE</th>
+										<th>UNITÁRIO</th>
+										<th>ACRÉSCIMO</th>
+										<th>TOTAL</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (CODE.Produto.ProdutoTela item in listaProdutosTreinamento)
+									{
+										CODE.ItemPedido itemPedido = listaItensVendidos.Where(x => x.Produto.Codigo == item.Codigo).FirstOrDefault();
+
+										if (itemPedido == null)
+										{
+											<tr>
+												@Html.Hidden("hfCodigoProduto", item.Codigo)
+												<td>
+													@item.Descricao
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("qtde_" + item.Codigo)" value="0" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													@item.ValorPorPessoa
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("acrescimo" + item.Codigo)" value="0,00" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("total_" + item.Codigo)" value="0,00" class="form-control" readonly />
+												</td>
+												<td>
+													<a class="zmdi zmdi-hc-2x zmdi-info notSale" id="@Html.Raw("btn_" + item.Codigo)" data-value="false" onclick="openModalItemProduto(@Html.Raw(Model.Codigo), @Html.Raw(item.Codigo), $(this).data('value'))"></a>
+												</td>
+											</tr>
+										}
+										else
+										{
+											<tr>
+												@Html.Hidden("hfCodigoProduto", item.Codigo)
+												<td>
+													@item.Descricao
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("qtde_" + item.Codigo)" value="@Html.Raw(itemPedido.Quantidade)" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													@item.ValorPorPessoa
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("acrescimo" + item.Codigo)" value="@Html.Raw(itemPedido.valorFinal - item.ValorPorPessoa)" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("total_" + item.Codigo)" value="@Html.Raw(itemPedido.Subtotal - itemPedido.ValorEncargos)" class="form-control" readonly />
+												</td>
+												<td>
+													<a class="zmdi zmdi-hc-2x zmdi-info sale" id="@Html.Raw("btn_" + item.Codigo)" data-value="true" onclick="openModalItemProduto(@Html.Raw(Model.Codigo), @Html.Raw(item.Codigo), $(this).data('value'))"></a>
+												</td>
+											</tr>
+										}
+
+									}
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<!--DOCUMENTOS-->
+					<div id="tab-documentos">
+						<div class="table-responsive">
+							<table id="data-table" class="table table-striped table-bordered">
+								<thead class="thead-default">
+									<tr>
+										<th>PRODUTO</th>
+										<th>QUANTIDADE</th>
+										<th>VALOR UNITÁRIO</th>
+										<th>ACRÉSCIMO</th>
+										<th>TOTAL</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (CODE.Produto.ProdutoTela item in listaProdutosDocumento)
+									{
+										CODE.ItemPedido itemPedido = listaItensVendidos.Where(x => x.Produto.Codigo == item.Codigo).FirstOrDefault();
+
+										if (itemPedido == null)
+										{
+											<tr>
+												@Html.Hidden("hfCodigoProduto", item.Codigo)
+												<td>
+													@item.Descricao
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("qtde_" + item.Codigo)" value="0" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													@item.ValorPorPessoa
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("acrescimo" + item.Codigo)" value="0,00" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("total_" + item.Codigo)" value="0" class="form-control" readonly />
+												</td>
+												<td>
+													<a class="zmdi zmdi-hc-2x zmdi-info notSale" onclick="jsAbrirProdutoDetalhado(@Html.Raw(item.Codigo))"></a>
+												</td>
+											</tr>
+										}
+										else
+										{
+											<tr>
+												@Html.Hidden("hfCodigoProduto", item.Codigo)
+												<td>
+													@item.Descricao
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("qtde_" + item.Codigo)" value="@Html.Raw(itemPedido.Quantidade)" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													@item.ValorPorPessoa
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("acrescimo" + item.Codigo)" value="@Html.Raw(itemPedido.valorFinal - item.ValorPorPessoa)" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("total_" + item.Codigo)" value="@Html.Raw(itemPedido.Subtotal - itemPedido.ValorEncargos)" class="form-control" readonly />
+												</td>
+												<td>
+													<a class="zmdi zmdi-hc-2x zmdi-info sale" onclick="jsAbrirProdutoDetalhado(@Html.Raw(item.Codigo))"></a>
+												</td>
+											</tr>
+										}
+
+									}
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<!--LAUDOS-->
+					<div id="tab-laudo">
+						<div class="table-responsive">
+							<table id="data-table" class="table table-striped table-bordered">
+								<thead class="thead-default">
+									<tr>
+										<th>PRODUTO</th>
+										<th>QUANTIDADE</th>
+										<th>VALOR UNITÁRIO</th>
+										<th>ACRÉSCIMO</th>
+										<th>TOTAL</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (CODE.Produto.ProdutoTela item in listaProdutosLaudo)
+									{
+										CODE.ItemPedido itemPedido = listaItensVendidos.Where(x => x.Produto.Codigo == item.Codigo).FirstOrDefault();
+
+										if (itemPedido == null)
+										{
+											<tr>
+												@Html.Hidden("hfCodigoProduto", item.Codigo)
+												<td>
+													@item.Descricao
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("qtde_" + item.Codigo)" value="0" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													@item.ValorPorPessoa
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("acrescimo" + item.Codigo)" value="0,00" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("total_" + item.Codigo)" value="0" class="form-control" readonly />
+												</td>
+												<td>
+													<a class="zmdi zmdi-hc-2x zmdi-info notSale" onclick="jsAbrirProdutoDetalhado(@Html.Raw(item.Codigo))"></a>
+												</td>
+											</tr>
+										}
+										else
+										{
+											<tr>
+												@Html.Hidden("hfCodigoProduto", item.Codigo)
+												<td>
+													@item.Descricao
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("qtde_" + item.Codigo)" value="@Html.Raw(itemPedido.Quantidade)" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													@item.ValorPorPessoa
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("acrescimo" + item.Codigo)" value="@Html.Raw(itemPedido.valorFinal - item.ValorPorPessoa)" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("total_" + item.Codigo)" value="@Html.Raw(itemPedido.Subtotal - itemPedido.ValorEncargos)" class="form-control" readonly />
+												</td>
+												<td>
+													<a class="zmdi zmdi-hc-2x zmdi-info sale" onclick="jsAbrirProdutoDetalhado(@Html.Raw(item.Codigo))"></a>
+												</td>
+											</tr>
+										}
+
+									}
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<!--2 VIA-->
+					<div id="tab-2Via">
+						<div class="table-responsive">
+							<table id="data-table" class="table table-striped table-bordered">
+								<thead class="thead-default">
+									<tr>
+										<th>PRODUTO</th>
+										<th>QUANTIDADE</th>
+										<th>VALOR UNITÁRIO</th>
+										<th>ACRÉSCIMO</th>
+										<th>TOTAL</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (CODE.Produto.ProdutoTela item in listaProdutos2Via)
+									{
+										CODE.ItemPedido itemPedido = listaItensVendidos.Where(x => x.Produto.Codigo == item.Codigo).FirstOrDefault();
+
+										if (itemPedido == null)
+										{
+											<tr>
+												@Html.Hidden("hfCodigoProduto", item.Codigo)
+												<td>
+													@item.Descricao
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("qtde_" + item.Codigo)" value="0" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													@item.ValorPorPessoa
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("acrescimo" + item.Codigo)" value="0,00" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("total_" + item.Codigo)" value="0" class="form-control" readonly />
+												</td>
+												<td>
+													<a class="zmdi zmdi-hc-2x zmdi-info notSale" onclick="jsAbrirProdutoDetalhado(@Html.Raw(item.Codigo))"></a>
+												</td>
+											</tr>
+										}
+										else
+										{
+											<tr>
+												@Html.Hidden("hfCodigoProduto", item.Codigo)
+												<td>
+													@item.Descricao
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("qtde_" + item.Codigo)" value="@Html.Raw(itemPedido.Quantidade)" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													@item.ValorPorPessoa
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("acrescimo" + item.Codigo)" value="@Html.Raw(itemPedido.valorFinal - item.ValorPorPessoa)" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("total_" + item.Codigo)" value="@Html.Raw(itemPedido.Subtotal - itemPedido.ValorEncargos)" class="form-control" readonly />
+												</td>
+												<td>
+													<a class="zmdi zmdi-hc-2x zmdi-info sale" onclick="jsAbrirProdutoDetalhado(@Html.Raw(item.Codigo))"></a>
+												</td>
+											</tr>
+										}
+
+									}
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<!--OUTROS-->
+					<div id="tab-outros">
+						<div class="table-responsive">
+							<table id="data-table" class="table table-striped table-bordered">
+								<thead class="thead-default">
+									<tr>
+										<th>PRODUTO</th>
+										<th>QUANTIDADE</th>
+										<th>VALOR UNITÁRIO</th>
+										<th>ACRÉSCIMO</th>
+										<th>TOTAL</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (CODE.Produto.ProdutoTela item in listaProdutosOutros)
+									{
+										CODE.ItemPedido itemPedido = listaItensVendidos.Where(x => x.Produto.Codigo == item.Codigo).FirstOrDefault();
+
+										if (itemPedido == null)
+										{
+											<tr>
+												@Html.Hidden("hfCodigoProduto", item.Codigo)
+												<td>
+													@item.Descricao
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("qtde_" + item.Codigo)" value="0" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													@item.ValorPorPessoa
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("acrescimo" + item.Codigo)" value="0,00" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("total_" + item.Codigo)" value="0" class="form-control" readonly />
+												</td>
+												<td>
+													<a class="zmdi zmdi-hc-2x zmdi-info notSale" onclick="jsAbrirProdutoDetalhado(@Html.Raw(item.Codigo))"></a>
+												</td>
+											</tr>
+										}
+										else
+										{
+											<tr>
+												@Html.Hidden("hfCodigoProduto", item.Codigo)
+												<td>
+													@item.Descricao
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("qtde_" + item.Codigo)" value="@Html.Raw(itemPedido.Quantidade)" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													@item.ValorPorPessoa
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("acrescimo" + item.Codigo)" value="@Html.Raw(itemPedido.valorFinal - item.ValorPorPessoa)" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="return jsIncluirProduto(this)" />
+												</td>
+												<td>
+													<input type="text" id="@Html.Raw("total_" + item.Codigo)" value="@Html.Raw(itemPedido.Subtotal - itemPedido.ValorEncargos)" class="form-control" readonly />
+												</td>
+												<td>
+													<a class="zmdi zmdi-hc-2x zmdi-info sale" onclick="jsAbrirProdutoDetalhado(@Html.Raw(item.Codigo))"></a>
+												</td>
+											</tr>
+										}
+
+									}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	var _codigoMotivo = "";
+
+	$(document).ready(function () {
+		$("#content_tabs").find("[id^='tab']").hide(); // Hide all content
+		$("#tabs li:first").attr("id", "current"); // Activate the first tab
+		$("#content_tabs #tab-treinamento").fadeIn(); // Show first tab's content
+
+		$('#tabs a').click(function (e) {
+			e.preventDefault();
+			if ($(this).closest("li").attr("id") == "current") { //detection for current tab
+				return;
+			}
+			else {
+				$("#content_tabs").find("[id^='tab']").hide(); // Hide all content
+				$("#tabs li").attr("id", ""); //Reset id's
+				$(this).parent().attr("id", "current"); // Activate this
+				$('#' + $(this).attr('name')).fadeIn(); // Show content for the current tab
+			}
+		});
+
+	});
+
+	function jsIncluirProduto(obj) {
+
+		var codigoProduto = parseInt($($(obj).parent().parent().children()[0]).val());
+
+		var quantidade = parseInt($($(obj).parent().parent().children()[2].children).val());
+
+		if (quantidade > 0) {
+
+			var valorUnitario = parseFloat($($(obj).parent().parent().children()[3]).html().replace(",", "."));
+			var acrescimo = parseFloat($($(obj).parent().parent().children()[4]).children().val().replace(",", "."));
+
+			var valorVenda = valorUnitario + acrescimo;
+
+			var valorFinal = mascaraValor((quantidade * valorVenda).toFixed(2))
+
+			$($(obj).parent().parent().children()[5]).children()[0].value = valorFinal;
+
+			var data = {
+				codigoPedido: '@Html.Raw(Model.Codigo)',
+				codigoProduto: codigoProduto,
+				quantidade: quantidade,
+				valorVenda: valorVenda.toString().replace(".",","),
+				cobrarEncargos: $('#chkCobrarEncargos').is(":checked"),
+				codigoMotivo: _codigoMotivo
+			}
+
+			$.ajax({
+				url: "/CabecalhoPedido/InserirItemResumido",
+				data: data,
+				type: 'POST',
+				success: function (result) {
+					if (result.sucesso) {
+						$($(obj).parent().parent().children()[6]).children().addClass('sale');
+						$($(obj).parent().parent().children()[6]).children().removeClass('notSale');
+						$('#btn_' + codigoProduto).data('value', true);
+						atualizarTotal();
+					} else {
+						OpenAlert("Erro!", result.mensagemErro, "danger");
+					}
+				}
+			});
+		} else if (quantidade == 0) {
+			//REMOVER PRODUTO VENDIDO
+			var data = {
+				codigoPedido: '@Html.Raw(Model.Codigo)',
+				codigoProduto: codigoProduto
+			}
+
+			$.ajax({
+				url: "/CabecalhoPedido/RemoverItemVendido",
+				data: data,
+				type: 'POST',
+				success: function (result) {
+					if (result.sucesso) {
+						$($(obj).parent().parent().children()[6]).children().addClass('notSale');
+						$($(obj).parent().parent().children()[6]).children().removeClass('sale');
+
+						var valorFinal = $($(obj).parent().parent().children()[5]).children().val();
+						atualizarTotal();
+
+						$($(obj).parent().parent().children()[5]).children().val("0,00");
+						$('#btn_' + codigoProduto).data('value', false);
+
+					} else {
+						OpenAlert("Erro!", result.mensagemErro, "danger");
+					}
+				}
+			});
+		}
+	}
+
+	function jsUptadeProduct(codigoProduto, quantidadeVendida, valorIncremento, codigoMotivo, arrayAlunos)
+	{
+		$('#qtde_' + codigoProduto).val(quantidadeVendida);
+
+		if (valorIncremento != "") {
+
+			$('#acrescimo' + codigoProduto).val(valorIncremento);
+		}
+
+		_codigoMotivo = codigoMotivo;
+
+		$('#btn_' + codigoProduto).data('value', true);
+
+		$('#qtde_' + codigoProduto).change();
+
+		//GRAVAR ALUNOS SELECIONADOS
+		var data = {
+			codigoPedido: '@Html.Raw(Model.Codigo)',
+			codigoProduto: codigoProduto,
+			listaAlunos: arrayAlunos
+		}
+
+		$.ajax({
+			url: "/CabecalhoPedido/InserirAlunosPedido",
+			data: data,
+			type: 'POST',
+			success: function (result) {
+			}
+		});
+	}
+
+</script>

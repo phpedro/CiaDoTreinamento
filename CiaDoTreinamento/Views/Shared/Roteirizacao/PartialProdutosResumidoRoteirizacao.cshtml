@@ -1,0 +1,79 @@
+﻿<div id="divModalProdutosRoteirizacao" class="modalAlerta animate-zoom" style="display: none">
+	<div class="contentModal">
+		<!--MODAL HEADER-->
+		<div class="modal-header">
+			<h5>PRODUTOS DO PEDIDO</h5>
+		</div>
+		<!--MODAL CONTENT-->
+		<div class="modal-content" style="max-height:400px; overflow-y:auto">
+			<table name="tbProdutos" class="table table-striped table-bordered table-hover"></table>
+		</div>
+		<!--MODAL FOOTER-->
+		<div class="modal-footer">
+			<button class="btn btn-secondary cancelar" onclick="closeModal(this)">FECHAR</button>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	function openModalRoteirizacaoSimples(codigoPedido) {
+
+		jsBuscarProdutos(codigoPedido);
+	}
+
+	function jsBuscarProdutos(codigoPedido) { 
+
+		var data = {
+			codigoPedido: codigoPedido
+		}
+
+		$.ajax({
+			type: "GET",
+			url: "/Roteirizacao/BuscarItensPedido/",
+			data: data,
+			success: function (data) {
+				if (data.sucesso) {
+					montarTabelaRoteirizacao(data.itensPedido);
+					$('#divModalProdutosRoteirizacao').show();
+					return true;
+				} else {
+					OpenAlert("Atenção!", data.mensagemErro, "danger");
+					return false;
+				}
+			}
+		});
+	}
+
+	function montarTabelaRoteirizacao(itensPedido) {
+
+		var tabelaObjeto = document.getElementsByName('tbProdutos')[0];
+		removeAllChilds(tabelaObjeto);
+
+		if (tabelaObjeto.tHead == null) {
+			var listaColunas = ["PRODUTO", "QUANTIDADE", "CARGA HORÁRIA"];
+			jsAdicionarCabecalhoTabela(tabelaObjeto, listaColunas);
+		}
+
+		var tbody = jsAdicionarCorpoTabela(tabelaObjeto);
+
+		for (i = 0; i < itensPedido.length; i++) {
+
+			var tr = document.createElement('tr');
+			var td1 = document.createElement('td');
+			var td2 = document.createElement('td');
+			var td3 = document.createElement('td');
+
+			td1.innerHTML = itensPedido[i].produto.descricao;
+			td2.innerHTML = itensPedido[i].quantidade;
+			td3.innerHTML = itensPedido[i].produto.cargaHoraria;
+
+			var listaColunas = [td1, td2, td3];
+
+			jsAdicionarLinhaTabela(listaColunas, tr);
+
+			tbody.appendChild(tr);
+		}
+	}
+
+</script>

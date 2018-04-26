@@ -1,0 +1,194 @@
+﻿@model CODE.Cliente
+
+<div class="panel" id="divPartialEmails">
+	<input type="hidden" id="paginaCarregadaEmails" value="false" />
+	<header class="panel-heading">
+		<h4 id="headerEmail">NOVO EMAIL</h4>
+		<div class="top-nav">
+			<a id="btnAdicionarEmail" class="btn btn-primary" onclick="return jsAdicionarEmail();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; ADICIONAR EMAIL</a>
+		</div>
+	</header>
+	<div class="panel-body">
+		<input type="hidden" id="hfCodigoEmail" />
+		<div class="row">
+			<div class="form-group form-group--float col-sm-4">
+				<input type="text" id="txtDescricaoEmail" class="form-control" />
+				<label class="required">Descrição Email</label>
+				<i class="form-group__bar"></i>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="panel" id="divPartialEmailsResult">
+	<input type="hidden" id="hfListaEmails" name="hfListaEmails" />
+	<header class="panel-heading">
+		<h4>LISTA EMAILS</h4>
+	</header>
+	<div class="panel-body">
+		<table id="tbResultadoEmails" class="table table-hover table-striped table-bordered">
+			<thead class="thead-default">
+				<tr>
+					<th class="center">AÇÕES</th>
+					<th class="center">DESCRIÇÃO</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+    var arrayEmails = [];
+
+	function openPartialEmails() {
+		if ($('#paginaCarregadaEmails').val() == 'false') {
+			var data = {
+				codigoCliente: @(Model == null ? "-1" : Model.Codigo.ToString())
+			};
+			$.ajax({
+				type: "GET",
+				url: "/Cliente/GetEmails/",
+				data: data,
+				async: true,
+				success: function (result) {
+					if (result) {
+						if (result != "") {
+							arrayEmails = result;
+							MontarTabelaEmails();
+							$('#paginaCarregadaEmails').val('true');
+						}
+					}
+				}
+			});
+		}
+	}
+
+    function jsEditarEmail(indiceEmail) {
+
+        var email = arrayEmails[indiceEmail];
+
+        $('#headerEmail').html('EDITAR EMAIL');
+
+        $('#hfCodigoEmail').val(email.codigo);
+        $('#txtDescricaoEmail').val(email.descricao).change();
+
+    }
+
+	function jsAdicionarEmail() {
+
+        if (jsValidarCamposEmail()) {
+
+            if ($('#hfCodigoEmail').val() != '') {
+                //UPDATE EMAIL
+
+                var indice = -1;
+                for (var i = 0; i < arrayEmails.length; i++) {
+                    if (arrayEmails[i].codigo == $('#hfCodigoEmail').val()) {
+                        indice = i;
+                        break;
+                    }
+                }
+
+				arrayEmails[indice].codigo = $('#hfCodigoEmail').val();
+				arrayEmails[indice].descricao = $('#txtDescricaoEmail').val();
+				if (arrayEmails[indice].tipo != 1) {
+					arrayEmails[indice].tipo = 2;
+                }
+
+                OpenAlert("Sucesso!", "Alteração realizada com sucesso!", "success");
+
+            } else {
+                //INSERT EMAIL
+                var email = {
+                    codigo: "",
+                    descricao: $('#txtDescricaoEmail').val(),
+                    tipo: 1
+                };
+
+                arrayEmails.push(email);
+
+                OpenAlert("Sucesso!", "Inclusão realizada com sucesso!", "success");
+
+            }
+
+            MontarTabelaEmails();
+            jsLimparCamposEmail();
+
+        }
+
+        return false;
+
+    }
+
+    function jsValidarCamposEmail() {
+
+        if ($('#txtDescricaoEmail').val() == "") {
+			OpenAlert("Atenção!", "Informe a descrição do email!", "danger");
+			$('#txtDescricaoEmail').focus();
+            return false;
+        }
+
+        return true;
+
+    }
+
+    function jsLimparCamposEmail() {
+
+        $('#headerEmail').html('NOVO EMAIL');
+
+        $('#hfCodigoEmail').val('');
+        $('#txtDescricaoEmail').val('');
+
+        return false;
+
+    }
+
+	function MontarTabelaEmails() {
+
+		$('#hfListaEmails').val(JSON.stringify(arrayEmails));
+
+        var tabelaObjeto = document.getElementById('tbResultadoEmails');
+        removeAllChilds(tabelaObjeto);
+
+        if (tabelaObjeto.tHead == null) {
+            var listaColunas = ["AÇÕES", "DESCRIÇÃO"];
+            jsAdicionarCabecalhoTabela(tabelaObjeto, listaColunas, 'center');
+        }
+
+        var tbody = jsAdicionarCorpoTabela(tabelaObjeto);
+
+        for (i = 0; i < arrayEmails.length; i++) {
+
+            var tr = document.createElement('tr');
+            var td1 = document.createElement('td');
+            var td2 = document.createElement('td');
+
+            td1.setAttribute("class", "center");
+            td2.setAttribute("class", "center");
+
+            td1.innerHTML = '<a href="#" title="Editar" onclick="jsEditarEmail(' + i + ');"><span aria-hidden="true" class="zmdi zmdi-edit"></span></a>';
+            td2.innerHTML = arrayEmails[i].descricao;
+
+
+            var listaColunas = [td1, td2];
+
+            jsAdicionarLinhaTabela(listaColunas, tr);
+
+            tbody.appendChild(tr);
+        }
+	}
+
+	function addEmailCode(email) {
+		var email = {
+			codigo: "-1",
+			descricao: email,
+			tipo: 1
+		};
+
+		arrayEmails.push(email);
+
+		MontarTabelaEmails();
+	}
+
+</script>

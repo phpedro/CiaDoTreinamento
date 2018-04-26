@@ -1,0 +1,62 @@
+﻿<div id="divPartialProdutosExpirandoView" class="modalAlerta animate-zoom" style="display:none">
+	<div class="contentModal">
+		<!--MODAL HEADER-->
+		<div class="modal-header">
+			<h5>PRODUTOS EXPIRANDO</h5>
+		</div>
+		<!--MODAL CONTENT-->
+		<div class="modal-content" style="max-height:400px;">
+			<div class="table-responsive">
+				<table name="tabelaResultadoProdutosExpirando" class="table table-bordered table-striped"></table>
+			</div>
+		</div>
+		<!--MODAL FOOTER-->
+		<div class="modal-footer">
+			<button class="btn btn-secondary" onclick="closeModal(this)">FECHAR</button>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	function jsOpenPartialProdutosExpirandoView(arrayProdutos) {
+		if (arrayProdutos) {
+			MontarTableProdutosExpirando(arrayProdutos);
+		}
+
+		$('#divPartialProdutosExpirandoView').fadeIn();
+	}
+
+	function jsClosePartialProdutosExpirandoView(obj) {
+		$(obj).parent().parent().parent().parent().fadeOut();
+	}
+
+	function MontarTableProdutosExpirando(arrayProdutos) {
+
+		var tabelaObjeto = document.getElementsByName('tabelaResultadoProdutosExpirando')[0];
+		removeAllChilds(tabelaObjeto);
+
+		if (tabelaObjeto.tHead == null) {
+			var listaColunas = ["DESCRIÇÃO", "DATA EXPIRAÇÃO"];
+			jsAdicionarCabecalhoTabela(tabelaObjeto, listaColunas);
+		}
+
+		var tbody = jsAdicionarCorpoTabela(tabelaObjeto);
+
+		for (i = 0; i < arrayProdutos.length; i++) {
+
+			var tr = document.createElement('tr');
+			var td1 = document.createElement('td');
+			var td2 = document.createElement('td');
+
+			td1.innerHTML = arrayProdutos[i].descricaoProduto;
+			td2.innerHTML = arrayProdutos[i].dataExpiracao;
+			var listaColunas = [td1, td2];
+
+			jsAdicionarLinhaTabela(listaColunas, tr);
+
+			tbody.appendChild(tr);
+		}
+	}
+
+</script>

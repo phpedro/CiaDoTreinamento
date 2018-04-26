@@ -1,0 +1,533 @@
+﻿@model RotaViewModel
+
+@{
+	CODE.RoteirizacaoBLL BLL = new CODE.RoteirizacaoBLL();
+	string mensagemErro;
+
+	//GET ESTADOS
+	List<SelectListItem> listaEstados = CODE.Uteis.RetornarEstadosComboCompleto();
+
+	//GET INSTRUTORES
+	List<CODE.Funcionario> agentesInstrutores = CODE.FuncionarioBLL.getFuncionarioByPerfil(10, out mensagemErro);
+	List<SelectListItem> listaInstrutores = new List<SelectListItem>();
+	foreach (CODE.Funcionario func in agentesInstrutores)
+	{
+		listaInstrutores.Add(new SelectListItem()
+		{
+			Text = func.Nome,
+			Value = func.Codigo.ToString()
+		});
+	}
+}
+
+<section id="main-content">
+	<section class="content">
+		<div class="row" style="height: 500px;">
+			<!--PANEL PEDIDOS PARA ROTEIRIZAR-->
+			<div id="panel_pedidos_rota" class="panel_pedidos_rota">
+				<!--BARRA LATERAL-->
+				<div class="bar_vertical">
+					<a onclick="jsOpenClosePanel(this);" data-value="close"><span class="zmdi zmdi-arrow-left zmdi-hc-2x"></span></a>
+				</div>
+				<!--PANEL LATERAL-->
+				<div id="panel_vertical" class="panel_vertical">
+					<!--FILTRO-->
+					<div class="panel" style="height: 100%;">
+						<header class="panel-heading">
+							<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseFiltros" aria-expanded="true">CLIENTES DISPONÍVEIS - FILTRO</h4>
+							<div class="top-nav">
+								<button id="btnPesquisar" class="btn btn-primary" onclick="jsPesquisar();"><span aria-hidden="true" class="zmdi zmdi-search"></span> &nbsp; PESQUISAR</button>
+							</div>
+						</header>
+						<div id="divCollapseFiltros" class="panel-collapse collapse show">
+							<div class="panel-body">
+								<div class="row">
+									<div class="col-sm-12">
+										<label>Estado</label>
+										@Html.DropDownList("ddlEstadosFiltro", listaEstados, "Selecione o Estado...", new { @class = "select2", @onchange = "return preencheDDLCidades(this.value, $('#ddlCidadesFiltro'));" })
+										<i class="form-group__bar"></i>
+									</div>
+									<div class="form-group col-sm-12">
+										<label>Cidade</label>
+										@Html.DropDownList("ddlCidadesFiltro", new List<SelectListItem>(), "Todas as Cidades", new { @class = "select2" })
+										<i class="form-group__bar"></i>
+									</div>
+								</div>
+							</div>
+						</div>
+						<header class="panel-heading">
+							<h4>RESULTADO</h4>
+						</header>
+						<div id="pnPedidosRota" class="panel-body"></div>
+					</div>
+				</div>
+			</div>
+			<!--PANEL DADOS DA ROTA-->
+			<div id="panel_dados_rota" class="panel_dados_rota">
+				<div>
+					<!--MAPA-->
+					<div class="panel">
+						<header class="panel-heading">
+							<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseMapa" aria-expanded="true">MAPA</h4>
+							<div class="top-nav">
+								<button id="btnGravar" class="btn btn-primary" onclick="jsConfirmarRota();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; GRAVAR ROTA</button>
+							</div>
+						</header>
+						<div id="divCollapseMapa" class="panel-collapse collapse show">
+							<div id="map" style="height:350px;"></div>
+						</div>
+					</div>
+				</div>
+				<div style="background-color: blue;">
+					<!--PEDIDO SELECIONADOS-->
+					<div class="panel" style="margin-top: 10px;">
+						<header class="panel-heading">
+							<h4>DADOS DA ROTA</h4>
+						</header>
+						<div class="panel-body">
+							<div style="display: flex">
+								<div class="form-group col-sm-6">
+									<label>Instrutor</label>
+									@Html.DropDownList("ddlInstrutorRota", listaInstrutores, "Selecione o Instrutor...", new { @class = "select2" })
+									<i class="form-group__bar"></i>
+								</div>
+								<div class="form-group col-sm-6">
+									<label>Observação Rota</label>
+									<input type="text" class="form-control" name="txtObservacaoRota" id="txtObservacaoRota" />
+									<i class="form-group__bar"></i>
+								</div>
+							</div>
+							
+							<div class="row">
+								<!--TABELA COM PEDIDOS SELECIONADOS-->
+								<div class="table-responsive">
+									<table name="tbPedidos" class="table table-striped table-bordered table-hover"></table>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</section>
+@Html.Partial("Roteirizacao/PartialProdutosResumidoRoteirizacao")
+@Html.Partial("Roteirizacao/PartialConfirmarPedidoRota")
+
+<!-- Maps API Javascript -->
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCu1NVvUi33FURh7lRtc91DacG7FtLrvk8&callback=initMap"></script>
+<script type="text/javascript">
+
+	var map;
+	var directionsService;
+	var directionsDisplay;
+	var arrayPedidos = [];
+	var arrayPedidosSelecionados = [];
+	var arrayPedidosAprovados = [];
+
+	$(document).ready(function () {
+
+		$('#ddlEstadosFiltro').val('');
+		$('#ddlEstadosFiltro').change();
+	});
+
+	function initMap() {
+		directionsService = new google.maps.DirectionsService;
+		directionsDisplay = new google.maps.DirectionsRenderer;
+		map = new google.maps.Map(document.getElementById('map'), {
+			zoom: 5,
+			center: { lat: -12.858910, lng: -51.196304 }
+		});
+		directionsDisplay.setMap(map);
+	}
+
+	function jsPesquisar() {
+
+		jsLoading(true);
+
+		var data = {
+			estado: $('#ddlEstadosFiltro').val(),
+			codigoCidade: $('#ddlCidadesFiltro').val(),
+		};
+
+		$.ajax({
+			type: "GET",
+			url: "/Roteirizacao/BuscarPedidosRota/",
+			data: data,
+			success: function (result) {
+				if (result.sucesso) {
+					arrayPedidos = result.listaPedidos;
+
+					if (arrayPedidos.length > 0) {
+						jsMontaTabelaPedidosARoteirizar(arrayPedidos);
+					} else { 
+						jsLoading(false);
+						OpenAlert("Atenção!", "Não foi encontrado nenhum pedido para roteirizar!", "warning");
+					}
+					
+				} else {
+					jsLoading(false);
+					OpenAlert("Atenção!", "Não foi encontrado nenhum pedido para roteirizar!", "warning");
+				}
+			}
+		});
+	}
+
+	function jsMontaTabelaPedidosARoteirizar(arrayPedidos) {
+
+		$('#pnPedidosRota').empty();
+
+		for (var i = 0; i < arrayPedidos.length; i++) {
+
+			var ac = arrayPedidos[i];
+
+			var divPanel = document.createElement('div');
+			divPanel.className = 'panel';
+			divPanel.style = 'margin-bottom: 10px;'
+
+			//HEADER
+			var divPanelHeader = document.createElement('header');
+			divPanelHeader.className = 'panel-heading';
+			divPanel.append(divPanelHeader);
+
+			var h4 = document.createElement('h4');
+			h4.innerHTML = ac.cliente.razaoSocial + " - " + ac.codigo;
+			h4.className = 'accordion-toggle';
+			h4.dataset.toggle = 'collapse';
+			h4.setAttribute('href', '#divCollapse_' + i);
+			divPanelHeader.append(h4);
+
+			//BODY
+			var divPanelBody = document.createElement('div');
+			divPanelBody.id = 'divCollapse_' + i;
+			divPanelBody.className = 'panel-collapse collapse';
+			divPanel.append(divPanelBody);
+
+			var divRow = document.createElement('div');
+			divRow.className = 'row';
+			divRow.style = 'margin-top: 15px';
+			divPanelBody.append(divRow);
+
+			/*CNPJ*/
+			var divCnpj = document.createElement('div');
+			divCnpj.className = 'form-group form-group--float col-sm-6';
+			divRow.append(divCnpj);
+
+			var inputCnpj = document.createElement('input');
+			inputCnpj.className = 'form-control form-control--active';
+			inputCnpj.setAttribute('disabled', 'disabled');
+			inputCnpj.value = ac.cliente.cnpj;
+			divCnpj.append(inputCnpj);
+
+			var labelCnpj = document.createElement('label');
+			labelCnpj.innerHTML = 'CNPJ / CPF';
+			divCnpj.append(labelCnpj);
+
+			var iCnpj = document.createElement('i');
+			iCnpj.className = 'form-group__bar';
+			divCnpj.append(iCnpj);
+
+			/*CIDADE - UF*/
+			var divCidade = document.createElement('div');
+			divCidade.className = 'form-group form-group--float col-sm-6';
+			divRow.append(divCidade);
+
+			var inputCidade = document.createElement('input');
+			inputCidade.className = 'form-control form-control--active';
+			inputCidade.setAttribute('disabled', 'disabled');
+			inputCidade.value = ac.cliente.cidade.descricao + " - " + ac.cliente.cidade.estado;
+			divCidade.append(inputCidade);
+
+			var labelCidade = document.createElement('label');
+			labelCidade.innerHTML = 'CIDADE - UF';
+			divCidade.append(labelCidade);
+
+			var iCidade = document.createElement('i');
+			iCidade.className = 'form-group__bar';
+			divCidade.append(iCidade);
+
+			/*BUTTONS*/
+			var divButtons = document.createElement('div');
+			divButtons.className = 'col-sm-12';
+			divButtons.style = 'text-align: center; margin-bottom: 5px;';
+			divRow.append(divButtons);
+
+			var buttonInsert = document.createElement('button');
+			buttonInsert.className = 'btn btn-success';
+			buttonInsert.setAttribute('title', 'Inserir na rota');
+			buttonInsert.style = 'margin: 10px;';
+			buttonInsert.innerHTML = '<span class="zmdi zmdi-check"></span>';
+			buttonInsert.dataset.id = ac.codigo;
+			buttonInsert.onclick = function () {
+				jsSelecionarPedido($(this).data('id'));
+			}
+			divButtons.append(buttonInsert);
+
+			var buttonProdutos = document.createElement('button');
+			buttonProdutos.className = 'btn btn-info';
+			buttonProdutos.setAttribute('title', 'Visualizar Produtos');
+			buttonProdutos.style = 'margin: 10px;';
+			buttonProdutos.innerHTML = '<span class="zmdi zmdi-circle-o"></span>';
+			buttonProdutos.dataset.id = ac.codigo;
+			buttonProdutos.onclick = function () {
+				jsAbrirProdutos($(this).data('id'));
+			}
+			divButtons.append(buttonProdutos);
+
+			$('#pnPedidosRota').append(divPanel);
+		}
+
+		jsLoading(false);
+	}
+
+	function jsSelecionarPedido(codigoPedido) {
+
+		var pedido;
+
+		//VALIDAR SE PEDIDO JÁ FOI INCLUIDO
+		for (var i = 0; i < arrayPedidosSelecionados.length; i++) { 
+
+			if (arrayPedidosSelecionados[i].codigo == codigoPedido) {
+				OpenAlert("Atenção!", "O pedido já foi selecionado para a rota!", "warning");
+				return false;
+			}
+		}
+
+		for (var i = 0; i < arrayPedidos.length; i++) {
+
+			if (arrayPedidos[i].codigo == codigoPedido) {
+				pedido = arrayPedidos[i];
+				break;
+			}
+		}
+
+		arrayPedidosSelecionados.push(pedido);
+
+		jsMontarTabelaPedidosRota();
+	}
+
+
+	function jsMontarTabelaPedidosRota() {
+
+		var tabelaObjeto = document.getElementsByName('tbPedidos')[0];
+		removeAllChilds(tabelaObjeto);
+
+		if (tabelaObjeto.tHead == null) {
+			var listaColunas = ["", "Razão Social / Nome", "CNPJ / CPF", "Cidade-UF", "Data Inicio Treinamento", "Data Fim Treinamento", ""];
+			jsAdicionarCabecalhoTabela(tabelaObjeto, listaColunas);
+		}
+
+		var tbody = jsAdicionarCorpoTabela(tabelaObjeto);
+
+		for (i = 0; i < arrayPedidosSelecionados.length; i++)
+		{
+			var tr = document.createElement('tr');
+			var td1 = document.createElement('td');
+			var td2 = document.createElement('td');
+			var td3 = document.createElement('td');
+			var td4 = document.createElement('td');
+			var td5 = document.createElement('td');
+			var td6 = document.createElement('td');
+			var td7 = document.createElement('td');
+
+			td1.setAttribute('style', 'text-align:center');
+			td7.setAttribute('style', 'text-align:center');
+
+			td1.innerHTML = '<a class="zmdi zmdi-hc-2x zmdi-alert-circle-o" title="Visualizar Produtos" onclick="return jsAbrirProdutos(' + arrayPedidosSelecionados[i].codigo + ')"></a>';
+
+			if (arrayPedidosSelecionados[i].cliente.tipoCliente == 1) {
+				td2.innerHTML = arrayPedidosSelecionados[i].cliente.razaoSocial;
+				td3.innerHTML = arrayPedidosSelecionados[i].cliente.cnpj;
+			} else {
+				td2.innerHTML = arrayPedidosSelecionados[i].Cliente.nome;
+				td3.innerHTML = arrayPedidosSelecionados[i].Cliente.cpf;
+			}
+
+			td4.innerHTML = arrayPedidosSelecionados[i].cliente.cidade.descricao + " - " + arrayPedidosSelecionados[i].cliente.cidade.estado;
+
+			if (arrayPedidosSelecionados[i].dataInicioTreinamento && arrayPedidosSelecionados[i].dataInicioTreinamento != "0001-01-01T00:00:00") {
+
+				td5.innerHTML = '<input type="text" id="dtpDataInicioTreinamento_' + arrayPedidosSelecionados[i].codigo + '" name="dtpDataInicioTreinamento_' + arrayPedidosSelecionados[i].codigo + '" class="form-control date-picker" value="' + moment(arrayPedidosSelecionados[i].dataInicioTreinamento).format("DD/MM/YYYY") + '" />';
+			} else {
+				td5.innerHTML = '<input type="text" id="dtpDataInicioTreinamento_' + arrayPedidosSelecionados[i].codigo + '" name="dtpDataInicioTreinamento_' + arrayPedidosSelecionados[i].codigo + '" class="form-control date-picker" value="' + moment(new Date()).format("DD/MM/YYYY") + '" />';
+			}
+
+			if (arrayPedidosSelecionados[i].dataFinalTreinamento && arrayPedidosSelecionados[i].dataFinalTreinamento != "0001-01-01T00:00:00") {
+				td6.innerHTML = '<input type="text" id="dtpDataFimTreinamento_' + arrayPedidosSelecionados[i].codigo + '" name="dtpDataFimTreinamento_' + arrayPedidosSelecionados[i].codigo + '" class="form-control date-picker" value="' + moment(arrayPedidosSelecionados[i].dataFinalTreinamento).format("DD/MM/YYYY") + '" />';
+			} else {
+				td6.innerHTML = '<input type="text" id="dtpDataFimTreinamento_' + arrayPedidosSelecionados[i].codigo + '" name="dtpDataFimTreinamento_' + arrayPedidosSelecionados[i].codigo + '" class="form-control date-picker" value="' + moment(new Date()).format("DD/MM/YYYY") + '" />';
+			}
+
+			td7.innerHTML = '<a class="zmdi zmdi-hc-2x zmdi-assignment-alert check" data-id="' + arrayPedidosSelecionados[i].codigo + '" data-value="' + arrayPedidosSelecionados[i].cliente.cidade.codigo + '"  data-target="' + arrayPedidosSelecionados[i].cliente.codigo + '"></a>&nbsp;&nbsp;';
+			td7.innerHTML += '<a class="zmdi zmdi-hc-2x zmdi-delete remove" data-id="' + arrayPedidosSelecionados[i].codigo + '"></a>';
+
+			var listaColunas = [td1, td2, td3, td4, td5, td6, td7];
+
+			jsAdicionarLinhaTabela(listaColunas, tr);
+
+			tbody.appendChild(tr);
+		 }
+
+		$(".date-picker")[0] && $(".date-picker").flatpickr({
+			enableTime: !1,
+			nextArrow: '<i class="zmdi zmdi-long-arrow-right" />',
+			prevArrow: '<i class="zmdi zmdi-long-arrow-left" />'
+		});
+
+		$('.check').on("click", function (obj) {
+			var objNovo = true;
+			var idPedido = $(obj.target).data('id');
+			var codigoCidade = $(obj.target).data('value');
+			var codigoCliente = $(obj.target).data('target');
+
+			if ($('#ddlInstrutorRota').val() != "") {
+				openModalConfirmarPedidoRota(codigoCliente, idPedido, codigoCidade, $('#ddlInstrutorRota').val(), $("#dtpDataInicioTreinamento_" + idPedido + "").val(), $("#dtpDataFimTreinamento_" + idPedido + "").val());
+			} else {
+				OpenAlert("Atenção!", "Selecione um instrutor para a rota!", "danger");
+			}
+
+			//var objAprovado = {
+			//	codigoPedido: idPedido,
+			//	dataInicioTreinamento: $("#dtpDataInicioTreinamento_" + idPedido + "").val(),
+			//	dataFimTreinamento: $("#dtpDataFimTreinamento_" + idPedido + "").val()
+			//};
+
+			//for (var i = 0; i < arrayPedidosAprovados.length; i++) {
+			//	if (arrayPedidosAprovados[i].codigoPedido == objAprovado.codigoPedido) {
+			//		arrayPedidosAprovados.splice(i, 1);
+			//		$(obj.target).removeClass("zmdi-assignment-check");
+			//		$(obj.target).addClass("zmdi-assignment-alert");
+			//		$("#dtpDataInicioTreinamento_" + idPedido + "").attr("disabled", false);
+			//		$("#dtpDataFimTreinamento_" + idPedido + "").attr("disabled", false);
+			//		objNovo = false;
+			//		break;
+			//	}
+			//}
+
+			//if (objNovo) {
+			//	arrayPedidosAprovados.push(objAprovado);
+			//	$(obj.target).removeClass("zmdi-assignment-alert");
+			//	$(obj.target).addClass("zmdi-assignment-check");
+
+			//	$("#dtpDataInicioTreinamento_" + idPedido + "").attr("disabled", true);
+			//	$("#dtpDataFimTreinamento_" + idPedido + "").attr("disabled", true);
+			//}
+		});
+
+		$('.remove').on("click", function (obj) {
+			var idPedido = $(obj.target).data('id');
+
+			for (var i = 0; i < arrayPedidosSelecionados.length; i++) {
+				if (arrayPedidosSelecionados[i].codigo == idPedido) { 
+
+					arrayPedidosSelecionados.splice(i, 1);
+					jsMontarTabelaPedidosRota();
+					break;
+				}
+			}
+		 });
+
+		$('tbody').sortable();
+
+		jsAtualizaRotaMapa();
+	}
+
+	function jsAbrirProdutos(codigoPedido) {
+		openModalRoteirizacaoSimples(codigoPedido);
+	}
+
+	function jsAtualizaRotaMapa() {
+
+		var objMapa = [];
+		var waypts = [];
+
+		for (var i = 0; i < arrayPedidosSelecionados.length; i++) {
+
+			var location = arrayPedidosSelecionados[i].cliente.cidade.descricao + "-" + arrayPedidosSelecionados[i].cliente.cidade.estado;
+
+			if (objMapa.indexOf(location) == -1) {
+				objMapa.push(location);
+			}
+		}
+
+		directionsDisplay.setMap(map);
+
+		for (var i = 0; i < objMapa.length; i++) {
+			waypts.push({
+				location: objMapa[i],
+				stopover: true
+			});
+		}
+
+		directionsService.route({
+			origin: "Av. Palmeira Imperial, 225 - Bosque dos Buritis, Uberlândia - MG, 38406-025",
+			destination: "Av. Palmeira Imperial, 225 - Bosque dos Buritis, Uberlândia - MG, 38406-025",
+			waypoints: waypts,
+			optimizeWaypoints: true,
+			travelMode: 'DRIVING'
+		}, function (response, status) {
+			if (status === 'OK') {
+				directionsDisplay.setDirections(response);
+			} else {
+				window.alert('Não foi possível construir a rota. ' + status);
+			}
+		});
+	}
+
+	function jsConfirmarRota() {
+
+		if ($('#ddlInstrutorRota').val() == "") {
+			OpenAlert("Atenção!", "Informe o instrutor!", "danger");
+			return false;
+		}
+
+		jsLoading(true);
+
+		$.ajax({
+			type: "POST",
+			url: "/Roteirizacao/AtualizarRotaManual/",
+			data: {
+				codigoInstrutor: $('#ddlInstrutorRota').val(),
+				arrayPedidosRota: JSON.stringify(arrayPedidosSelecionados),
+				arrayPedidosAprovados: JSON.stringify(arrayPedidosAprovados),
+				observacaoRota: $('#txtObservacaoRota').val()
+			},
+			success: function (data) {
+				if (data.sucesso) {
+					window.location.assign("@Url.Action("List","Roteirizacao")");
+				} else {
+					jsLoading(false);
+					OpenAlert("Atenção!", data.mensagemErro, "danger");
+				}
+			}
+		});
+	}
+
+	function jsOpenClosePanel(obj) {
+
+		var value = $(obj).data('value');
+
+		if (value == "open") {
+
+			$(obj).data('value', 'close');
+			$($(obj).children()[0]).addClass('zmdi-arrow-left');
+			$($(obj).children()[0]).removeClass('zmdi-arrow-right');
+			$('#panel_vertical').show();
+			$('#panel_pedidos_rota').css('width', '50%');
+			$('#panel_dados_rota').css('width', '50%');
+
+		} else if(value == "close"){
+
+			$(obj).data('value', 'open');
+			$($(obj).children()[0]).removeClass('zmdi-arrow-left');
+			$($(obj).children()[0]).addClass('zmdi-arrow-right');
+			$('#panel_vertical').hide();
+			$('#panel_pedidos_rota').css('width', '5%');
+			$('#panel_dados_rota').css('width', '95%');
+		}
+
+	}
+
+
+
+</script>

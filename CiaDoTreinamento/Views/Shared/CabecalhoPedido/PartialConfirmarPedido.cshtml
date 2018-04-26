@@ -1,0 +1,124 @@
+﻿@model int
+
+@{
+	string mensagemErro;
+	CODE.ItemPedidoBLL BLL = new CODE.ItemPedidoBLL();
+	List<CODE.ItemPedido> listaItens = BLL.getItemPedido(null, Model, out mensagemErro);
+}
+
+<div class="panel">
+	<header class="panel-heading">
+		<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseConfirmarDadosPedido" aria-expanded="true">CONFIRMAR DADOS PEDIDO</h4>
+	</header>
+	<div id="divCollapseConfirmarDadosPedido" class="panel-collapse collapse">
+		<div class="panel-body">
+
+			<br />
+			<div class="table-responsive">
+				<table id="tbItensVendidos" class="table table-striped table-bordered table-hover">
+					<thead class="thead-default">
+						<tr>
+							<th class="center">PRODUTO</th>
+							<th class="center">QUANTIDADE</th>
+							<th class="center">VALOR TABELA</th>
+							<th class="center">VALOR VENDA</th>
+							<th class="center">VALOR TOTAL</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						@foreach (CODE.ItemPedido item in listaItens)
+						{
+							<tr>
+								<td>@item.Produto.Codigo - @item.Produto.Descricao</td>
+								<td class="center">@item.Quantidade</td>
+								<td class="center">@string.Format("{0:C}", item.Produto.ValorPorPessoa)</td>
+								<td class="center">@string.Format("{0:C}", item.valorFinal)</td>
+								<td class="center">@string.Format("{0:C}", item.Subtotal)</td>
+								
+								@if (item.temPendencia)
+								{
+									<td class="center">
+										<a class="zmdi zmdi-block zmdi-hc-2x" title="Com pendências!" onclick="return jsVisualizarPendencias('@Html.Raw(item.pendencias)')"></a>
+									</td>
+								}
+								else if (item.Confirmado)
+								{
+									<td class="center">
+										<a href="#" class="zmdi zmdi-check-all zmdi-hc-2x" title="Confirmado!"></a>
+									</td>
+								}
+								else
+								{
+									<td class="center">
+										<a class="zmdi zmdi-check zmdi-hc-2x" title="Sem pendências!" onclick="return jsConfirmarItem(this, @Html.Raw(item.CodigoPedido), @Html.Raw(item.Produto.Codigo))"></a>
+									</td>
+								}
+
+							</tr>
+						}
+					</tbody>
+					<tfoot class="thead-default">
+						<tr>
+							<td colspan="4"></td>
+							<td class="center">@(string.Format("{0:C}", listaItens.Sum(x => x.Subtotal)))</td>
+							<td></td>
+						</tr>
+					</tfoot>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	function UpdatePartialViewItensPedido() {
+
+		$.ajax({
+			type: "POST",
+			url: "/CabecalhoPedido/UpdatePartialViewItensPedido/",
+			data: {
+				codigoPedido: @Html.Raw(Model)
+			},
+			success: function (result) {
+				$('#divConfirmarItensPedido').html(result);
+			}
+		});
+	}
+
+	function jsVisualizarPendencias(pendencias)
+	{
+		pendencias = pendencias.replace("/n", "<br>");
+
+		swal(
+			'Atenção!',
+			pendencias,
+			'info'
+		)
+	}
+
+	function jsConfirmarItem(obj, codigoPedido, codigoProduto)
+	{
+		$.ajax({
+			type: "POST",
+			url: "/CabecalhoPedido/UpdateConfirmarItem/",
+			data: {
+				codigoPedido: codigoPedido,
+				codigoProduto: codigoProduto
+			},
+			success: function (result) {
+				if (result.sucesso)
+				{
+					$(obj).removeClass("zmdi-check");
+					$(obj).addClass("zmdi-check-all");
+				}
+				else
+				{
+					OpenAlert("Atenção!", result.mensagemErro, "danger");
+					return false;
+				}
+			}
+		});
+	 }
+</script>

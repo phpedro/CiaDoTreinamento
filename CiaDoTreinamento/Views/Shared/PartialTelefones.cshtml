@@ -1,0 +1,193 @@
+﻿<div class="panel">
+	<input type="hidden" id="hfListaTelefones" name="hfListaTelefones" value="@ViewBag.listaTelefones" />
+	<header class="panel-heading">
+		<h4>TELEFONES</h4>
+		<div class="top-nav">
+			<button id="btnSalvar" class="btn btn-primary" onclick="return jsAdicionar();"><span aria-hidden="true" class="zmdi zmdi-plus"></span> &nbsp; ADICIONAR</button>
+		</div>
+	</header>
+	<div class="panel-body">
+		<div class="row">
+			<div class="form-group form-group--float col-sm-4">
+				<input type="text" id="txtTelefone" class="form-control noBlank maskPhone" />
+				<label class="required">Telefone</label>
+				<i class="form-group__bar"></i>
+			</div>
+			<div class="form-group form-group--float col-sm-4">
+				<input type="text" id="txtResponsavel" class="form-control noBlank" />
+				<label class="required">Responsável</label>
+				<i class="form-group__bar"></i>
+			</div>
+		</div>
+		<br />
+		<div class="col-sm-12">
+			<table id="tbTelefones" class="table table-striped table-bordered" style="font-size: 10pt;"></table>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	var telaTelefones;
+	var arrayTelefones = [];
+	var indiceTelefone = 0;
+
+
+	$(document).ready(function () {
+
+		if (!telaTelefones) {
+			jsCarregarCamposTelefone();
+		}
+		var me = telaTelefones;
+
+		if (me.hfListaTelefones.val() != "") {
+			arrayTelefones = JSON.parse(me.hfListaTelefones.val());
+		}
+
+		if (!arrayTelefones) {
+			arrayTelefones = [];
+		}
+
+		atualizarTable(arrayTelefones);
+
+	});
+
+	function jsCarregarCamposTelefone() {
+
+		telaTelefones = {
+			hfListaTelefones: $('#hfListaTelefones'),
+			txtTelefone: $('#txtTelefone'),
+			txtResponsavel: $('#txtResponsavel'),
+			tbTelefones: $('#tbTelefones')
+		}
+	}
+
+	function jsAdicionar() {
+
+		if (!telaTelefones) {
+			jsCarregarCamposTelefone();
+		}
+		var me = telaTelefones;
+
+		if (me.txtTelefone.val() == "") {
+			OpenAlert("Atenção!", "Informe o número do telefone!", "warning");
+			return false;
+		} else if (me.txtResponsavel.val() == "") {
+			OpenAlert("Atenção!", "Informe o responsável pelo telefone!", "warning");
+			return false;
+		}
+
+		var telefoneCorrente = {
+			sequencia: indiceTelefone + 1,
+			telefone: me.txtTelefone.val(),
+			responsavel: me.txtResponsavel.val()
+		}
+
+		indiceTelefone += 1;
+
+		arrayTelefones.push(telefoneCorrente);
+
+		me.txtTelefone.val('');
+		me.txtResponsavel.val('');
+
+		atualizarTable(arrayTelefones);
+
+		return false;
+	}
+
+	function addTelefoneCode(telefone) {
+
+		var telefoneCorrente = {
+			sequencia: indiceTelefone + 1,
+			telefone: telefone,
+			responsavel: "SEM RESPONSÁVEL"
+		}
+
+		indiceTelefone += 1;
+
+		arrayTelefones.push(telefoneCorrente);
+
+		atualizarTable(arrayTelefones);
+
+		return false;
+	}
+
+	//MONTAR TABELA COM TELEFONES
+	function atualizarTable(listaTelefones) {
+
+		if (listaTelefones) {
+			if (!telaTelefones) {
+				jsCarregarCamposTelefone();
+			}
+			var me = telaTelefones;
+
+			me.hfListaTelefones.val(JSON.stringify(listaTelefones));
+
+			var tabelaObjeto = document.getElementById('tbTelefones');
+			removeAllChilds(tabelaObjeto);
+
+			if (tabelaObjeto.tHead == null) {
+				var listaColunas = ["SEQUÊNCIA", "TELEFONE", "REPONSÁVEL", "REMOVER"];
+				jsAdicionarCabecalhoTabela(tabelaObjeto, listaColunas);
+			}
+
+			for (var i = 0; i < listaTelefones.length; i++) {
+
+				var tbody = jsAdicionarCorpoTabela(tabelaObjeto);
+
+				var tr = document.createElement('tr');
+				var td1 = document.createElement('td');
+				var td2 = document.createElement('td');
+				var td3 = document.createElement('td');
+				var td4 = document.createElement('td');
+
+				td1.setAttribute("class", "center");
+				td2.setAttribute("class", "center");
+				td3.setAttribute("class", "center");
+				td4.setAttribute("class", "center");
+				
+				td1.innerHTML = listaTelefones[i].sequencia;
+				td2.innerHTML = listaTelefones[i].telefone;
+				td3.innerHTML = listaTelefones[i].responsavel;
+				td4.innerHTML = '<a id="btnRemoverTelefone" style="cursor:pointer;" onclick="jsRemoverTelefone(' + listaTelefones[i].sequencia + ')"><span class="zmdi zmdi-delete"></span></a>';
+
+				var listaColunas = [td1, td2, td3, td4];
+
+				jsAdicionarLinhaTabela(listaColunas, tr);
+
+				tbody.appendChild(tr);
+			}
+		}
+	}
+
+	function jsLimparTabelaTelefones() {
+
+		if (!telaTelefones) {
+			jsCarregarCamposTelefone();
+		}
+		var me = telaTelefones;
+
+		me.txtTelefone.val('');
+		me.txtTelefone.change();
+		jsRemoverFocus(me.txtTelefone);
+		me.txtResponsavel.val('');
+		me.txtResponsavel.change();
+		jsRemoverFocus(me.txtResponsavel);
+
+		arrayTelefones = [];
+
+		atualizarTable(arrayTelefones);
+	}
+
+	function jsRemoverTelefone(seq) {
+
+		for (var i = 0; i < arrayTelefones.length; i++) {
+			if (arrayTelefones[i].sequencia == seq) {
+				arrayTelefones.splice(i, 1);
+				atualizarTable(arrayTelefones);
+				break;
+			}
+		}
+	}
+
+</script>

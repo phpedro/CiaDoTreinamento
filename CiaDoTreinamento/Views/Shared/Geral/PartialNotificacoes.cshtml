@@ -1,0 +1,84 @@
+﻿<li class="dropdown top-nav__notifications">
+	<a href="" data-toggle="dropdown" class="notification">
+		<i class="zmdi zmdi-notifications"></i>
+	</a>
+	<div class="dropdown-menu dropdown-menu-right dropdown-menu--block">
+		<div class="listview listview--hover">
+			<div class="listview__header">
+				Notificações
+			</div>
+
+			<div class="listview__scroll scrollbar-inner" id="notificacoes">
+				
+			</div>
+
+			<div class="p-1"></div>
+		</div>
+	</div>
+</li>
+<script src="~/vendors/bower_components/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript">
+
+	$(document).ready(function () {
+
+        $.ajax({
+            type: "GET",
+			url: "/Notificacoes/getNotificacoes/",
+            data: null,
+            success: function (result) {
+				if (result) {
+					if (result.sucesso) {
+						montaNotificacoes(result.lista);
+					} else {
+						jsAbrePartial("Atenção!", result.mensagem, "warning");
+					}
+                }
+            }
+        });
+		
+	});
+
+	function montaNotificacoes(arrayNotificacoes) {
+		
+		for (var i = 0; i < arrayNotificacoes.length; i++) {
+			
+			var notify = '<a onclick=notificationClick("' + arrayNotificacoes[i].codigo+'","' + arrayNotificacoes[i].urlRedirect +'") class="listview__item">' +
+				'<img src= "/images/Avatar/' + arrayNotificacoes[i].funcionarioCriador.codigo + '.jpg" class="listview__img" alt= "" >' +
+				'<div class="listview__content">' +
+				'<div class="listview__heading">' + arrayNotificacoes[i].funcionarioCriador.nome + '</div>' +
+				'<p>' + arrayNotificacoes[i].mensagem + '</p>' +
+				'</div>' +
+				'</a >';
+
+			$("#notificacoes").append(notify);
+		}
+
+		if (arrayNotificacoes.length > 0) {
+			$(".notification").addClass("top-nav__notify");
+		}
+
+	}
+
+	function notificationClick(codigo, url) {
+
+		var data = {
+			codigoNotificacao: codigo
+		}
+
+		$.ajax({
+			type: "POST",
+			url: "/Notificacoes/updateNotificacao/",
+			data: data,
+			success: function (result) {
+				if (result) {
+					if (result.sucesso) {
+						window.location = url;
+					} else {
+						jsAbrePartial("Atenção!", result.mensagem, "warning");
+					}
+				}
+			}
+		});
+		
+	}
+</script>

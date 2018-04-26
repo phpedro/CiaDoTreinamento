@@ -1,0 +1,188 @@
+﻿@model CODE.Cliente
+
+<div class="panel" id="divPartialAtendimentosNew">
+	<input type="hidden" id="paginaCarregadaAtendimentos" value="false" />
+	<header class="panel-heading">
+		<h4 id="headerAtendimento">NOVO ATENDIMENTO</h4>
+		<div class="top-nav">
+			<a id="btnAdicionarAtendimento" class="btn btn-primary" onclick="return jsAdicionarAtendimento();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; ADICIONAR ATENDIMENTO</a>
+		</div>
+	</header>
+	<div class="panel-body">
+		<input type="hidden" id="hfCodigoATendimento" />
+		<div class="row">
+			<div class="form-group col-sm-6">
+				<label class="required">Descrição Atendimento</label>
+				<textarea id="txtDescricaoAtendimento" class="form-control" rows="2" maxlength="200" style="resize:none;"></textarea>
+				<i class="form-group__bar"></i>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="panel" id="divPartialAtendimentosResult">
+	<input type="hidden" id="hfListaAtendimentos" name="hfListaAtendimentos" />
+	<header class="panel-heading">
+		<h4>LISTA ATENDIMENTOS</h4>
+	</header>
+	<div class="panel-body">
+		<table id="tbResultadoAtendimentos" class="table table-hover table-striped table-bordered">
+			<thead class="thead-default">
+				<tr>
+					<th class="center">FUNCIONÁRIO</th>
+					<th class="center">DATA</th>
+					<th class="center">DESCRIÇÃO</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	var arrayAtendimentos = [];
+
+	function openPartialAtendimentos() {
+		if ($('#paginaCarregadaAtendimentos').val() == 'false') {
+			var data = {
+				codigoCliente: @(Model == null ? "-1" : Model.Codigo.ToString())
+			};
+			$.ajax({
+				type: "GET",
+				url: "/Cliente/GetAtendimentos/",
+				data: data,
+				async: true,
+				success: function (result) {
+					if (result) {
+						if (result != "") {
+							arrayAtendimentos = result;
+							MontarTabelaAtendimentos();
+							$('#paginaCarregadaAtendimentos').val('true');
+						}
+					}
+				}
+			});
+		}
+	}
+
+    function jsEditarAtendimento(indice) {
+
+        var atendimento = arrayAtendimentos[indice];
+
+        $('#headerAtendimento').html('EDITAR ATENDIMENTO');
+
+        $('#hfCodigoATendimento').val(atendimento.codigo);
+        $('#txtDescricaoAtendimento').val(atendimento.descricao);
+
+    }
+
+    function jsLimparAtendimento() {
+
+        $('#headerAtendimento').html('NOVO ATENDIMENTO');
+
+        $('#hfCodigoATendimento').val('');
+        $('#txtDescricaoAtendimento').val('');
+
+        return false;
+
+    }
+
+	function jsAdicionarAtendimento() {
+
+        if (jsValidarCamposAtendimento()) {
+
+            if ($('#hfCodigoATendimento').val() != '') {
+                //UPDATE ATENDIMENTO
+
+                var indice = -1;
+                for (var i = 0; i < arrayAtendimentos.length; i++) {
+                    if (arrayAtendimentos[i].codigo == $('#hfCodigoATendimento').val()) {
+                        indice = i;
+                        break;
+                    }
+                }
+
+				arrayAtendimentos[indice].codigo = $('#hfCodigoATendimento').val();
+				arrayAtendimentos[indice].descricao = $('#txtDescricaoAtendimento').val();
+				if (arrayAtendimentos[indice].tipo != 1) {
+					arrayAtendimentos[indice].tipo = 2;
+                }
+
+                OpenAlert("Sucesso!", "Alteração realizada com sucesso!", "success");
+
+            } else {
+                //INSERT ATENDIMENTO
+                var atendimento = {
+                    codigo: "",
+                    codigoPedido: 0,
+                    dataRegistro: null,
+                    descricao: $('#txtDescricaoAtendimento').val(),
+					funcionario: { nome: getCookie("USUARIO") },
+                    tipo: 1
+                };
+
+                arrayAtendimentos.push(atendimento);
+
+                OpenAlert("Sucesso!", "Inclusão realizada com sucesso!", "success");
+
+            }
+
+            $('#hfListaAtendimentos').val(JSON.stringify(arrayAtendimentos));
+            $('#hfRegistrouAtendimento').val(true);
+            MontarTabelaAtendimentos();
+            jsLimparAtendimento();
+
+        }
+
+        return false;
+
+    }
+
+    function jsValidarCamposAtendimento() {
+
+        if ($('#txtDescricaoAtendimento').val() == "") {
+            OpenAlert("Atenção!", "Informe a descrição do atendimento!", "danger");
+            return false;
+        }
+
+        return true;
+
+    }
+
+    function MontarTabelaAtendimentos() {
+
+        var tabelaObjeto = document.getElementById('tbResultadoAtendimentos');
+        removeAllChilds(tabelaObjeto);
+
+        if (tabelaObjeto.tHead == null) {
+            var listaColunas = ["FUNCIONÁRIO", "DATA", "DESCRIÇÃO"];
+            jsAdicionarCabecalhoTabela(tabelaObjeto, listaColunas, 'center');
+        }
+
+        var tbody = jsAdicionarCorpoTabela(tabelaObjeto);
+
+        for (i = 0; i < arrayAtendimentos.length; i++) {
+
+            var tr = document.createElement('tr');
+            var td1 = document.createElement('td');
+			var td2 = document.createElement('td');
+			var td3 = document.createElement('td');
+
+            td1.setAttribute("class", "center");
+			td2.setAttribute("class", "center");
+			td3.setAttribute("class", "center");
+
+            td1.innerHTML = arrayAtendimentos[i].funcionario.nome;
+			td2.innerHTML = arrayAtendimentos[i]._dataRegistroFormatada;
+			td3.innerHTML = arrayAtendimentos[i].descricao;
+
+            var listaColunas = [td1, td2, td3];
+
+            jsAdicionarLinhaTabela(listaColunas, tr);
+
+            tbody.appendChild(tr);
+        }
+    }
+
+
+</script>

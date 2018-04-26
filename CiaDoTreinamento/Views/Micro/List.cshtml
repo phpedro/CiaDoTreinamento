@@ -1,0 +1,99 @@
+﻿@model List<CODE.Micro>
+
+<section id="main-content">
+	<section class="content">
+		<!--FILTRO-->
+		<div class="panel">
+			<header class="panel-heading">
+				<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseFiltro" aria-expanded="false">MICROS</h4>
+				<div class="top-nav">
+					<button id="btnNovo" class="btn btn-primary" onclick="jsNovo();"><span aria-hidden="true" class="zmdi zmdi-file-plus"></span> &nbsp; NOVO</button>
+					<button id="btnPesquisar" class="btn btn-primary" onclick="jsPesquisar();"><span aria-hidden="true" class="zmdi zmdi-search"></span> &nbsp; PESQUISAR</button>
+				</div>
+			</header>
+			@using (Html.BeginForm("Consultar", "Micro", FormMethod.Post, new { @name = "formFiltros", @id = "formFiltros" }))
+			{
+				<div id="divCollapseFiltro" class="panel-collapse collapse show">
+					<div class="panel-body">
+						<div class="row">
+							<div class="form-group form-group--float col-sm-6">
+								<input type="text" class="form-control" name="txtDescricaoFiltro" id="txtDescricaoFiltro" />
+								<label>Descrição</label>
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+					</div>
+				</div>
+			}
+		</div>
+		<br />
+		<!--RESULTADO-->
+		@if (Model != null)
+		{
+			<div class="panel">
+				<header class="panel-heading">
+					<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseResultado" aria-expanded="false">RESULTADO</h4>
+				</header>
+				<div id="divCollapseResultado" class="panel-collapse collapse show">
+					<div class="panel-body">
+						<div class="table-responsive">
+							<table id="data-table" class="table table-bordered table-striped">
+								<thead class="thead-default">
+									<tr>
+										<th class="center">AÇÕES</th>
+										<th class="center">CÓDIGO</th>
+										<th class="center">DESCRIÇÃO</th>
+										<th class="center">MESO</th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (CODE.Micro micro in Model)
+									{
+										<tr>
+											<td class="center">
+												<a href="#" title="Editar" onclick="jsEditar(@Html.Raw(micro.Codigo))"><span aria-hidden="true" class="zmdi zmdi-border-color"></span></a>
+												&nbsp;
+												<a href="#" title="Excluir" onclick="jsExcluir(@Html.Raw(micro.Codigo))"><span aria-hidden="true" class="zmdi zmdi-delete"></span></a>
+											</td>
+											<td class="center">
+												@micro.Codigo
+											</td>
+											<td class="center">
+												@micro.Descricao
+											</td>
+											<td class="center">
+												@micro.Meso.Descricao
+											</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		}
+	</section>
+</section>
+<script type="text/javascript">
+
+	function jsPesquisar() {
+		jsLoading(true);
+
+		document.getElementById('formFiltros').submit();
+	}
+
+	function jsEditar(codigoMicro) {
+		window.location.assign("@Url.Action("Edit", "Micro")?codigoMicro=" + codigoMicro);
+	}
+
+	function jsExcluir(codigoMicro) {
+		window.location.assign("@Url.Action("Delete", "Micro")?codigoMicro=" + codigoMicro);
+	}
+
+	function jsNovo() {
+		window.location.assign("@Url.Action("Edit", "Micro")");
+	}
+
+</script>

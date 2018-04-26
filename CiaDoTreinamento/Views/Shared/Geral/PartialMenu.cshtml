@@ -1,0 +1,103 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+
+	var usuario = HttpContextAccessor.HttpContext.Request.Cookies["USUARIO"];
+	var codigoUsuario = HttpContextAccessor.HttpContext.Request.Cookies["CODIGO_USUARIO"];
+
+	if (String.IsNullOrEmpty(codigoUsuario))
+	{
+		codigoUsuario = "default";
+	}
+}
+
+<aside class="sidebar sidebar--hidden">
+	<div class="scrollbar-inner">
+		<div class="user">
+			<div class="user__info" data-toggle="dropdown">
+				<!--<img class="user__img" src="~/images/Avatar/@Html.Raw(codigoUsuario + ".jpg")" alt="">-->
+				<img class="user__img" src="~/images/Avatar/default.jpg" alt="">
+				<div>
+					<div class="user__name">@Html.Raw(usuario)</div>
+				</div>
+			</div>
+
+			<div class="dropdown-menu dropdown-menu-profile">
+				<a class="dropdown-item" href="@Url.Action("Edit","Funcionario", new { codigoFuncionario = codigoUsuario })">Meus Dados</a>
+				<a class="dropdown-item" href="@Url.Action("Logout", "Login")">Logout</a>
+			</div>
+		</div>
+
+		<ul class="navigation">
+			<!--HOME-->
+			<li><a href="@Url.Action("Index","Home")"><i class="zmdi zmdi-home"></i> Home</a></li>
+			<!--ADMINISTRATIVO-->
+			<li class="navigation__sub">
+				<a href=""><i class="zmdi zmdi-archive"></i> Administrativo</a>
+
+				<ul>
+					<li><a href="hidden-sidebar.html">Relatório de pedidos correio</a></li>
+					<li><a href="boxed-layout.html">Relatório de pedidos rota</a></li>
+					<li><a href="hidden-sidebar-boxed-layout.html">Relatório de pedidos vistoria</a></li>
+				</ul>
+			</li>
+			<!--CADASTROS-->
+			<li class="navigation__sub">
+				<a href=""><i class="zmdi zmdi-assignment-check"></i> Cadastros</a>
+
+				<ul>
+					<li id="liCadastroAmbiente" visible="true"><a class="" href="@Url.Action("List","Ambiente")">Ambiente</a></li>
+					<li id="liCadastroBandeira" visible="true"><a class="" href="@Url.Action("List","BandeiraPosto")">Bandeira Posto</a></li>
+					<li id="liCadastroCidade" visible="true"><a class="" href="@Url.Action("List","Cidade")">Cidade</a></li>
+					<li id="liCadastroConcorrente" visible="true"><a class="" href="@Url.Action("List","Concorrente")">Concorrente</a></li>
+					<li id="liCadastroCondicaoPagamento" visible="true"><a class="" href="@Url.Action("List","CondicaoPagamento")">Condição de Pagamento</a></li>
+					<li id="liCadastroContabilidade" visible="true"><a class="" href="@Url.Action("List","Contabilidade")">Contabilidade</a></li>
+					<li id="liCadastroContaBancaria" visible="true"><a class="" href="@Url.Action("List","ContaBancaria")">Contas Bancárias</a></li>
+					<li id="liCadastroFuncionario" visible="true"><a class="" href="@Url.Action("List","Funcionario")">Funcionários</a></li>
+					<li id="liCadastroLicenciamentoAmbiental" visible="true"><a class="" href="@Url.Action("List","LicenciamentoAmbiental")">Licenciamento Ambiental</a></li>
+					<li id="liCadastroMeso" visible="true"><a class="" href="@Url.Action("List","Meso")">Meso</a></li>
+					<li id="liCadastroMicro" visible="true"><a class="" href="@Url.Action("List","Micro")">Micro</a></li>
+					<li id="liCadastroMotivoNaoVenda" visible="true"><a class="" href="@Url.Action("List","MotivoNaoVenda")">Motivo de Não Venda</a></li>
+					<li id="liCadastroParceiro" visible="true"><a class="" href="@Url.Action("List","Parceiro")">Parceiros</a></li>
+					<li id="liCadastroPerfil" visible="true"><a class="" href="@Url.Action("List","Perfil")">Perfil</a></li>
+					<li id="liCadastroProduto" visible="true"><a class="" href="@Url.Action("List","Produto")">Produto</a></li>
+					<li id="liCadastroRedePosto" visible="true"><a class="" href="@Url.Action("List","RedePosto")">Rede de Postos</a></li>
+					<li id="liCadastroStatusNegociacao" visible="true"><a class="" href="@Url.Action("List","StatusNegociacao")">Status Negociação</a></li>
+				</ul>
+			</li>
+			<!--CLIENTES-->
+			<li><a href="@Url.Action("List","Cliente")"><i class="zmdi zmdi-accounts"></i> Clientes</a></li>
+			<!--CORREIOS-->
+			<li class="navigation__sub">
+				<a href=""><i class="zmdi zmdi-truck"></i> Correios</a>
+
+				<ul>
+					<li><a href="@Url.Action("List","RelatorioCorreio")">Relatório de correio</a></li>
+				</ul>
+			</li>
+			<!--RELATÓRIOS-->
+			<li class="navigation__sub">
+				<a href=""><i class="zmdi zmdi-chart"></i> Relatórios</a>
+
+				<ul>
+					<li><a href="hidden-sidebar.html">Relatório de alunos</a></li>
+					<li><a href="boxed-layout.html">Relatório de clientes</a></li>
+					<li><a href="hidden-sidebar-boxed-layout.html">Relatório de instrutores</a></li>
+					<li><a href="top-navigation.html">Relatório de Pedidos</a></li>
+				</ul>
+			</li>
+			<!--ROTEIRIZAÇÃO-->
+			<li class="navigation__sub">
+				<a href=""><i class="zmdi zmdi-map"></i> Roteirização</a>
+
+				<ul>
+					<li><a href="@Url.Action("RelatorioRotasCriadas","Roteirizacao")">Relatório de rotas criadas</a></li>
+					<li><a href="@Url.Action("RelatorioCorreio","Roteirizacao")">Relatório de pedidos Correio</a></li>
+					<li><a href="@Url.Action("List","Roteirizacao")">Relatório de pedidos Rota</a></li>
+					<li><a href="@Url.Action("RelatorioPendenteRota","Roteirizacao")">Relatório de pedidos Pendente Rota</a></li>
+					<li><a href="@Url.Action("RealatorioPendeteVistoria","Roteirizacao")">Relatório de pedidos Pendente Vistoria</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+	</div>
+</aside>

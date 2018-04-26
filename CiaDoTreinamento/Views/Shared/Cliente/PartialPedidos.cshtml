@@ -1,0 +1,110 @@
+﻿@model CODE.Cliente
+
+<div class="panel" id="divPartialPedidosResult">
+	<input type="hidden" id="paginaCarregadaPedidos" value="false" />
+	<header class="panel-heading">
+		<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapsePedidos" aria-expanded="false">LISTA PEDIDOS</h4>
+		<div class="top-nav">
+			<a id="btnNovoPedido" class="btn btn-primary" onclick="return jsNovoPedido(@Html.Raw(Model.Codigo));"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; NOVO PEDIDO</a>
+		</div>
+	</header>
+	<div id="divCollapsePedidos" class="panel-collapse collapse show">
+		<div class="panel-body">
+			<table id="tbResultadoPedidos" class="table table-hover table-striped table-bordered">
+				<thead class="thead-default">
+					<tr>
+						<th class="center">CÓDIGO</th>
+						<th class="center">DATA CRIAÇÃO</th>
+						<th class="center">VENDEDOR</th>
+						<th class="center">STATUS</th>
+						<th class="center">VALOR</th>
+						<th class="center">AÇÕES</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	function jsNovoPedido(codigoCliente)
+	{
+		window.location.assign("@Url.Action("NovoPedido", "CabecalhoPedido")?codigoCliente=" + codigoCliente);
+	}
+
+	function openPartialPedidos() {
+
+		if ($('#paginaCarregadaPedidos').val() == 'false') {
+			var data = {
+				codigoCliente: @(Model == null ? "-1" : Model.Codigo.ToString())
+			};
+			$.ajax({
+				type: "GET",
+				url: "/Cliente/GetPedidos/",
+				data: data,
+				async: true,
+				success: function (result) {
+					if (result.sucesso) {
+						MontarTabelaPedidos(result.resultado);
+						$('#paginaCarregadaPedidos').val('true');
+						$('#tbResultadoPedidos').each(function () {
+							$(this).dataTable();
+						});
+					}
+				}
+			});
+		}
+	}
+
+    function MontarTabelaPedidos(arrayPedidos) {
+
+		var tabelaObjeto = document.getElementById('tbResultadoPedidos');
+        removeAllChilds(tabelaObjeto);
+
+        if (tabelaObjeto.tHead == null) {
+            var listaColunas = ["CÓDIGO", "DATA CRIAÇÃO", "VENDEDOR", "STATUS", "VALOR", "AÇÕES"];
+            jsAdicionarCabecalhoTabela(tabelaObjeto, listaColunas, 'center');
+        }
+
+        var tbody = jsAdicionarCorpoTabela(tabelaObjeto);
+
+        for (i = 0; i < arrayPedidos.length; i++) {
+
+            var tr = document.createElement('tr');
+            var td1 = document.createElement('td');
+            var td2 = document.createElement('td');
+            var td3 = document.createElement('td');
+            var td4 = document.createElement('td');
+            var td5 = document.createElement('td');
+            var td6 = document.createElement('td');
+
+            td1.setAttribute("class", "center");
+            td2.setAttribute("class", "center");
+            td3.setAttribute("class", "center");
+            td4.setAttribute("class", "center");
+            td5.setAttribute("class", "center");
+            td6.setAttribute("class", "center");
+
+            td1.innerHTML = arrayPedidos[i].codigo;
+            td2.innerHTML = moment(arrayPedidos[i].dataCadastro).format('DD/MM/YYYY HH:mm');
+            td3.innerHTML = arrayPedidos[i].nomeVendedor;
+            td4.innerHTML = arrayPedidos[i].statusPedido;
+			td5.innerHTML = mascaraValor(arrayPedidos[i].valorPedido.toFixed(2));
+			td6.innerHTML = '<a href="#" title="Editar" onclick="jsEditarPedido(' + arrayPedidos[i].codigo + ');"><span aria-hidden="true" class="zmdi zmdi-edit"></span></a>&nbsp;&nbsp;' +
+							'<a href="#" title="Vizualizar" onclick="jsVizualizarPedido(' + arrayPedidos[i].codigo + ');"><span aria-hidden="true" class="zmdi zmdi-eye"></span></a>';
+
+            var listaColunas = [td1, td2, td3, td4, td5, td6];
+
+            jsAdicionarLinhaTabela(listaColunas, tr);
+
+            tbody.appendChild(tr);
+        }
+
+	}
+
+	function jsEditarPedido(codigoPedido) {
+		window.location.assign("@Url.Action("NovoPedido", "CabecalhoPedido")?codigoPedido=" + codigoPedido);
+	}
+
+</script>

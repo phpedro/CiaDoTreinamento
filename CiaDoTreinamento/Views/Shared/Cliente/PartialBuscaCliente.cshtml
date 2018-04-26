@@ -1,0 +1,102 @@
+﻿<div id="divModalCliente" class="modalAlerta animate-zoom" style="display: none">
+	<div class="contentModal">
+		<!--MODAL HEADER-->
+		<div class="modal-header">
+			<h5>CLIENTES</h5>
+		</div>
+		<!--MODAL CONTENT-->
+		<div class="modal-content" style="max-height:400px;">
+			<div class="table-responsive">
+				<table name="tbClientes" class="table table-bordered table-striped">
+					<thead class="thead-default">
+						<tr>
+							<th class="center">RAZÃO SOCIAL / NOME</th>
+							<th class="center">CNPJ / CPF</th>
+							<th class="center">REDE</th>
+							<th class="center">CIDADE - UF</th>
+							<th class="center">AÇÕES</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+		<!--MODAL FOOTER-->
+		<div class="modal-footer">
+			<button class="btn btn-secondary" onclick="closeModal(this)">FECHAR</button>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	function openModal(data) {
+
+		jsLoading(true);
+
+		var data = {
+			search: data
+        }
+        $.ajax({
+            type: "GET",
+			url: "/Cliente/BuscarClientesResumido/",
+            data: data,
+            success: function (result) {
+				if (result.sucesso) {
+					montarTabela(result.listaClientes);
+
+					jsLoading(false);
+					$('#divModalCliente').show();
+				} else {
+					console.log(result);
+					jsLoading(false);
+				}
+            }
+        });
+	}
+
+	function montarTabela(arrayClientes) {
+		
+		var tabelaObjeto = document.getElementsByName('tbClientes')[0];
+		removeAllChilds(tabelaObjeto);
+
+		if (tabelaObjeto.tHead == null) {
+			var listaColunas = ["RAZÃO SOCIAL / NOME", "CNPJ / CPF", "REDE", "CIDADE - UF", "AÇÕES"];
+			jsAdicionarCabecalhoTabela(tabelaObjeto, listaColunas);
+		}
+
+		var tbody = jsAdicionarCorpoTabela(tabelaObjeto);
+
+		for (i = 0; i < arrayClientes.length; i++) {
+
+			var tr = document.createElement('tr');
+			var td1 = document.createElement('td');
+			var td2 = document.createElement('td');
+			var td3 = document.createElement('td');
+			var td4 = document.createElement('td');
+			var td5 = document.createElement('td');
+
+			td5.className = "center";
+
+			if (arrayClientes[i].tipoCliente == "1") {
+				td1.innerHTML = arrayClientes[i].razaoSocial;
+				td2.innerHTML = arrayClientes[i].cnpj;
+			} else {
+				td1.innerHTML = arrayClientes[i].nomeCliente;
+				td2.innerHTML = arrayClientes[i].cpf;
+			}
+			
+			td3.innerHTML = arrayClientes[i].rede;
+			td4.innerHTML = arrayClientes[i].cidade + " - " + arrayClientes[i].estado;
+			td5.innerHTML = "<a title='Abrir' href='@Url.Action("Edit","Cliente")?id=" + arrayClientes[i].codigo + "'><span class='zmdi zmdi-open-in-new'></span></a>";
+
+			var listaColunas = [td1, td2, td3, td4, td5];
+
+			jsAdicionarLinhaTabela(listaColunas, tr);
+
+			tbody.appendChild(tr);
+		}
+	}
+
+
+
+</script>

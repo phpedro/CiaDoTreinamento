@@ -1,0 +1,250 @@
+﻿@model CODE.Funcionario
+
+@{
+	//Lista Sexos
+	List<SelectListItem> listaSexos = new List<SelectListItem>();
+	listaSexos.Add(new SelectListItem()
+	{
+		Text = "Feminino",
+		Value = "F"
+	});
+	listaSexos.Add(new SelectListItem()
+	{
+		Text = "Masculino",
+		Value = "M"
+	});
+
+	string mensagemErro;
+
+	//GET PERFIS
+	CODE.PerfilBLL perfilBLL = new CODE.PerfilBLL();
+	List<CODE.Perfil> Perfis = perfilBLL.getPerfis(null, null, out mensagemErro);
+	List<SelectListItem> listaPerfis = new List<SelectListItem>();
+	foreach (CODE.Perfil item in Perfis)
+	{
+		listaPerfis.Add(new SelectListItem()
+		{
+			Text = item.Descricao,
+			Value = item.Codigo.ToString()
+		});
+	}
+
+}
+
+<section id="main-content">
+	<section class="content">
+		<div class="panel">
+			<header class="panel-heading">
+				<h4>@Html.Raw(Model == null ? "NOVO FUNCIONÁRIO" : "EDITAR FUNCIONÁRIO")</h4>
+				<div class="top-nav">
+					<button id="btnVoltar" class="btn btn-primary" onclick="return jsVoltar();"><span aria-hidden="true" class="zmdi zmdi-arrow-left"></span> &nbsp; VOLTAR</button>
+					@if (Model == null)
+					{
+						<button id="btnLimpar" class="btn btn-primary" onclick="return jsLimpar();"><span aria-hidden="true" class="zmdi zmdi-close"></span> &nbsp; LIMPAR</button>
+					}
+					<button id="btnSalvar" class="btn btn-primary" onclick="return jsSalvar();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; SALVAR</button>
+				</div>
+			</header>
+			<div class="panel-body">
+				@using (Html.BeginForm("Salvar", "Funcionario", FormMethod.Post, new { @name = "formNovo", @id = "formNovo" }))
+				{
+					@Html.HiddenFor(x => Model.Codigo, new { @class = "form-control" })
+					<div class="row">
+						<div class="form-group form-group--float col-sm-6">
+							@Html.TextBoxFor(x => Model.Nome, new { @class = "form-control noBlank" })
+							<label class="required">Nome</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-6">
+							@Html.TextBoxFor(x => Model.Email, new { @class = "form-control noBlank" })
+							<label class="required">Email</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group col-sm-6">
+							<label class="required">Sexo</label>
+							@Html.DropDownListFor(x => Model.Sexo, listaSexos, "Selecione...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-6">
+							@Html.TextBoxFor(x => Model.CPF, new { @class = "form-control noBlank maskCPF" })
+							<label class="required">CPF</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group form-group--float col-sm-6">
+							@Html.TextBoxFor(x => Model.Login, new { @class = "form-control noBlank" })
+							<label class="required">Login</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-6">
+							@Html.PasswordFor(x => Model.Senha, new { @class = "form-control noBlank" })
+							<label class="required">Senha</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					@if (Model.Perfil.PodeAlterarPerfis)
+					{
+						<div class="row">
+							<div class="form-group col-sm-6">
+								<label class="required">Perfil</label>
+								@Html.DropDownListFor(x => Model.Perfil.Codigo, listaPerfis, "Selecione...", new { @class = "select2" })
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group form-group--float col-sm-6">
+								@Html.TextBoxFor(x => Model.META_VENDA_MENSAL, new { @class = "form-control noBlank" })
+								<label class="required">Meta Venda Mensal</label>
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+						<div class="row" style="margin: 10px 0">
+							<div class="col-sm-6 chkRow">
+								<div class="col-sm-1 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.Ativo)</label>
+								</div>
+								<label class="control-label">Ativo</label>
+							</div>
+						</div>
+						<div class="row" style="margin: 10px 0">
+							<div class="col-sm-4 chkRow">
+								<div class="col-sm-2 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PODE_CONFIGURAR_DIREITOS)</label>
+								</div>
+								<label class="control-label">Pode configurar direitos</label>
+							</div>
+							<div class="col-sm-4 chkRow">
+								<div class="col-sm-2 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PODE_GERAR_BOLETO)</label>
+								</div>
+								<label class="control-label">Pode gerar boletos</label>
+							</div>
+							<div class="col-sm-4 chkRow">
+								<div class="col-sm-2 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PODE_GERAR_REMESSA_RETORNO)</label>
+								</div>
+								<label class="control-label">Pode gerar remessa e importar retorno</label>
+							</div>
+						</div>
+						<div class="row" style="margin: 10px 0">
+							<div class="col-sm-4 chkRow">
+								<div class="col-sm-2 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PODE_VER_RELATORIO_VENDAS)</label>
+								</div>
+								<label class="control-label">Pode ver relatório de vendas</label>
+							</div>
+							<div class="col-sm-4 chkRow">
+								<div class="col-sm-2 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PODE_CADASTRAR_PRODUTOS)</label>
+								</div>
+								<label class="control-label">Pode cadastrar produto</label>
+							</div>
+							<div class="col-sm-4 chkRow">
+								<div class="col-sm-2 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PODE_ALTERAR_CORREIO)</label>
+								</div>
+								<label class="control-label">Pode alterar postagem correio</label>
+							</div>
+						</div>
+					}
+				}
+			</div>
+		</div>
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	var tela;
+
+	function jsCarregarCampos() {
+
+		tela = {
+			Codigo: $('#Codigo'),
+			Nome: $('#Nome'),
+			Email: $('#Email'),
+			Sexo: $('#Sexo'),
+			CPF: $('#CPF'),
+			Login: $('#Login'),
+			Senha: $('#Senha')
+		}
+	}
+
+	function jsVoltar() {
+		jsLimpar();
+		window.location.assign("@Url.Action("List", "Funcionario")");
+	}
+
+	function jsLimpar() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		me.Codigo.val('');
+		me.Nome.val('');
+		me.Email.val('');
+		me.CPF.val('');
+		me.Login.val('');
+		me.Senha.val('');
+
+		jsRemoverFocus(me.Nome);
+		jsRemoverFocus(me.Email);
+		jsRemoverFocus(me.CPF);
+		jsRemoverFocus(me.Login);
+		jsRemoverFocus(me.Senha);
+
+		jsLoading(false);
+
+		return false;
+	}
+
+	function jsSalvar() {
+
+		jsLoading(true);
+
+		if (!jsValidaCampos()) {
+			jsLoading(false);
+			return false;
+		}
+
+		document.getElementById('formNovo').submit();
+
+	}
+
+	function jsValidaCampos() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		if (me.Nome.val() == "") {
+			OpenAlert("Atenção!", "Informe o nome do funcionário!", "danger");
+			me.Nome.focus();
+			return false;
+		} else if (me.Email.val() == "") {
+			OpenAlert("Atenção!", "Informe o email do funcionário!", "danger");
+			me.Email.focus();
+			return false;
+		} else if (me.Sexo.val() == "") {
+			OpenAlert("Atenção!", "Informe o sexo do funcionário!", "danger");
+			me.Sexo.focus();
+			return false;
+		} else if (me.CPF.val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.CPF.focus();
+			return false;
+		} else if (me.Login.val() == "") {
+			OpenAlert("Atenção!", "Informe o cpf do funcionário!", "danger");
+			me.Login.focus();
+			return false;
+		} else if (me.Senha.val() == "") {
+			OpenAlert("Atenção!", "Informe a senha do funcionário!", "danger");
+			me.Senha.focus();
+			return false;
+		}
+
+		return true;
+
+	}
+
+</script>

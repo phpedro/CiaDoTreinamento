@@ -1,0 +1,20 @@
+﻿@model List<CODE.Cliente.ClienteTela>
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+	string mensagemErro;
+
+	int codigoUsuario = Convert.ToInt32(HttpContextAccessor.HttpContext.Request.Cookies["CODIGO_USUARIO"]);
+	var funcionario = CODE.FuncionarioBLL.getFuncionarioByCodigo(codigoUsuario, out mensagemErro);
+
+}
+
+@if (funcionario.Perfil.Codigo == 1)
+{
+	//VENDAS
+	//@Html.Partial("DashBoard/PartialDashboardVendas")
+}
+else if (funcionario.Perfil.Codigo == 5)
+{
+	//LOGISTICA
+	@Html.Partial("DashBoard/PartialDashboardLogistica")
+}

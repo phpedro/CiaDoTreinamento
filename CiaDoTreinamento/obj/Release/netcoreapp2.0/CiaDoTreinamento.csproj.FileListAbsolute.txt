@@ -1,0 +1,13 @@
+D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Release\netcoreapp2.0\CiaDoTreinamento.deps.json
+D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Release\netcoreapp2.0\CiaDoTreinamento.runtimeconfig.json
+D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Release\netcoreapp2.0\CiaDoTreinamento.runtimeconfig.dev.json
+D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Release\netcoreapp2.0\CiaDoTreinamento.dll
+D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Release\netcoreapp2.0\CiaDoTreinamento.pdb
+D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Release\netcoreapp2.0\CODE.dll
+D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Release\netcoreapp2.0\CODE.pdb
+D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\CiaDoTreinamento.csprojResolveAssemblyReference.cache
+D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\CiaDoTreinamento.csproj.CoreCompileInputs.cache
+D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\CiaDoTreinamento.AssemblyInfoInputs.cache
+D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\CiaDoTreinamento.AssemblyInfo.cs
+D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\CiaDoTreinamento.dll
+D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\CiaDoTreinamento.pdb

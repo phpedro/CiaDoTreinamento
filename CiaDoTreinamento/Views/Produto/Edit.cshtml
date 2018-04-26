@@ -1,0 +1,354 @@
+﻿@model CODE.Produto
+
+@{
+	string mensagemErro;
+
+	//GET CATEGORIAS
+	CODE.CategoriaProdutoBLL CategoriaBLL = new CODE.CategoriaProdutoBLL();
+	List<CODE.CategoriaProduto> categorias = CategoriaBLL.getCategorias(out mensagemErro);
+	List<SelectListItem> listaCategorias = new List<SelectListItem>();
+	foreach (CODE.CategoriaProduto item in categorias)
+	{
+		listaCategorias.Add(new SelectListItem()
+		{
+			Value = item.Codigo.ToString(),
+			Text = item.Descricao,
+			Selected = (Model == null ? false : Model.CategoriaProduto.Codigo == item.Codigo)
+		});
+	}
+
+	//GET PRODUTOS 2ª VIA
+	CODE.ProdutoBLL produtoBLL = new CODE.ProdutoBLL();
+	List<CODE.Produto.Produto2ViaTela> produtos = produtoBLL.GetProdutos2ViaTela(out mensagemErro);
+	List<SelectListItem> listaProdutos = new List<SelectListItem>();
+	foreach (CODE.Produto.Produto2ViaTela item in produtos)
+	{
+		listaProdutos.Add(new SelectListItem()
+		{
+			Value = item.Codigo.ToString(),
+			Text = item.Descricao,
+			Selected = (Model == null ? false : Model.ProdutoRef2Via == item.Codigo)
+		});
+	}
+}
+
+<style type="text/css">
+	.row2 {
+		margin-bottom: 0 !important;
+	}
+</style>
+
+<section id="main-content">
+	<section class="content">
+		<div class="panel">
+			<header class="panel-heading">
+				<h4>@Html.Raw(Model == null ? "NOVO PRODUTO" : "EDITAR PRODUTO")</h4>
+				<div class="top-nav">
+					<button id="btnVoltar" class="btn btn-primary" onclick="jsVoltar();"><span aria-hidden="true" class="zmdi zmdi-arrow-left"></span> &nbsp; VOLTAR</button>
+					@if (Model == null)
+					{
+						<button id="btnLimpar" class="btn btn-primary" onclick="jsLimpar();"><span aria-hidden="true" class="zmdi zmdi-close"></span> &nbsp; LIMPAR</button>
+					}
+					<button id="btnSalvar" class="btn btn-primary" onclick="jsSalvar();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; SALVAR</button>
+				</div>
+			</header>
+			<div class="panel-body">
+				@using (Html.BeginForm("Salvar", "Produto", FormMethod.Post, new { @name = "formNovo", @id = "formNovo", @style = "display:flex;", @enctype = "multipart/form-data" }))
+				{
+					@Html.HiddenFor(x => Model.Codigo, new { @class = "form-control" })
+					<div class="col-sm-9"  style="padding-left: 0px;">
+						<div class="row">
+							<div class="form-group form-group--float col-sm-6">
+								@Html.TextBoxFor(x => Model.Descricao, new { @class = "form-control noBlank" })
+								<label>Descrição produto</label>
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group col-sm-6">
+								<label class="required">Categoria</label>
+								@Html.DropDownListFor(x => Model.CategoriaProduto.Codigo, listaCategorias, "Selecione a Categoria...", new { @class = "select2", @onchange = "alterarLayout();" })
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+						<div class="row">
+							<div class="form-group form-group--float col-sm-6">
+								@Html.TextBoxFor(x => Model.ValorPorPessoa, new { @class = "form-control noBlank", @onkeypress = "return jsSomenteDecimal(arguments[0] || window.event);" })
+								<label class="required">Valor unitário</label>
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group form-group--float col-sm-6">
+								@Html.TextBoxFor(x => Model.MesesVigencia, new { @class = "form-control noBlank", @onkeypress = "return jsSomenteNumero(arguments[0] || window.event);" })
+								<label class="required">Meses vigência</label>
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+						<div class="row">
+							<div class="form-group form-group--float col-sm-6">
+								@Html.TextBoxFor(x => Model.PercentualIIS, new { @class = "form-control noBlank", @onkeypress = "return jsSomenteDecimal(arguments[0] || window.event);" })
+								<label class="required">Percentual encargos</label>
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group col-sm-6 2via">
+								<label class="required">Produto Ref. 2ª Via</label>
+								@Html.DropDownListFor(x => Model.ProdutoRef2Via, listaProdutos, "Selecione a produto...", new { @class = "select2" })
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+						<div class="row">
+							<div class="form-group col-sm-6">
+								<label>Frente Certificado</label>
+								<input type="file" id="ModeloCertificadoFrente" name="ModeloCertificadoFrente" class="form-control" />
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group col-sm-6">
+								<label>Verso Certificado</label>
+								<input type="file" id="ModeloCertificadoVerso" name="ModeloCertificadoVerso" class="form-control" />
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+						<div class="row">
+							<div class="form-group col-sm-6">
+								<label>Modelo proposta</label>
+								<input type="file" id="ModeloProposta" name="ModeloProposta" class="form-control" />
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group col-sm-6">
+								<label>Modelo Lista de presença</label>
+								<input type="file" id="ModeloListaPresenca" name="ModeloListaPresenca" class="form-control" />
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+						<div class="row">
+							<div class="form-group form-group--float col-sm-6">
+								@Html.TextBoxFor(x => Model.CargaHoraria, new { @class = "form-control noBlank", @onkeypress = "return jsSomenteNumero(arguments[0] || window.event);" })
+								<label class="required">Carga Horária</label>
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group form-group--float col-sm-6">
+								@Html.TextBoxFor(x => Model.ArgumentacaoVenda, new { @class = "form-control noBlank"})
+								<label class="required">Argumentos de venda</label>
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+						<br />
+						<div class="row row2">
+							<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+								<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.TemNR20)</label>
+							</div>
+							<label class="control-label col-sm-25">Tem NR20</label>
+
+							<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+								<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.TemPAE)</label>
+							</div>
+							<label class="control-label col-sm-25">Tem PAE</label>
+
+							<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+								<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.TemPPRA)</label>
+							</div>
+							<label class="control-label col-sm-25">Tem PPRA</label>
+
+							<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+								<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.TemPC0405)</label>
+							</div>
+							<label class="control-label col-sm-25">Tem PC0405</label>
+						</div>
+						<div class="row row2">
+							<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+								<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.TemPCMSO)</label>
+							</div>
+							<label class="control-label col-sm-25">Tem PCMSO</label>
+
+							<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+								<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.TemCURSO)</label>
+							</div>
+							<label class="control-label col-sm-25">Tem Curso</label>
+
+							<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+								<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.TemNBR14276)</label>
+							</div>
+							<label class="control-label col-sm-25">Tem NBR14276</label>
+
+							<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+								<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.TemPRONTUARIONR20)</label>
+							</div>
+							<label class="control-label col-sm-25">Tem Prontuário NR20</label>
+						</div>
+						<div class="row row2">
+							<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+								<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.TemVISTORIA)</label>
+							</div>
+							<label class="control-label col-sm-25">Tem Vistoria</label>
+
+							<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+								<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.TemVISTORIARURAL)</label>
+							</div>
+							<label class="control-label col-sm-25">Tem Vistoria Rural</label>
+
+							<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+								<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.TemVISTORIAESCOLAR)</label>
+							</div>
+							<label class="control-label col-sm-25">Tem Vistoria Escolar</label>
+
+							<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+								<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.TemVISTORIAPASSAGEIROS)</label>
+							</div>
+							<label class="control-label col-sm-25">Tem Vistoria Passageiros</label>
+						</div>
+						<div class="row row2">
+							<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+								<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.TemPASTACIPA)</label>
+							</div>
+							<label class="control-label col-sm-25">Tem Pasta CIPA</label>
+
+							<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+								<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.Ativo)</label>
+							</div>
+							<label class="control-label col-sm-25">Ativo</label>
+						</div>
+					</div>
+					<div class="col-sm-3">
+						<div class="thumbnail">
+							<img style="max-height: 300px;" src="@Url.Action("DownloadImagem", "Produto", new { nomeImagem = (Model == null ? null : Model.NomeImagem) })" alt="" />
+							<div class="caption">
+								<p>
+									<input type="file" id="ArquivoImagem" name="ArquivoImagem" class="form-control" />
+								</p>
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	var tela;
+
+	$(document).ready(function () {
+
+		alterarLayout();
+
+	});
+
+	function jsCarregarCampos() {
+
+		tela = {
+			Codigo: $('#Codigo'),
+			Descricao: $('#Descricao'),
+			CategoriaProduto_Codigo: $('#CategoriaProduto_Codigo'),
+			ValorPorPessoa: $('#ValorPorPessoa'),
+			MesesVigencia: $('#MesesVigencia'),
+			PercentualIIS: $('#PercentualIIS'),
+			ProdutoRef2Via: $('#ProdutoRef2Via'),
+			ModeloCertificadoFrente: $('#ModeloCertificadoFrente'),
+			ModeloCertificadoVerso: $('#ModeloCertificadoVerso'),
+			ModeloProposta: $('#ModeloProposta'),
+			ModeloListaPresenca: $('#ModeloListaPresenca'),
+			CargaHoraria: $('#CargaHoraria'),
+			ArgumentacaoVenda: $('#ArgumentacaoVenda'),
+			ArquivoImagem: $('#ArquivoImagem')
+		}
+	}
+
+	function jsVoltar() {
+		window.location.assign("@Url.Action("List", "Produto")");
+	}
+
+	function jsLimpar() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		me.Codigo.val('');
+		me.Descricao.val('').change();
+		me.CategoriaProduto_Codigo.val('').trigger('change');
+		me.ValorPorPessoa.val('').change();
+		me.MesesVigencia.val('').change();
+		me.PercentualIIS.val('').change();
+		me.ProdutoRef2Via.val('').trigger('change');
+		me.ModeloCertificadoFrente.val('');
+		me.ModeloCertificadoVerso.val('');
+		me.ModeloProposta.val('');
+		me.ModeloListaPresenca.val('');
+		me.CargaHoraria.val('').change();
+		me.ArgumentacaoVenda.val('').change();
+		me.ArquivoImagem.val('');
+
+		jsRemoverFocus(me.Descricao);
+		jsRemoverFocus(me.ValorPorPessoa);
+		jsRemoverFocus(me.MesesVigencia);
+		jsRemoverFocus(me.PercentualIIS);
+		jsRemoverFocus(me.CargaHoraria);
+		jsRemoverFocus(me.ArgumentacaoVenda);
+
+	}
+
+	function jsSalvar() {
+
+		jsLoading(true);
+
+		if (!jsValidaCampos()) {
+			jsLoading(false);
+			return false;
+		}
+		document.getElementById('formNovo').submit();
+	}
+
+	function jsValidaCampos() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		if (me.Descricao.val() == "") {
+			OpenAlert("Atenção!", "Informe a descrição do produto!", "danger");
+			me.Descricao.focus();
+			return false;
+		} else if (me.CategoriaProduto_Codigo.val() == "") {
+			OpenAlert("Atenção!", "Informe a categoria do produto!", "danger");
+			me.CategoriaProduto_Codigo.focus();
+			return false;
+		} else if (me.ValorPorPessoa.val() == "") {
+			OpenAlert("Atenção!", "Informe o valor unitário do produto!", "danger");
+			me.ValorPorPessoa.focus();
+			return false;
+		} else if (me.MesesVigencia.val() == "") {
+			OpenAlert("Atenção!", "Informe os meses de vigência do produto!", "danger");
+			me.MesesVigencia.focus();
+			return false;
+		} else if (me.PercentualIIS.val() == "") {
+			OpenAlert("Atenção!", "Informe o percentual de encargo do produto!", "danger");
+			me.PercentualIIS.focus();
+			return false;
+		} else if (me.CategoriaProduto_Codigo.val() != 4 && me.ProdutoRef2Via.val() == "") {
+			OpenAlert("Atenção!", "Informe o produto de referência para 2ª via!", "danger");
+			me.ProdutoRef2Via.focus();
+			return false;
+		} else if (me.CargaHoraria.val() == "") {
+			OpenAlert("Atenção!", "Informe o carga horária do produto!", "danger");
+			me.CargaHoraria.focus();
+			return false;
+		} else if (me.ArgumentacaoVenda.val() == "") {
+			OpenAlert("Atenção!", "Informe os argumentos de venda do produto!", "danger");
+			me.ArgumentacaoVenda.focus();
+			return false;
+		}
+
+		return true;
+	}
+
+	function alterarLayout() {
+
+		var categoria = $('#CategoriaProduto_Codigo').val();
+
+		if (categoria == 4) {
+
+			$('.2via').hide();
+
+		} else {
+
+			$('.2via').show();
+		}
+	}
+
+</script>

@@ -1,0 +1,218 @@
+﻿@model RegistroCorreioViewModel
+
+@{
+	List<SelectListItem> emails = new List<SelectListItem>();
+	string mensagemErro = "";
+
+	if (Model != null)
+	{
+		CODE.EmailClienteBLL emailClienteBLL = new CODE.EmailClienteBLL();
+
+		//Todos os emails do cliente
+		List<CODE.EmailCliente> emailsCliente = emailClienteBLL.GetEmails((int)Model.registroCorreio.cliente.Codigo, out mensagemErro);
+
+		foreach (CODE.EmailCliente item in emailsCliente)
+		{
+			emails.Add(new SelectListItem()
+			{
+				Text = item.Descricao,
+				Value = item.Codigo.ToString(),
+				Selected = Model.listaEmails.Exists(x => x.CodigoEmail == item.Codigo)
+			});
+		}
+	}
+}
+
+<section id="main-content">
+	<section class="content">
+		<div class="panel">
+			<header class="panel-heading">
+				<h4>@Html.Raw(Model == null ? "NOVO REGISTRO" : "EDITAR REGISTRO")</h4>
+				<div class="top-nav">
+					<button id="btnVoltar" class="btn btn-primary" onclick="return jsVoltar();"><span aria-hidden="true" class="zmdi zmdi-arrow-left"></span> &nbsp; VOLTAR</button>
+					@if (Model == null)
+					{
+						<button id="btnLimpar" class="btn btn-primary" onclick="return jsLimpar();"><span aria-hidden="true" class="zmdi zmdi-close"></span> &nbsp; LIMPAR</button>
+					}
+					<button id="btnSalvar" class="btn btn-primary" onclick="return jsSalvar();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; SALVAR</button>
+				</div>
+			</header>
+			<div class="panel-body">
+				@using (Html.BeginForm("Salvar", "RelatorioCorreio", FormMethod.Post, new { @name = "formNovo", @id = "formNovo" }))
+				{
+					@Html.HiddenFor(x => Model.registroCorreio.Codigo, new { @class = "form-control" })
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.registroCorreio.cliente.CNPJ, new { @class = "form-control maskCNPJ", @onblur = "return jsPreencheCliente();" })
+							<label class="required">CNPJ</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.registroCorreio.cliente.RazaoSocial, new { @class = "form-control", @readonly="readonly" })
+							<label class="required">Razão Social</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.registroCorreio.cliente.Codigo, new { @class = "form-control ", @onkeypress = "return jsSomenteNumero(arguments[0] || window.event)", @onblur = "return jsPreencheCliente();" })
+							<label class="required">Código Cliente</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.registroCorreio.CodigoPedido, new { @class = "form-control noBlank", @onkeypress = "return jsSomenteNumero(arguments[0] || window.event)", @onblur = "return jsPreencheProdutos()" })
+							<label class="required">Código Pedido</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.registroCorreio.CodigoPostagem, new { @class = "form-control noBlank" })
+							<label class="required">Código Postagem</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="col-sm-4">
+							<label>Data Postagem</label>
+							<div class="input-group">
+								<span class="input-group-addon"><i class="zmdi zmdi-calendar"></i></span>
+								<div class="form-group">
+									@Html.TextBoxFor(x => Model.registroCorreio.dataPostagem, new { @class = "form-control date-picker" })
+									<i class="form-group__bar"></i>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group col-sm-4">
+							<label class="required">Enviado Correio</label>
+							@Html.TextAreaFor(x => Model.registroCorreio.Descricao, new { @class="form-control", @rows = "2", @maxlength = "200", @style = "resize:none;" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label class="required">Observação da postagem</label>
+							@Html.TextAreaFor(x => Model.registroCorreio.Comentario, new { @class = "form-control", @rows = "2", @maxlength = "200", @style = "resize:none;" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label class="required">Email</label>
+							@Html.DropDownList("codigoEmail", emails, "Selecione...", new { @class = "select2", @multiple = "multiple" })
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	function jsVoltar() {
+		window.location.assign("@Url.Action("List", "RelatorioCorreio")");
+	}
+
+	function jsLimpar() { 
+		$('#registroCorreio_cliente_CNPJ').val('');
+		$('#registroCorreio_cliente_RazaoSocial').val('');
+		$('#registroCorreio_cliente_Codigo').val('');
+		$('#registroCorreio_CodigoPedido').val('');
+		$('#registroCorreio_CodigoPostagem').val('');
+		$('#registroCorreio_Descricao').val('');
+		$('#registroCorreio_Comentario').val('');
+		$('#codigoEmail').find('option').remove().end().append('<option value="0" selected="true">Selecione...</option>').val('Selecione')
+	}
+
+	function jsSalvar() {
+
+		if ($('#registroCorreio_dataPostagem').val() == null || $('#registroCorreio_dataPostagem').val() == "") {
+			OpenAlert("Atenção!", "Informe a data de postagem!!!", "warning");
+			return false;
+		}
+
+		if ($('#codigoEmail').val().length == 0) {
+			OpenAlert("Atenção!", "Informe o email do cliente!!!", "warning");
+			return false;
+		}
+
+		$("#formNovo").submit();
+	}
+
+	function jsPreencheCliente() {
+
+		$.get("@Url.Action("BuscarCliente", "Cliente")/?codigo=" + $('#registroCorreio_cliente_Codigo').val() + "&cnpj=" + $('#registroCorreio_cliente_CNPJ').val() + "", function (resultado) {
+            if (!resultado.sucesso) {
+				OpenAlert("Atenção!", resultado.mensagemErro, "danger");
+				return false;
+            } else {
+				$('#registroCorreio_cliente_Codigo').val(resultado.cliente.codigo);
+				$('#registroCorreio_cliente_Codigo').addClass('form-control--active');
+				$('#registroCorreio_cliente_RazaoSocial').val(resultado.cliente.razaoSocial);
+				$('#registroCorreio_cliente_RazaoSocial').addClass('form-control--active');
+				$('#registroCorreio_cliente_CNPJ').val(resultado.cliente.cnpj);
+				$('#registroCorreio_cliente_CNPJ').addClass('form-control--active');
+            }
+        });
+
+        jsPreencheEmails();
+    }
+
+    function jsPreencheClientePedido(codigoPedido) {
+		$.get("@Url.Action("BuscarCliente", "Cliente")/?codigoPedido=" + codigoPedido + "", function (resultado) {
+            if (!resultado.sucesso) {
+				openAlert("Atenção!", resultado.mensagemErro, "danger");
+                return;
+            } else {
+				$('#registroCorreio_cliente_Codigo').val(resultado.cliente.codigo);
+				$('#registroCorreio_cliente_Codigo').addClass('form-control--active');
+				$('#registroCorreio_cliente_RazaoSocial').val(resultado.cliente.razaoSocial);
+				$('#registroCorreio_cliente_RazaoSocial').addClass('form-control--active');
+				$('#registroCorreio_cliente_CNPJ').val(resultado.cliente.cnpj);
+				$('#registroCorreio_cliente_CNPJ').addClass('form-control--active');
+
+                jsPreencheEmails();
+            }
+        });
+    }
+
+    function jsPreencheProdutos() {
+
+		var codPedido = $('#registroCorreio_CodigoPedido').val();
+
+        $.get("@Url.Action("BuscarProdutosPedido", "CabecalhoPedido")/?codigoPedido=" + codPedido + "", function (resultado) {
+            if (!resultado.sucesso) {
+				OpenAlert("Atenção!", resultado.mensagemErro, "danger");
+                return;
+            } else {
+				$('#registroCorreio_Descricao').val(resultado.listaProdutos);
+            }
+        });
+
+        jsPreencheClientePedido(codPedido);
+
+    }
+
+    function jsPreencheEmails()
+    {
+
+		var codigoCliente = $('#registroCorreio_cliente_Codigo').val();
+
+		$.get("@Url.Action("GetEmails", "Cliente")/?codigoCliente=" + codigoCliente + "", function (resultado) {
+
+			if (resultado) { 
+				var ddlEmails = $('#codigoEmail');
+				ddlEmails.find('option')
+					.remove()
+					.end()
+					.append('<option value="0" selected="true">Selecione...</option>')
+					.val('Selecione')
+
+				for (var i = 0; i < resultado.length; i++) {
+					var option = document.createElement('option');
+					option.value = resultado[i].codigo;
+					option.text = resultado[i].descricao;
+
+					ddlEmails.append(option);
+				}
+			}
+        });
+    }
+
+</script>

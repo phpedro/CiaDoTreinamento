@@ -1,0 +1,146 @@
+﻿@model List<CODE.Cidade>
+
+@{
+	string mensagemErro = "";
+
+	//GET MESOS
+	CODE.MesoBLL MesoBLL = new CODE.MesoBLL();
+	List<CODE.Meso> Mesos = MesoBLL.getMesos(0, "", out mensagemErro);
+	List<SelectListItem> listaMesos = new List<SelectListItem>();
+	foreach (CODE.Meso meso in Mesos)
+	{
+		listaMesos.Add(new SelectListItem()
+		{
+			Text = meso.Descricao,
+			Value = meso.Codigo.ToString(),
+			Selected = meso.Codigo == ViewBag.MesoFiltro
+		});
+	}
+
+	//GET MICROS
+	CODE.MicroBLL MicroBLL = new CODE.MicroBLL();
+	List<CODE.Micro> Micros = MicroBLL.getMicros(0, "", out mensagemErro);
+	List<SelectListItem> listaMicros = new List<SelectListItem>();
+	foreach (CODE.Micro micro in Micros)
+	{
+		listaMicros.Add(new SelectListItem()
+		{
+			Text = micro.Descricao,
+			Value = micro.Codigo.ToString(),
+			Selected = micro.Codigo == ViewBag.MicroFiltro
+		});
+	}
+
+}
+
+<section id="main-content">
+	<section class="content">
+		<!--FILTRO-->
+		<div class="panel">
+			<header class="panel-heading">
+				<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseFiltro" aria-expanded="false">CIDADES</h4>
+				<div class="top-nav">
+					<button id="btnNovo" class="btn btn-primary" onclick="jsNovo();"><span aria-hidden="true" class="zmdi zmdi-file-plus"></span> &nbsp; NOVO</button>
+					<button id="btnPesquisar" class="btn btn-primary" onclick="jsPesquisar();"><span aria-hidden="true" class="zmdi zmdi-search"></span> &nbsp; PESQUISAR</button>
+				</div>
+			</header>
+			@using (Html.BeginForm("Consultar", "Cidade", FormMethod.Post, new { @name = "formFiltros", @id = "formFiltros" }))
+			{
+				<div id="divCollapseFiltro" class="panel-collapse collapse show">
+					<div class="panel-body">
+						<div class="row">
+							<div class="form-group form-group--float col-sm-4">
+								<input type="text" class="form-control" name="txtDescricaoFiltro" id="txtDescricaoFiltro" />
+								<label>Descrição</label>
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group col-sm-4">
+								<label>Meso</label>
+								@Html.DropDownList("txtMesoFiltro", listaMesos, "Selecione a meso...", new { @class = "select2" })
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group col-sm-4">
+								<label>Micro</label>
+								@Html.DropDownList("txtMicroFiltro", listaMicros, "Selecione a micro...", new { @class = "select2" })
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+					</div>
+				</div>
+			}
+		</div>
+		<br />
+		<!--RESULTADO-->
+		@if (Model != null)
+		{
+			<div class="panel">
+				<header class="panel-heading">
+					<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseResultado" aria-expanded="false">RESULTADO</h4>
+				</header>
+				<div id="divCollapseResultado" class="panel-collapse collapse show">
+					<div class="panel-body">
+						<div class="table-responsive">
+							<table id="data-table" class="table table-bordered table-striped">
+								<thead class="thead-default">
+									<tr>
+										<th class="center">AÇÕES</th>
+										<th class="center">CÓDIGO</th>
+										<th class="center">DESCRIÇÃO</th>
+										<th class="center">MESO</th>
+										<th class="center">MICRO</th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (CODE.Cidade cidade in Model)
+									{
+										<tr>
+											<td class="center">
+												<a href="#" title="Editar" onclick="jsEditar(@Html.Raw(cidade.Codigo))"><span aria-hidden="true" class="zmdi zmdi-border-color"></span></a>
+												&nbsp;
+												<a href="#" title="Excluir" onclick="jsExcluir(@Html.Raw(cidade.Codigo))"><span aria-hidden="true" class="zmdi zmdi-delete"></span></a>
+											</td>
+											<td class="center">
+												@cidade.Codigo
+											</td>
+											<td class="center">
+												@cidade.Descricao
+											</td>
+											<td class="center">
+												@cidade.Meso.Descricao
+											</td>
+											<td class="center">
+												@cidade.Micro.Descricao
+											</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		}
+	</section>
+</section>
+<script type="text/javascript">
+
+	function jsPesquisar() {
+		jsLoading(true);
+
+		document.getElementById('formFiltros').submit();
+	}
+
+	function jsEditar(codigoCidade) {
+		window.location.assign("@Url.Action("Edit", "Cidade")?codigoCidade=" + codigoCidade);
+	}
+
+	function jsExcluir(codigoCidade) {
+		window.location.assign("@Url.Action("Delete", "Cidade")?codigoCidade=" + codigoCidade);
+	}
+
+	function jsNovo() {
+		window.location.assign("@Url.Action("Edit", "Cidade")");
+	}
+
+</script>

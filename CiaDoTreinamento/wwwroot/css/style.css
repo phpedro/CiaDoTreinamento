@@ -1,0 +1,421 @@
+﻿.loading {
+	background: url(../images/CiaLoading.gif) no-repeat;
+	background-position-x: center;
+	background-size: 70%;
+	position: fixed;
+	top: 40%;
+	left: 39%;
+	width: 300px;
+	height: 300px;
+	z-index: 99999;
+}
+
+.loadingBack {
+	background: url(../images/CiaLoadingBack.png) no-repeat;
+	background-position-x: center;
+	background-size: 70%;
+	position: fixed;
+	top: 40%;
+	left: 39%;
+	width: 300px;
+	height: 300px;
+	z-index: 99998;
+}
+
+.loading2 {
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	background-color: #000000;
+	opacity: 0.60;
+	-moz-opacity: 0.60;
+	filter: alpha(opacity=60);
+	z-index: 9999;
+	top: 0px;
+	left: 0px;
+}
+
+.panel {
+	box-shadow: 1px 2px 4px rgba(0, 0, 0, .5);
+}
+
+.panel .panel-heading {
+	display: flex;
+}
+
+.panel .panel-heading h4 {
+	color: white;
+	margin: auto auto auto 10px;
+	padding: 4px;
+	cursor: pointer;
+}
+
+.panel .panel-heading h5 {
+	color: white;
+	margin: 5px;
+}
+
+.panel-body {
+	padding: 10px 20px 20px 20px;
+	background-color: white;
+}
+
+.thead-default tr th {
+	background-color: #848484;
+	color: white;
+}
+
+.center {
+	text-align: center;
+}
+
+td a .zmdi {
+	color: grey;
+	font-size: 1.2em;
+}
+
+.btn-primary {
+	background-color: transparent;
+	border-radius: 0;
+}
+
+.btn-primary:hover {
+	background-color: #f6f6f6;
+	color: black;
+}
+/*
+.row {
+	margin-bottom: -30px;
+}
+*/
+/*----------MODAL----------*/
+.modalAlerta {
+	position: fixed; /* Stay in place */
+	z-index: 99; /* Sit on top */
+	left: 0;
+	top: 0;
+	width: 100%; /* Full width */
+	height: 100%; /* Full height */
+	overflow: auto; /* Enable scroll if needed */
+	background-color: rgb(0,0,0); /* Fallback color */
+	background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+	overflow: auto;
+}
+
+.contentModal {
+	width: 80%;
+	background-color: #fefefe;
+	border: 1px solid #888;
+	margin: 5% auto;
+}
+
+.modal-header {
+	background-color: #dcdcdc;
+	padding: 10px 0;
+}
+
+.modal-header h5 {
+	width: 100%;
+	text-align: center;
+	font-weight: bold;
+}
+
+.modal-footer {
+	background-color: #dcdcdc;
+	padding: 10px 0;
+	justify-content: center;
+}
+
+input {
+	border: 1px solid transparent;
+	background-color: transparent;
+	font-weight: bold;
+}
+
+.animate-zoom {
+	animation: animatezoom 0.5s
+}
+
+@keyframes animatezoom {
+	from {
+		transform: scale(0)
+	}
+
+	to {
+		transform: scale(1)
+	}
+}
+
+.animate-zoom-close {
+	animation: animatezoomclose 0.5s
+}
+
+@keyframes animatezoomclose {
+	from {
+		transform: scale(1)
+	}
+
+	to {
+		transform: scale(0)
+	}
+}
+
+.center {
+	text-align: center;
+}
+
+.col-sm-05, .col-sm-15, .col-sm-25, .col-sm-35, .col-sm-45 {
+	position: relative;
+	min-height: 1px;
+	padding-right: 15px;
+	padding-left: 15px;
+}
+
+/*Refere-se a col-sm-1,5*/
+@media (min-width: 768px) {
+	.col-sm-05 {
+		float: left;
+		width: 4.16666666667%;
+	}
+
+	.col-sm-15 {
+		float: left;
+		width: 12.499999995%;
+	}
+
+	.col-sm-25 {
+		float: left;
+		width: 20.833333335%;
+	}
+
+	.col-sm-35 {
+		float: left;
+		width: 29.166666667%;
+	}
+
+	.col-sm-45 {
+		float: left;
+		width: 37.5%;
+	}
+}
+
+.required:after {
+	content: ' *';
+	color: red;
+}
+
+.box-theme .btn {
+	border-radius: 50% !important;
+}
+
+.chkRow {
+	display: flex;
+	margin: auto 0;
+}
+
+/*TABS CLIENT*/
+#tabs, #tabs_2 {
+	overflow: hidden;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+	#tabs li, #tabs_2 li {
+		float: left;
+		margin: 0 .5em 0 0;
+	}
+
+#tabs a, #tabs_2 a {
+	position: relative;
+	background: #ddd;
+	background-image: linear-gradient(to bottom, #fff, #ddd);
+	padding: .7em 2.5em;
+	float: left;
+	text-decoration: none;
+	color: #444;
+	text-shadow: 0 1px 0 rgba(255,255,255,.8);
+	border-radius: 5px 0 0 0;
+	box-shadow: 0 2px 2px rgba(0,0,0,.4);
+}
+
+#tabs a:hover,
+#tabs a:hover::after,
+#tabs a:focus,
+#tabs a:focus::after,
+#tabs_2 a:hover,
+#tabs_2 a:hover::after,
+#tabs_2 a:focus,
+#tabs_2 a:focus::after {
+	background: #fff;
+}
+
+#tabs a:focus, #tabs_2 a:focus {
+	outline: 0;
+}
+
+#tabs a::after, #tabs_2 a::after {
+	content: '';
+	position: absolute;
+	z-index: 1;
+	top: 0;
+	right: -.5em;
+	bottom: 0;
+	width: 1em;
+	background: #ddd;
+	background-image: linear-gradient(to bottom, #fff, #ddd);
+	box-shadow: 2px 2px 2px rgba(0,0,0,.4);
+	transform: skew(10deg);
+	border-radius: 0 5px 0 0;
+}
+
+#tabs #current a,
+#tabs #current a::after,
+#tabs_2 #current a,
+#tabs_2 #current a::after {
+	background: #fff;
+	z-index: 3;
+}
+
+#content_tabs, #content_tabs_2 {
+	background: #fff;
+	padding: 1em;
+	/*height: 220px;*/
+	position: relative;
+	z-index: 2;
+	border-radius: 0 5px 5px 5px;
+	box-shadow: 0px 2px 3px 1px rgba(0, 0, 0, .5);
+}
+
+.notSale {
+	color: #ffff00 !important;
+}
+
+.notSale:hover {
+	color: #e4e445 !important;
+}
+
+.sale {
+	color: #12e58a !important;
+}
+
+.sale:hover {
+	color: #05c170 !important;
+}
+
+.zmdi-block {
+	color: red;
+}
+
+.zmdi-block:hover {
+	color: #c40303
+}
+
+.select2-container--open {
+	z-index: 999;
+}
+
+td .zmdi-assignment-alert {
+	color: #dede21 !important;
+}
+
+td .zmdi-assignment-check {
+	color: #00c700 !important;
+}
+
+/*-------------------------------------------------------*/
+
+.top-nav a {
+	color: #fff !important;
+}
+
+.info-content {
+	text-align: center;
+}
+
+.panel_pedidos_rota {
+	width: 50%;
+	color: transparent;
+	display: flex;
+}
+
+.panel_dados_rota {
+	width: 50%;
+}
+
+.bar_vertical {
+	width: 45px;
+	height: 100%;
+	background-color: #32c787;
+	color: white;
+}
+
+.bar_vertical a {
+	padding: 12px;
+}
+
+.bar_vertical a span {
+	margin-top: 10px;
+}
+
+.panel_vertical {
+	width: 90%;
+	height: 100%;
+	background-color: transparent;
+}
+
+.sun .zmdi-check {
+	color: green;
+}
+
+.sun .zmdi-close {
+	color: red;
+}
+
+.th70px {
+	width: 70px;
+}
+
+.btnDistanceRoutes {
+	position: absolute;
+	right: 55px;
+	top: 10px;
+	border-radius: 50%;
+	width: 40px;
+	height: 40px;
+	background: white;
+	font-size: 18px;
+}
+
+.listDistances {
+	position: absolute;
+	right: 55px;
+	top: 50px;
+	border-radius: 5px;
+	max-height: 200px;
+	background: white;
+	overflow: auto;
+}
+
+.btnPoints {
+	position: absolute;
+	right: 100px;
+	top: 10px;
+	border-radius: 50%;
+	width: 40px;
+	height: 40px;
+	background: white;
+	font-size: 18px;
+}
+
+.listPoints {
+	position: absolute;
+	right: 100px;
+	top: 50px;
+	border-radius: 5px;
+	max-height: 200px;
+	background: white;
+	padding: 15px;
+	box-shadow: 1px 2px 4px rgba(0, 0, 0, .5);
+}

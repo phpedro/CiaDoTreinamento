@@ -1,0 +1,175 @@
+﻿@model List<CODE.Cliente.ClienteTela>
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+	string mensagemErro;
+
+	int codigoUsuario = Convert.ToInt32(HttpContextAccessor.HttpContext.Request.Cookies["CODIGO_USUARIO"]);
+	var funcionario = CODE.FuncionarioBLL.getFuncionarioByCodigo(codigoUsuario, out mensagemErro);
+
+	var inicioCiclo = (DateTime.Now.Day >= 26 ? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 26) : new DateTime((DateTime.Now.Month - 1 > 0 ? DateTime.Now.Year : DateTime.Now.Year - 1), (DateTime.Now.Month - 1 > 0 ? DateTime.Now.Month - 1 : 12), 26));
+	var fimCiclo = (DateTime.Now.Day <= 25 ? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 25) : new DateTime((DateTime.Now.Month + 1 > 12 ? DateTime.Now.Year + 1 : DateTime.Now.Year), (DateTime.Now.Month + 1 > 12 ? 1 : DateTime.Now.Month + 1), 25));
+
+	CODE.Funcionario.MetaAgente metaMensal = CODE.FuncionarioBLL.getMetaAgente((int)funcionario.Codigo, inicioCiclo, fimCiclo, out mensagemErro);
+	metaMensal.Meta = funcionario.META_VENDA_MENSAL;
+
+	var percentual = Math.Truncate((metaMensal.ValorTotal / metaMensal.Meta) * 100);
+
+	if (percentual > 100)
+	{
+		percentual = 100;
+	}
+
+	//GET LISTA STATUS
+	List<SelectListItem> listaStatus = new List<SelectListItem>();
+	foreach (CODE.ChaveValor status in CODE.ClienteBLL.ObtemListaStatus())
+	{
+		listaStatus.Add(new SelectListItem() { Value = status.Chave, Text = status.Valor });
+	}
+}
+
+<section id="main-content">
+	<section class="content">
+		<div class="col-sm-12" style="display: flex">
+			<!--CHARTS-->
+			<div class="col-sm-4">
+				<div class="panel">
+					<header class="panel-heading">
+						<h4>META VENDA (@Html.Raw(inicioCiclo.ToShortDateString()) - @Html.Raw(fimCiclo.ToShortDateString()))</h4>
+					</header>
+					<div class="panel-body" style="display:flex">
+						<div class="easy-pie-chart" data-percent="@Html.Raw(percentual)" data-size="140" data-track-color="#eee" data-bar-color="#03A9F4">
+							<span class="easy-pie-chart__value">@Html.Raw(percentual)</span>
+						</div>
+						<div style="padding-left: 35px;">
+							<div class="form-group form-group--float">
+								<input type="text" class="form-control" value="@Html.Raw(string.Format("{0:C}", metaMensal.Meta))" readonly="readonly" />
+								<label>Meta Venda Total</label>
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group form-group--float">
+								<input type="text" class="form-control" value="@Html.Raw(string.Format("{0:C}", metaMensal.ValorTotal))" readonly="readonly" />
+								<label>Meta Venda Parcial</label>
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!--CUSTOMERS-->
+			<div class="col-sm-8">
+				<div class="panel">
+					<header class="panel-heading">
+						<h4>Clientes a serem atendidos</h4>
+					</header>
+					<div class="panel-body">
+						<div class="table-responsive">
+							<table id="data-table" name="tbClientesDashBoard" class="table table-striped table-bordered table table-hover">
+								<thead class="thead-default">
+									<tr>
+										<th class="center">RAZÃO SOCIAL / NOME</th>
+										<th class="center">CNPJ / CPF</th>
+										<th class="center">CIDADE - UF</th>
+										<th class="center">STATUS</th>
+										<th class="center">AÇÕES</th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (CODE.Cliente.ClienteTela item in Model)
+									{
+										<tr>
+											<td class="center">
+												@(item.TipoCliente == 1 ? item.RazaoSocial : item.NomeCliente)
+											</td>
+											<td class="center">
+												@(item.TipoCliente == 1 ? item.CNPJ : item.CPF)
+											</td>
+											<td class="center">
+												@item.Cidade - @item.Estado
+											</td>
+											<td class="center">
+												@{
+													foreach (SelectListItem linha in listaStatus)
+													{
+														linha.Selected = item.Status.ToString() == linha.Value;
+													}
+
+													Dictionary<string, object> atributos = new Dictionary<string, object>();
+													atributos.Add("onchange", "AtualizarStatus(event, this)");
+													atributos.Add("style", "border: 1px solid #a4a4a4; font-size:smaller;");
+												}
+
+												@Html.DropDownList("status", listaStatus, "Selecione...", atributos)
+											</td>
+											<td class="center">
+												<a href="#" title="Editar" onclick="jsEditar(@Html.Raw(item.Codigo))"><span aria-hidden="true" class="zmdi zmdi-edit"></span></a>
+												&nbsp;
+												<a href="#" title="Emails" onclick="jsOpenPartialEmail(@Html.Raw(item.Codigo))"><span aria-hidden="true" class="zmdi zmdi-email"></span></a>
+												&nbsp;
+												<a href="#" title="Produtos Expirando" onclick="jsOpenPartialProdutosExpirando(@Html.Raw(item.Codigo))"><span aria-hidden="true" class="zmdi zmdi-info"></span></a>
+											</td>
+										</tr>					}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</section>
+@Html.Partial("Cliente/PartialEmailsView")
+@Html.Partial("Cliente/PartialProdutosExpirandoView")
+<script type="text/javascript">
+	function jsEditar(codigoCliente) {
+		jsLoading(true);
+
+		window.location.assign("@Url.Action("Edit", "Cliente")?id=" + codigoCliente);
+	}
+
+	//UPDATE STATUS CLIENTE
+	function AtualizarStatus(evento, select) {
+        var codigoCliente = select.attributes.getNamedItem("data-codigocliente").nodeValue;
+        var novoStatus = $(select).val();
+
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("AtualizarStatus", "Cliente")/?id=" + codigoCliente + "&novoStatus=" + novoStatus,
+			success: function (retorno) {
+				if (!retorno.sucesso) {
+					OpenAlert('Erro!', retorno.mensagemErro, 'danger');
+				}
+			}
+		});
+	}
+
+	//GET EMAIL CLIENTE
+	function jsOpenPartialEmail(codigoCliente) {
+
+		var url = "/Cliente/GetEmails/";
+		var data = {
+			codigoCliente: codigoCliente
+		};
+		$.get(url, data, function (data) {
+			if (data) {
+				console.log(data);
+				jsOpenPartialEmailsView(data);
+			}
+		});
+	}
+
+	//GET PRODUTOS EXPIRANDO
+	function jsOpenPartialProdutosExpirando(codigoCliente) {
+
+		var url = "/Cliente/GetProdutosExpirando/";
+		var data = {
+			codigoCliente: codigoCliente
+		};
+		$.get(url, data, function (data) {
+			if (data) {
+				console.log(data);
+				jsOpenPartialProdutosExpirandoView(data);
+			}
+		});
+	}
+
+</script>

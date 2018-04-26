@@ -1,0 +1,346 @@
+﻿@model CODE.ContaBancaria
+
+@{
+	//Lista Bancos
+	List<SelectListItem> listaBanco = new List<SelectListItem>();
+	listaBanco.Add(new SelectListItem()
+	{
+		Text = "Banco Cooperativo do Brasil S.A. - BANCOOB",
+		Value = "756",
+		Selected = (Model == null ? false : Model.CodigoBanco.Equals("756"))
+	});
+
+	//GET ESTADOS
+	List<SelectListItem> listaEstados = CODE.Uteis.RetornarEstadosComboCompleto();
+
+}
+
+<section id="main-content">
+	<section class="content">
+		<div class="panel">
+			<header class="panel-heading">
+				<h4>@Html.Raw(Model == null ? "NOVA CONTA BANCÁRIA" : "EDITAR CONTA BANCÁRIA")</h4>
+				<div class="top-nav">
+					<button id="btnVoltar" class="btn btn-primary" onclick="return jsVoltar();"><span aria-hidden="true" class="zmdi zmdi-arrow-left"></span> &nbsp; VOLTAR</button>
+					@if (Model == null)
+					{
+						<button id="btnLimpar" class="btn btn-primary" onclick="return jsLimpar();"><span aria-hidden="true" class="zmdi zmdi-close"></span> &nbsp; LIMPAR</button>
+					}
+					<button id="btnSalvar" class="btn btn-primary" onclick="return jsSalvar();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; SALVAR</button>
+				</div>
+			</header>
+			<div class="panel-body">
+				@using (Html.BeginForm("Salvar", "ContaBancaria", FormMethod.Post, new { @name = "formNovo", @id = "formNovo" }))
+				{
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Descricao, new { @class = "form-control noBlank" })
+							<label class="required">Descrição da conta</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Telefone, new { @class = "form-control noBlank maskPhone" })
+							<label class="required">Telefone</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Codigo, new { @class = "form-control noBlank", @onkeypress = "return jsSomenteNumero(arguments[0] || window.event);" })
+							<label class="required">Código da conta</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.DigitoVerificador, new { @class = "form-control noBlank", @onkeypress = "return jsSomenteNumero(arguments[0] || window.event);" })
+							<label class="required">Digito verificador da conta</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.CodigoBeneficiario, new { @class = "form-control noBlank", @onkeypress = "return jsSomenteNumero(arguments[0] || window.event);" })
+							<label class="required">Código beneficiário</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.DigitoVerificadorBeneficiario, new { @class = "form-control noBlank", @onkeypress = "return jsSomenteNumero(arguments[0] || window.event);" })
+							<label class="required">Digito verificador beneficiário</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.CodigoAgencia, new { @class = "form-control noBlank", @onkeypress = "return jsSomenteNumero(arguments[0] || window.event);" })
+							<label class="required">Código agência</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.DigitoVerificadorAgencia, new { @class = "form-control noBlank", @onkeypress = "return jsSomenteNumero(arguments[0] || window.event);" })
+							<label class="required">Digito verificador agência</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.RazaoSocial, new { @class = "form-control noBlank" })
+							<label class="required">Razão social</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.CNPJ, new { @class = "form-control noBlank maskCNPJ" })
+							<label class="required">CNPJ</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group col-sm-4">
+							<label class="required">Banco</label>
+							@Html.DropDownListFor(x => Model.CodigoBanco, listaBanco, "Selecione...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.CodigoCliente, new { @class = "form-control noBlank", @onkeypress = "return jsSomenteNumero(arguments[0] || window.event);" })
+							<label class="required">Código cliente no SICREDI</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.ValorPorBoleto, new { @class = "form-control noBlank", @onkeypress = "return jsSomenteDecimal(arguments[0] || window.event);" })
+							<label class="required">Valor por Boleto</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label class="required">Estado</label>
+							@Html.DropDownListFor(x => Model.Cidade.Estado, listaEstados, "Selecione o Estado...", new { @class = "select2", @onchange = "return preencheDDLCidades(this.value, $('#Cidade_Codigo'));" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label>Cidade</label>
+							@Html.DropDownListFor(x => Model.Cidade.Codigo, new List<SelectListItem>(), "Todas as Cidades", new { @class = "select2" })
+							@Html.HiddenFor(x => Model.Cidade.Codigo, new { @id = "hfCodigoCidade" })
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Endereco, new { @class = "form-control noBlank"})
+							<label class="required">Endereço</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.DescricaoBairro, new { @class = "form-control noBlank" })
+							<label class="required">Bairro</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.NomeRepresentante, new { @class = "form-control noBlank" })
+							<label class="required">Representante</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.CPF, new { @class = "form-control noBlank maskCPF" })
+							<label class="required">CPF Representante</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	var tela;
+
+	$(document).ready(function () {
+
+		if (!tela) {
+			jsCarregarCampos();
+		}
+		var me = tela;
+
+		if (me.Codigo.val() != "") {
+			preencheDDLCidades(me.Cidade_Estado.val(), me.Cidade_Codigo, me.hfCodigoCidade.val());
+		}
+
+	});
+
+	function jsCarregarCampos() {
+
+		tela = {
+			Codigo: $('#Codigo'),
+			Descricao: $('#Descricao'),
+			DigitoVerificador: $('#DigitoVerificador'),
+			CodigoBeneficiario: $('#CodigoBeneficiario'),
+			DigitoVerificadorBeneficiario: $('#DigitoVerificadorBeneficiario'),
+			CodigoAgencia: $('#CodigoAgencia'),
+			DigitoVerificadorAgencia: $('#DigitoVerificadorAgencia'),
+			RazaoSocial: $('#RazaoSocial'),
+			CNPJ: $('#CNPJ'),
+			CodigoBanco: $('#CodigoBanco'),
+			CodigoCliente: $('#CodigoCliente'),
+			ValorPorBoleto: $('#ValorPorBoleto'),
+			Cidade_Estado: $('#Cidade_Estado'),
+			Cidade_Codigo: $('#Cidade_Codigo'),
+			Endereco: $('#Endereco'),
+			DescricaoBairro: $('#DescricaoBairro'),
+			NomeRepresentante: $('#NomeRepresentante'),
+			CPF: $('#CPF'),
+			Telefone: $('#Telefone'),
+			hfCodigoCidade: $('#hfCodigoCidade')
+
+		}
+	}
+
+	function jsVoltar() {
+		jsLimpar();
+		window.location.assign("@Url.Action("List", "ContaBancaria")");
+	}
+
+	function jsLimpar() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		me.Codigo.val('');
+		me.Descricao.val('');
+		me.DigitoVerificador.val('');
+		me.CodigoBeneficiario.val('');
+		me.DigitoVerificadorBeneficiario.val('');
+		me.CodigoAgencia.val('');
+		me.DigitoVerificadorAgencia.val('');
+		me.RazaoSocial.val('');
+		me.CNPJ.val('');
+		me.CodigoBanco.val('');
+		me.CodigoBanco.trigger('change');
+		me.CodigoCliente.val('');
+		me.ValorPorBoleto.val('');
+		me.Cidade_Estado.val('');
+		me.Cidade_Estado.trigger('change');
+		me.Cidade_Codigo.val('');
+		me.Cidade_Codigo.trigger('change');
+		me.Endereco.val('');
+		me.DescricaoBairro.val('');
+		me.NomeRepresentante.val('');
+		me.CPF.val('');
+		me.Telefone.val('');
+
+		jsRemoverFocus(me.Codigo);
+		jsRemoverFocus(me.Descricao);
+		jsRemoverFocus(me.DigitoVerificador);
+		jsRemoverFocus(me.CodigoBeneficiario);
+		jsRemoverFocus(me.DigitoVerificadorBeneficiario);
+		jsRemoverFocus(me.CodigoAgencia);
+		jsRemoverFocus(me.DigitoVerificadorAgencia);
+		jsRemoverFocus(me.RazaoSocial);
+		jsRemoverFocus(me.CNPJ);
+		jsRemoverFocus(me.CodigoCliente);
+		jsRemoverFocus(me.ValorPorBoleto);
+		jsRemoverFocus(me.Endereco);
+		jsRemoverFocus(me.DescricaoBairro);
+		jsRemoverFocus(me.NomeRepresentante);
+		jsRemoverFocus(me.CPF);
+
+		jsLoading(false);
+
+		return false;
+	}
+
+	function jsSalvar() {
+
+		jsLoading(true);
+
+		if (!jsValidaCampos()) {
+			jsLoading(false);
+			return false;
+		}
+
+		document.getElementById('formNovo').submit();
+
+	}
+
+	function jsValidaCampos() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		if ($('#Descricao').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.Descricao.focus();
+			return false;
+		} else if ($('#Telefone').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.Telefone.focus();
+			return false;
+		} else if ($('#Codigo').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.Codigo.focus();
+			return false;
+		} else if ($('#DigitoVerificador').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.DigitoVerificador.focus();
+			return false;
+		} else if ($('#CodigoBeneficiario').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.CodigoBeneficiario.focus();
+			return false;
+		} else if ($('#DigitoVerificadorBeneficiario').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.DigitoVerificadorBeneficiario.focus();
+			return false;
+		} else if ($('#CodigoAgencia').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.CodigoAgencia.focus();
+			return false;
+		} else if ($('#DigitoVerificadorAgencia').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.DigitoVerificadorAgencia.focus();
+			return false;
+		} else if ($('#RazaoSocial').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.RazaoSocial.focus();
+			return false;
+		} else if ($('#CNPJ').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.CNPJ.focus();
+			return false;
+		} else if ($('#CodigoBanco').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			return false;
+		} else if ($('#CodigoCliente').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.CodigoCliente.focus();
+			return false;
+		} else if ($('#ValorPorBoleto').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.ValorPorBoleto.focus();
+			return false;
+		} else if ($('#Cidade_Estado').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			return false;
+		} else if ($('#Cidade_Codigo').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			return false;
+		} else if ($('#Endereco').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.Endereco.focus();
+			return false;
+		} else if ($('#DescricaoBairro').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.DescricaoBairro.focus();
+			return false;
+		} else if ($('#NomeRepresentante').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.NomeRepresentante.focus();
+			return false;
+		} else if ($('#CPF').val() == "") {
+			OpenAlert("Atenção!", "Informe o dado solicitado", "danger");
+			me.CPF.focus();
+			return false;
+		} 
+
+		return true;
+
+	}
+
+</script>

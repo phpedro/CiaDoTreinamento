@@ -1,0 +1,324 @@
+﻿@model List<CODE.Cliente.ClienteTela>
+
+@{
+	string mensagemErro;
+
+	//GET ESTADOS
+	List<SelectListItem> listaEstados = CODE.Uteis.RetornarEstadosComboCompleto();
+
+	//GET MICROS
+	CODE.MicroBLL MicroBLL = new CODE.MicroBLL();
+	List<CODE.Micro> Micros = MicroBLL.getMicros(0, "", out mensagemErro);
+	List<SelectListItem> listaMicros = new List<SelectListItem>();
+	foreach (CODE.Micro micro in Micros)
+	{
+		listaMicros.Add(new SelectListItem()
+		{
+			Text = micro.Descricao,
+			Value = micro.Codigo.ToString(),
+			Selected = micro.Codigo == ViewBag.MicroFiltro
+		});
+	}
+
+	//GET REDES
+	CODE.RedePostoBLL redePostoBLL = new CODE.RedePostoBLL();
+	List<CODE.RedePosto> Redes = redePostoBLL.getRedes(null, "", out mensagemErro);
+	List<SelectListItem> listaRedes = new List<SelectListItem>();
+	foreach (CODE.RedePosto rede in Redes)
+	{
+		listaRedes.Add(new SelectListItem()
+		{
+			Text = rede.Descricao,
+			Value = rede.Codigo.ToString(),
+			Selected = rede.Codigo == ViewBag.RedeFiltro
+		});
+	}
+
+	//GET LISTA STATUS
+	List<SelectListItem> listaStatus = new List<SelectListItem>();
+	foreach (CODE.ChaveValor status in CODE.ClienteBLL.ObtemListaStatus())
+	{
+		listaStatus.Add(new SelectListItem() { Value = status.Chave, Text = status.Valor });
+	}
+}
+
+<section id="main-content">
+	<section class="content">
+		<!--FILTROS-->
+		<div class="panel">
+			<header class="panel-heading">
+				<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseFiltros" aria-expanded="false">CLIENTES</h4>
+				<div class="top-nav">
+					<button id="btnNovo" class="btn btn-primary" onclick="jsNovo();"><span aria-hidden="true" class="zmdi zmdi-file-plus"></span> &nbsp; NOVO</button>
+					<button id="btnPesquisar" class="btn btn-primary" onclick="jsPesquisar();"><span aria-hidden="true" class="zmdi zmdi-search"></span> &nbsp; PESQUISAR</button>
+				</div>
+			</header>
+			@using (Html.BeginForm("Consultar", "Cliente", FormMethod.Post, new { @name = "formFiltros", @id = "formFiltros" }))
+			{
+			<div id="divCollapseFiltros" class="panel-collapse collapse show">
+				<div class="panel-body">
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							<input type="text" class="form-control" name="txtRazaoSocialFiltro" id="txtRazaoSocialFiltro" />
+							<label>Razão Social</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							<input type="text" class="form-control maskCNPJ" name="txtCnpjFiltro" id="txtCnpjFiltro" />
+							<label>CNPJ</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							<input type="text" class="form-control" name="txtCodigoPedidoFiltro" id="txtCodigoPedidoFiltro" onkeypress="return jsSomenteNumero(arguments[0] || window.event);" />
+							<label>Código Pedido</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<!--FILTROS AVANÇADOS-->
+					<div class="panel">
+						<header class="panel-heading">
+							<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseFiltrosAvancados" aria-expanded="false">FILTROS AVANÇADOS</h4>
+						</header>
+						<div id="divCollapseFiltrosAvancados" class="panel-collapse collapse">
+							<div class="panel-body">
+								<div class="row">
+									<div class="form-group form-group--float col-sm-4">
+										<input type="text" class="form-control" name="txtNomeClienteFiltro" id="txtNomeClienteFiltro" />
+										<label>Nome Cliente</label>
+										<i class="form-group__bar"></i>
+									</div>
+									<div class="form-group form-group--float col-sm-4">
+										<input type="text" class="form-control maskCPF" name="txtCpfClienteFiltro" id="txtCpfClienteFiltro" />
+										<label>CPF Cliente</label>
+										<i class="form-group__bar"></i>
+									</div>
+								</div>
+								<div class="row">
+									<div class="form-group col-sm-4">
+										<label>Estado</label>
+										@Html.DropDownList("ddlEstadosFiltro", listaEstados, "Selecione o Estado...", new { @class = "select2", @onchange = "return preencheDDLCidades(this.value, $('#ddlCidadesFiltro'));" })
+										<i class="form-group__bar"></i>
+									</div>
+									<div class="form-group col-sm-4">
+										<label>Cidade</label>
+										@Html.DropDownList("ddlCidadesFiltro", new List<SelectListItem>(), "Todas as Cidades", new { @class = "select2" })
+										<i class="form-group__bar"></i>
+									</div>
+									<div class="form-group col-sm-4">
+										<label>Micro</label>
+										@Html.DropDownList("ddlMicrosFiltro", listaMicros, "Todas as Micros", new { @class = "select2" })
+										<i class="form-group__bar"></i>
+									</div>
+								</div>
+								<div class="row">
+									<div class="form-group col-sm-4">
+										<label>Redes</label>
+										@Html.DropDownList("ddlRedesFiltro", listaRedes, "Todas as Redes", new { @class = "select2" })
+										<i class="form-group__bar"></i>
+									</div>
+									<div class="form-group form-group--float col-sm-4">
+										<input type="text" class="form-control" name="txtEmailFiltro" id="txtEmailFiltro" />
+										<label>Email</label>
+										<i class="form-group__bar"></i>
+									</div>
+									<div class="form-group form-group--float col-sm-4">
+										<input type="text" class="form-control maskPhone" name="txtTelefoneFiltro" id="txtTelefoneFiltro" />
+										<label>Telefone</label>
+										<i class="form-group__bar"></i>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			}
+		</div>
+		<br />
+		<!--RESULTADO-->
+		@if (Model != null)
+		{
+			<div class="panel">
+				<header class="panel-heading">
+					<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseResultado" aria-expanded="false">RESULTADO</h4>
+				</header>
+				<div id="divCollapseResultado" class="panel-body">
+					<div class="table-responsive">
+						<table id="data-table" class="table table-bordered table-striped">
+							<thead class="thead-default">
+								<tr>
+									<th class="center">AÇÕES</th>
+									<th class="center">RAZÃO SOCIAL / NOME</th>
+									<th class="center">CNPJ / CPF</th>
+									<th class="center">REDE</th>
+									<th class="center">CIDADE - UF</th>
+									<th class="center">STATUS</th>
+									<th class="center">NOVA VENDA</th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach (CODE.Cliente.ClienteTela item in Model)
+								{
+									<tr>
+										<td class="center">
+											<a href="#" title="Editar" onclick="jsEditar(@Html.Raw(item.Codigo))"><span aria-hidden="true" class="zmdi zmdi-edit"></span></a>
+											&nbsp;
+											<a href="#" title="Emails" onclick="jsOpenPartialEmail(@Html.Raw(item.Codigo))"><span aria-hidden="true" class="zmdi zmdi-email"></span></a>
+											&nbsp;
+											<a href="#" title="Produtos Expirando" onclick="jsOpenPartialProdutosExpirando(@Html.Raw(item.Codigo))"><span aria-hidden="true" class="zmdi zmdi-info"></span></a>
+										</td>
+										<td class="center">
+											@(item.TipoCliente == 1 ? item.RazaoSocial : item.NomeCliente)
+										</td>
+										<td class="center">
+											@(item.TipoCliente == 1 ? item.CNPJ : item.CPF)
+										</td>
+										<td class="center">
+											@item.Rede
+										</td>
+										<td class="center">
+											@item.Cidade - @item.Estado
+										</td>
+										<td class="center">
+											@{
+												foreach (SelectListItem linha in listaStatus)
+												{
+													linha.Selected = item.Status.ToString() == linha.Value;
+												}
+
+												Dictionary<string, object> atributos = new Dictionary<string, object>();
+												atributos.Add("onchange", "AtualizarStatus(event, this)");
+												atributos.Add("style", "border: 1px solid #a4a4a4; font-size:smaller;");
+											}
+
+											@Html.DropDownList("status", listaStatus, "Selecione...", atributos)
+										</td>
+										<td class="center">
+											<a href="#" title="Nova Venda" onclick="jsNovaVenda(@Html.Raw(item.Codigo))"><span aria-hidden="true" class="zmdi zmdi-shopping-cart"></span></a>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+
+					</div>
+				</div>
+			</div>
+		}
+	</section>
+</section>
+@Html.Partial("Cliente/PartialEmailsView")
+@Html.Partial("Cliente/PartialProdutosExpirandoView")
+<script type="text/javascript">
+
+	$(document).ready(function () {
+
+		if ($('#ddlEstadosFiltro').val() != "") {
+			preencheDDLCidades($('#ddlEstadosFiltro').val(), $('#ddlCidadesFiltro'));
+		}
+
+	});
+
+	function jsPesquisar() {
+
+		if (jsValidaPesquisa()) {
+			document.getElementById('formFiltros').submit();
+		} else {
+			swal({
+				title: 'Deseja realmente filtrar todos os clientes?',
+				text: 'A consulta pode se tornar lenta devido a quantidade de registros!',
+				type: 'warning',
+				showCancelButton: true,
+				buttonsStyling: false,
+				confirmButtonClass: 'btn btn-danger',
+				confirmButtonText: 'Sim, continue!',
+				cancelButtonClass: 'btn btn-secondary'
+			}).then(function () {
+				document.getElementById('formFiltros').submit();
+			});
+		}
+
+	}
+
+	function jsNovo() {
+		window.location.assign("@Url.Action("Edit", "Cliente")");
+	}
+
+	function jsEditar(codigoCliente) {
+		jsLoading(true);
+
+		window.location.assign("@Url.Action("Edit", "Cliente")?id=" + codigoCliente);
+	}
+
+	function jsNovaVenda(codigoCliente) {
+		window.location.assign("@Url.Action("NovoPedido", "CabecalhoPedido")?codigoCliente=" + codigoCliente);
+	}
+
+	//VALIDA PESQUISA
+	function jsValidaPesquisa() {
+
+		if ($('#txtRazaoSocialFiltro').val() == "" &&
+			$('#txtCnpjFiltro').val() == "" &&
+			$('#txtCodigoPedidoFiltro').val() == "" &&
+			$('#txtNomeClienteFiltro').val() == "" &&
+			$('#txtCpfClienteFiltro').val() == "" &&
+			$('#ddlEstadosFiltro').val() == "" &&
+			$('#ddlCidadesFiltro').val() == "" &&
+			$('#ddlMicrosFiltro').val() == "" &&
+			$('#ddlRedesFiltro').val() == "" &&
+			$('#txtEmailFiltro').val() == "" &&
+			$('#txtTelefoneFiltro').val() == "")
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	//UPDATE STATUS CLIENTE
+	function AtualizarStatus(evento, select) {
+        var codigoCliente = select.attributes.getNamedItem("data-codigocliente").nodeValue;
+        var novoStatus = $(select).val();
+
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("AtualizarStatus", "Cliente")/?id=" + codigoCliente + "&novoStatus=" + novoStatus,
+			success: function (retorno) {
+				if (!retorno.sucesso) {
+					OpenAlert('Erro!', retorno.mensagemErro, 'danger');
+				}
+			}
+		});
+	}
+
+	//GET EMAIL CLIENTE
+	function jsOpenPartialEmail(codigoCliente) {
+
+		var url = "/Cliente/GetEmails/";
+		var data = {
+			codigoCliente: codigoCliente
+		};
+		$.get(url, data, function (data) {
+			if (data) {
+				console.log(data);
+				jsOpenPartialEmailsView(data);
+			}
+		});
+	}
+
+	//GET PRODUTOS EXPIRANDO
+	function jsOpenPartialProdutosExpirando(codigoCliente) {
+
+		var url = "/Cliente/GetProdutosExpirando/";
+		var data = {
+			codigoCliente: codigoCliente
+		};
+		$.get(url, data, function (data) {
+			if (data) {
+				console.log(data);
+				jsOpenPartialProdutosExpirandoView(data);
+			}
+		});
+	}
+
+</script>

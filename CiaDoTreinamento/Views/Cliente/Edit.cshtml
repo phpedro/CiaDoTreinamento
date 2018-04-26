@@ -1,0 +1,929 @@
+﻿@model CODE.Cliente
+
+@{
+	string mensagemErro;
+
+	//LISTA TIPOS CLIENTES
+	List<SelectListItem> listaTipos = new List<SelectListItem>();
+	listaTipos.Add(new SelectListItem()
+	{
+		Value = "1",
+		Text = "PESSOA JURÍDICA",
+		Selected = (Model == null ? true : Model.TipoCliente == 1)
+	});
+	listaTipos.Add(new SelectListItem()
+	{
+		Value = "2",
+		Text = "PESSOA FÍSICA",
+		Selected = (Model == null ? false : Model.TipoCliente == 2)
+	});
+
+	//LISTA ATIVO
+	List<SelectListItem> listaAtivo = new List<SelectListItem>();
+	listaAtivo.Add(new SelectListItem()
+	{
+		Value = "true",
+		Text = "Sim",
+		Selected = (Model == null ? true : Model.Ativo)
+	});
+	listaAtivo.Add(new SelectListItem()
+	{
+		Value = "false",
+		Text = "Não",
+		Selected = (Model == null ? false : Model.Ativo)
+	});
+
+	//GET BANDEIRAS
+	CODE.BandeiraPostoBLL bandeiraPostoBLL = new CODE.BandeiraPostoBLL();
+	List<CODE.BandeiraPosto> Bandeiras = bandeiraPostoBLL.getBandeiras(null, null, out mensagemErro);
+	List<SelectListItem> listaBandeiras = new List<SelectListItem>();
+	foreach (CODE.BandeiraPosto item in Bandeiras)
+	{
+		listaBandeiras.Add(new SelectListItem()
+		{
+			Value = item.Codigo.ToString(),
+			Text = item.Descricao,
+			Selected = (Model == null ? false : (Model.BandeiraPosto.Codigo == item.Codigo))
+		});
+	}
+
+	//GET REDES
+	CODE.RedePostoBLL redePostoBLL = new CODE.RedePostoBLL();
+	List<CODE.RedePosto> Redes = redePostoBLL.getRedes(null, null, out mensagemErro);
+	List<SelectListItem> listaRedes = new List<SelectListItem>();
+	foreach (CODE.RedePosto item in Redes)
+	{
+		listaRedes.Add(new SelectListItem()
+		{
+			Value = item.Codigo.ToString(),
+			Text = item.Descricao,
+			Selected = (Model == null ? false : Model.RedePosto.Codigo == item.Codigo)
+		});
+	}
+
+	//GET LISTA STATUS
+	List<SelectListItem> listaStatus = new List<SelectListItem>();
+	foreach (CODE.ChaveValor status in CODE.ClienteBLL.ObtemListaStatus())
+	{
+		listaStatus.Add(new SelectListItem() { Value = status.Chave, Text = status.Valor });
+	}
+
+	//GET LISTA EMAILS
+	List<SelectListItem> listaEmails = new List<SelectListItem>();
+	if (Model != null)
+	{
+		CODE.EmailClienteBLL emailClienteBLL = new CODE.EmailClienteBLL();
+		List<CODE.EmailCliente> Emails = emailClienteBLL.GetEmails((int)Model.Codigo, out mensagemErro);
+		foreach (CODE.EmailCliente item in Emails)
+		{
+			listaEmails.Add(new SelectListItem()
+			{
+				Text = item.Descricao,
+				Value = item.Codigo.ToString(),
+				Selected = (Model == null ? false : (Model.EmailPrincipal.Codigo == item.Codigo))
+			});
+		}
+	}
+
+	//GET ESTADOS
+	List<SelectListItem> listaEstados = CODE.Uteis.RetornarEstadosComboCompleto();
+}
+
+<section id="main-content">
+	<section class="content">
+		<div class="panel">
+			<header class="panel-heading">
+				<h4>@Html.Raw(Model == null ? "NOVO CLIENTE" : "EDITAR CLIENTE")</h4>
+				<div class="top-nav">
+					<button id="btnSalvar" class="btn btn-primary" onclick="return jsSalvar();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; SALVAR</button>
+				</div>
+			</header>
+			<div class="panel-body">
+				@using (Html.BeginForm("Salvar", "Cliente", FormMethod.Post, new { @name = "formNovo", @id = "formNovo" }))
+				{
+					@Html.HiddenFor(x => Model.Codigo, new { @class = "form-control" })
+					<input type="hidden" id="hfRegistrouAtendimento" value="false" />
+					<div>
+						<ul id="tabs">
+							<li><a name="tab-cliente">CLIENTE</a></li>
+							<li><a name="tab-pedidosorcamentos">PEDIDOS | ORÇAMENTOS</a></li>
+							<li><a name="tab-alunos">ALUNOS</a></li>
+							<li><a name="tab-emails">EMAILS</a></li>
+							<li><a name="tab-telefones">TELEFONES</a></li>
+							<li><a name="tab-expirandovencidos">EXPIRANDO | VENCIDO</a></li>
+							<li><a name="tab-atendimentos">ATENDIMENTOS</a></li>
+							<li><a name="tab-empresas">EMPRESAS</a></li>
+						</ul>
+						<div id="content_tabs">
+							<!--DADOS DO CLIENTE-->
+							<div id="tab-cliente">
+								<!--DADOS GERAIS DO CLIENTE-->
+								<div class="panel">
+									<header class="panel-heading">
+										<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseDadosCliente" aria-expanded="false">DADOS DO CLIENTE</h4>
+									</header>
+									<div id="divCollapseDadosCliente" class="panel-collapse collapse show">
+										<div class="panel-body">
+											<div class="row">
+												<div class="form-group col-sm-6">
+													<label>Tipo Cliente</label>
+													@Html.DropDownListFor(x => Model.TipoCliente, listaTipos, new { @class = "select2", @onchange = "jsAlterarLayout(this.value);" })
+													@Html.HiddenFor(x => Model.TipoCliente, new { @id="hfTipoCliente"})
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group col-sm-6">
+													<label>Ativo</label>
+													@Html.DropDownListFor(x => Model.Ativo, listaAtivo, new { @class = "select2" })
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+											<!--DADOS DE PESSOA JURÍDICA-->
+											<div class="row divCNPJ">
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.CNPJ, new { @class = "form-control noBlank maskCNPJ", @onblur = "return buscarDadosCNPJ(this);" })
+													<label>CNPJ</label>
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.RazaoSocial, new { @class = "form-control noBlank" })
+													<label>Razão Social</label>
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+											<div class="row divCNPJ">
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.NomeFantasia, new { @class = "form-control noBlank" })
+													<label>Nome Fantásia</label>
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.InscricaoEstadual, new { @class = "form-control noBlank" })
+													<label>Inscrição Estadual</label>
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+											<!--DADOS DE PESSOA FÍSICA-->
+											<div class="row divCPF" style="display: none">
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.CPF, new { @class = "form-control noBlank maskCPF" })
+													<label>CPF</label>
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.Nome, new { @class = "form-control noBlank" })
+													<label>Nome Cliente</label>
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+											<div class="row divCPF" style="display: none">
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.RG, new { @class = "form-control noBlank" })
+													<label>RG Cliente</label>
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+											<!--DADOS COMPLEMENTARES-->
+											<div class="row">
+												<div class="form-group col-sm-6">
+													<label>Bandeira Posto</label>
+													@Html.DropDownListFor(x => Model.BandeiraPosto.Codigo, listaBandeiras, new { @class = "select2" })
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group col-sm-6">
+													<label>Rede Posto</label>
+													@Html.DropDownListFor(x => Model.RedePosto.Codigo, listaRedes, new { @class = "select2" })
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+											<div class="row">
+												<div class="form-group col-sm-6">
+													<label>Status Cliente</label>
+													@Html.DropDownListFor(x => Model.CodigoStatus, listaStatus, new { @class = "select2" })
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.Proprietario, new { @class = "form-control noBlank" })
+													<label>Nome Proprietário</label>
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+											<div class="row">
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.CpfProprietario, new { @class = "form-control noBlank maskCPF" })
+													<label>CPF Proprietário</label>
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.RgProprietario, new { @class = "form-control noBlank" })
+													<label>RG Proprietário</label>
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+											<div class="row">
+												<div class="form-group col-sm-6">
+													<label>Email Principal do Cliente</label>
+													@Html.DropDownListFor(x => Model.EmailPrincipal, listaEmails, new { @class = "select2" })
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<!--DADOS DO CONTATO-->
+								<div class="panel">
+									<header class="panel-heading">
+										<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseDadosDoContato" aria-expanded="false">DADOS DO CONTATO</h4>
+									</header>
+									<div id="divCollapseDadosDoContato" class="panel-collapse collapse show">
+										<div class="panel-body">
+											<div class="row">
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.NomeContato, new { @class = "form-control noBlank" })
+													<label>Nome Contato</label>
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.CargoContato, new { @class = "form-control noBlank" })
+													<label>Cargo Contato</label>
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<!--ENDEREÇO PRINCIPAL-->
+								<div class="panel">
+									<header class="panel-heading">
+										<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseEnderecoPrincipal" aria-expanded="false">ENDEREÇO PRINCIPAL</h4>
+									</header>
+									<div id="divCollapseEnderecoPrincipal" class="panel-collapse collapse show">
+										<div class="panel-body">
+											<div class="row">
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.Endereco, new { @class = "form-control noBlank" })
+													<label>Endereço</label>
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.Bairro, new { @class = "form-control noBlank" })
+													<label>Bairro</label>
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+											<div class="row">
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.CEP, new { @class = "form-control noBlank maskCEP", @onblur = "return GetEnderecoPrincipalCorreio(this.value)" })
+													<label>CEP</label>
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.SiglaCaixaPostal, new { @class = "form-control noBlank" })
+													<label>Caixa Postal</label>
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+											<div class="row">
+												<div class="form-group col-sm-6">
+													<label>ESTADO</label>
+													@Html.DropDownListFor(x => Model.Cidade.Estado, listaEstados, "Selecione o Estado...", new { @class = "select2", @onchange = "return preencheDDLCidades(this.value, $('#Cidade_Codigo'));" })
+													@Html.HiddenFor(x => Model.Cidade.Estado, new { @id = "hfCidadeEstao"})
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group col-sm-6">
+													<label>CIDADE</label>
+													@Html.DropDownListFor(x => Model.Cidade.Codigo, new List<SelectListItem>(), "Todas as Cidades", new { @class = "select2" })
+													@Html.HiddenFor(x => Model.Cidade.Codigo, new { @id = "hfCodigoCidade" })
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<!--ENDEREÇO CORRESPONDENCIA-->
+								<div class="panel">
+									<header class="panel-heading">
+										<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseEnderecoCorrespondencia" aria-expanded="false">ENDEREÇO CORRESPONDÊNCIA</h4>
+										<div class="top-nav">
+											<a id="btnInfo" class="btn btn-primary" onclick="return jsReutilizarDados();"><span aria-hidden="true" class="zmdi zmdi-info"></span> &nbsp; UTILIZAR MESMO ENDEREÇO PRINCIPAL</a>
+										</div>
+									</header>
+									<div id="divCollapseEnderecoCorrespondencia" class="panel-collapse collapse show">
+										<div class="panel-body">
+											<div class="row">
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.EnderecoCorrespondencia, new { @class = "form-control noBlank" })
+													<label>Endereço Correspondência</label>
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.BairroCorrespondencia, new { @class = "form-control noBlank" })
+													<label>Bairro Correspondência</label>
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+											<div class="row">
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.CepCorrespondencia, new { @class = "form-control noBlank maskCEP", @onblur = "return GetEnderecoCorrespondenciaCorreio(this.value)" })
+													<label>CEP Correspondência</label>
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.ReferenciaEnderecoCorrespondencia, new { @class = "form-control noBlank" })
+													<label>Referência</label>
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+											<div class="row">
+												<div class="form-group col-sm-6">
+													<label>ESTADO</label>
+													@Html.DropDownListFor(x => Model.CidadeCorrespondencia.Estado, listaEstados, "Selecione o Estado...", new { @class = "select2", @onchange = "return preencheDDLCidades(this.value, $('#CidadeCorrespondencia_Codigo'));" })
+													@Html.HiddenFor(x => Model.CidadeCorrespondencia.Estado, new { @id = "hfCidadeCorrespondenciaEstado" })
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group col-sm-6">
+													<label>CIDADE</label>
+													@Html.DropDownListFor(x => Model.CidadeCorrespondencia.Codigo, new List<SelectListItem>(), "Todas as Cidades", new { @class = "select2" })
+													@Html.HiddenFor(x => Model.CidadeCorrespondencia.Codigo, new { @id = "hfCodigoCidadeCorrespondencia" })
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<!--DADOS PARA PAE-->
+								<div class="panel">
+									<header class="panel-heading">
+										<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapsePAE" aria-expanded="false">DADOS PARA PAE</h4>
+									</header>
+									<div id="divCollapsePAE" class="panel-collapse collapse show">
+										<div class="panel-body">
+											<div class="row">
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.Coordenador, new { @class = "form-control noBlank" })
+													<label>Coordenador</label>
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.CargoCoordenador, new { @class = "form-control noBlank" })
+													<label>Cargo Coordenador</label>
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<!--DADOS PARA PAE-->
+								<div class="panel">
+									<header class="panel-heading">
+										<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapsePPRA" aria-expanded="false">DADOS PARA PPRA</h4>
+									</header>
+									<div id="divCollapsePPRA" class="panel-collapse collapse show">
+										<div class="panel-body">
+											<div class="row">
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.Atividade, new { @class = "form-control noBlank" })
+													<label>Atividade</label>
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.GrauRisco, new { @class = "form-control noBlank" })
+													<label>Grau Risco</label>
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+											<div class="row">
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.CNAE, new { @class = "form-control noBlank" })
+													<label>CNAE</label>
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.Grupo, new { @class = "form-control noBlank" })
+													<label>Grupo</label>
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<!--DADOS PARA PCMSO-->
+								<div class="panel">
+									<header class="panel-heading">
+										<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapsePCMSO" aria-expanded="false">DADOS PARA PCMSO</h4>
+									</header>
+									<div id="divCollapsePCMSO" class="panel-collapse collapse show">
+										<div class="panel-body">
+											<div class="row">
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.HorarioFuncionamentoSegSex, new { @class = "form-control noBlank" })
+													<label>Horário de Funcionamento (Seg / Sex)</label>
+													<i class="form-group__bar"></i>
+												</div>
+												<div class="form-group form-group--float col-sm-6">
+													@Html.TextBoxFor(x => Model.HorarioFuncionamentoFDS, new { @class = "form-control noBlank" })
+													<label>Horário de Funcionamento (FDS / Feriados)</label>
+													<i class="form-group__bar"></i>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<!--DADOS DE PEDIDOS E ORÇAMENTO-->
+							<div id="tab-pedidosorcamentos" class="contentTabs">
+								@Html.Partial("Cliente/PartialPedidos")
+								&nbsp;
+								@Html.Partial("Cliente/PartialOrcamentos")
+								&nbsp;
+								@Html.Partial("Cliente/PartialContratos")
+							</div>
+							<!--DADOS DE ALUNOS-->
+							<div id="tab-alunos">
+								@Html.Partial("Cliente/PartialAlunos")
+							</div>
+							<!--DADOS DE EMAILS-->
+							<div id="tab-emails">
+								@Html.Partial("Cliente/PartialEmails")
+							</div>
+							<!--DADOS DE TELEFONES-->
+							<div id="tab-telefones">
+								@Html.Partial("Cliente/PartialTelefones");
+							</div>
+							<!--DADOS DE PRODUTOS EXPIRANDO E VENCIDOS-->
+							<div id="tab-expirandovencidos">
+								@Html.Partial("Cliente/PartialProdutosExpirando")
+								&nbsp;
+								@Html.Partial("Cliente/PartialProdutosVencidos")
+							</div>
+							<!--DADOS DE ATENDIMENTOS-->
+							<div id="tab-atendimentos">
+								@Html.Partial("Cliente/PartialAtendimentos")
+							</div>
+							<!--DADOS DE EMPRESAS-->
+							<div id="tab-empresas">
+								@Html.Partial("Cliente/PartialConcorrentes")
+								&nbsp;
+								@Html.Partial("Cliente/PartialContabilidades")
+								&nbsp;
+								@Html.Partial("Cliente/PartialLicenciamentoAmbiental")
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	var tela;
+
+	$(document).ready(function () {
+
+		if (!tela) {
+			jsCarregarCampos();
+		}
+		var me = tela;
+
+		$("#content_tabs").find("[id^='tab']").hide(); // Hide all content
+		$("#tabs li:first").attr("id", "current"); // Activate the first tab
+		$("#content_tabs #tab-cliente").fadeIn(); // Show first tab's content
+
+		$('#tabs a').click(function (e) {
+			e.preventDefault();
+			if ($(this).closest("li").attr("id") == "current") { //detection for current tab
+				return;
+			}
+			else {
+				$("#content_tabs").find("[id^='tab']").hide(); // Hide all content
+				$("#tabs li").attr("id", ""); //Reset id's
+				$(this).parent().attr("id", "current"); // Activate this
+				$('#' + $(this).attr('name')).fadeIn(); // Show content for the current tab
+
+				if ($(this).attr('name') == 'tab-pedidosorcamentos') {
+					openPartialPedidos();
+					openPartialOrcamentos();
+				} else if ($(this).attr('name') == 'tab-alunos') {
+					openPartialAluno();
+				} else if ($(this).attr('name') == 'tab-emails') {
+					openPartialEmails();
+				} else if ($(this).attr('name') == 'tab-telefones') {
+					openPartialTelefones();
+				} else if ($(this).attr('name') == 'tab-expirandovencidos') {
+					openPartialProdutosExpirando();
+					openPartialProdutosVencidos();
+				} else if ($(this).attr('name') == 'tab-atendimentos') {
+					openPartialAtendimentos();
+				} else if ($(this).attr('name') == 'tab-empresas') {
+					openPartialConcorrente();
+					openPartialContabilidade();
+					openPartialLicenciamento();
+				}
+			}
+		});
+
+		if (me.hfTipoCliente.val() != "") {
+			jsAlterarLayout(me.TipoCliente.val());
+
+			me.TipoCliente.prop('disabled', true);
+			me.TipoCliente.trigger('change');
+			me.CNPJ.prop('readonly', 'readonly');
+			me.CPF.prop('readonly', 'readonly');
+
+			me.Cidade_Estado.val(me.hfCidadeEstao.val());
+			me.Cidade_Estado.trigger('change');
+			preencheDDLCidades(me.hfCidadeEstao.val(), me.Cidade_Codigo, me.hfCodigoCidade.val());
+
+			me.CidadeCorrespondencia_Estado.val(me.hfCidadeCorrespondenciaEstado.val());
+			me.CidadeCorrespondencia_Estado.trigger('change');
+			preencheDDLCidades(me.hfCidadeCorrespondenciaEstado.val(), me.CidadeCorrespondencia_Codigo, me.hfCodigoCidadeCorrespondencia.val());
+		}
+	});
+
+	function jsSalvar() {
+
+		if (jsValidaRelato() && jsValidaCampos()) {
+			document.getElementById('formNovo').submit();
+		}
+
+	}
+
+	function jsValidaCampos() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		if (me.TipoCliente.val() == 1) {
+			if (me.CNPJ.val() == "") {
+				OpenAlert("Atenção!", "Informe o CNPJ do cliente!", "danger");
+				me.CNPJ.focus();
+				return false;
+			} else if (me.RazaoSocial.val() == "") {
+				OpenAlert("Atenção!", "Informe a razão social do cliente!", "danger");
+				me.RazaoSocial.focus();
+				return false;
+			} else if (me.NomeFantasia.val() == "") {
+				OpenAlert("Atenção!", "Informe o nome fantasia do cliente!", "danger");
+				me.NomeFantasia.focus();
+				return false;
+			} else if (me.InscricaoEstadual.val() == "") {
+				OpenAlert("Atenção!", "Informe a inscrição estadual do cliente!", "danger");
+				me.InscricaoEstadual.focus();
+				return false;
+			}
+		} else {
+			if (me.CPF.val() == "") {
+				OpenAlert("Atenção!", "Informe o CPF do cliente!", "danger");
+				me.CPF.focus();
+				return false;
+			} else if (me.Nome.val() == "") {
+				OpenAlert("Atenção!", "Informe o nome do cliente!", "danger");
+				me.Nome.focus();
+				return false;
+			} else if (me.RG.val() == "") {
+				OpenAlert("Atenção!", "Informe o RG do cliente!", "danger");
+				me.RG.focus();
+				return false;
+			}
+		}
+
+		if (me.BandeiraPosto.val() == "") {
+			OpenAlert("Atenção!", "Informe a bandeira do posto do cliente!", "danger");
+			me.BandeiraPosto.focus();
+			return false;
+		} else if (me.RedePosto.val() == "") {
+			OpenAlert("Atenção!", "Informe o rede do posto do cliente!", "danger");
+			me.RedePosto.focus();
+			return false;
+		} else if (me.Proprietario.val() == "") {
+			OpenAlert("Atenção!", "Informe o nome do proprietário do cliente!", "danger");
+			me.Proprietario.focus();
+			return false;
+		} else if (me.CpfProprietario.val() == "") {
+			OpenAlert("Atenção!", "Informe o CPF do proprietário do cliente!", "danger");
+			me.CpfProprietario.focus();
+			return false;
+		} else if (me.RgProprietario.val() == "") {
+			OpenAlert("Atenção!", "Informe o RG do proprietário do cliente!", "danger");
+			me.RgProprietario.focus();
+			return false;
+		} else if (me.NomeContato.val() == "") {
+			OpenAlert("Atenção!", "Informe o nome do contato do cliente!", "danger");
+			me.NomeContato.focus();
+			return false;
+		} else if (me.CargoContato.val() == "") {
+			OpenAlert("Atenção!", "Informe o cargo do contato do cliente!", "danger");
+			me.CargoContato.focus();
+			return false;
+		} else if (me.Endereco.val() == "") {
+			OpenAlert("Atenção!", "Informe o endereço do cliente!", "danger");
+			me.Endereco.focus();
+			return false;
+		} else if (me.Bairro.val() == "") {
+			OpenAlert("Atenção!", "Informe o bairro do cliente!", "danger");
+			me.Bairro.focus();
+			return false;
+		} else if (me.CEP.val() == "") {
+			OpenAlert("Atenção!", "Informe o CEP do cliente!", "danger");
+			me.CEP.focus();
+			return false;
+		} else if (me.SiglaCaixaPostal.val() == "") {
+			OpenAlert("Atenção!", "Informe a caixa postal do cliente!", "danger");
+			me.SiglaCaixaPostal.focus();
+			return false;
+		} else if (me.Cidade_Estado.val() == "") {
+			OpenAlert("Atenção!", "Informe o Estado do cliente!", "danger");
+			me.Cidade_Estado.focus();
+			return false;
+		} else if (me.Cidade_Codigo.val() == "") {
+			OpenAlert("Atenção!", "Informe a Cidade do cliente!", "danger");
+			me.Cidade_Codigo.focus();
+			return false;
+		} else if (me.EnderecoCorrespondencia.val() == "") {
+			OpenAlert("Atenção!", "Informe o endereço de correspondência do cliente!", "danger");
+			me.EnderecoCorrespondencia.focus();
+			return false;
+		} else if (me.BairroCorrespondencia.val() == "") {
+			OpenAlert("Atenção!", "Informe o bairro de correspondência do cliente!", "danger");
+			me.BairroCorrespondencia.focus();
+			return false;
+		} else if (me.CepCorrespondencia.val() == "") {
+			OpenAlert("Atenção!", "Informe o CEP de correspondência do cliente!", "danger");
+			me.CepCorrespondencia.focus();
+			return false;
+		} else if (me.ReferenciaEnderecoCorrespondencia.val() == "") {
+			OpenAlert("Atenção!", "Informe a referência do cliente!", "danger");
+			me.ReferenciaEnderecoCorrespondencia.focus();
+			return false;
+		} else if (me.CidadeCorrespondencia_Estado.val() == "") {
+			OpenAlert("Atenção!", "Informe o Estado de correspondência do cliente!", "danger");
+			me.CidadeCorrespondencia_Estado.focus();
+			return false;
+		} else if (me.CidadeCorrespondencia_Codigo.val() == "") {
+			OpenAlert("Atenção!", "Informe a Cidade de correspondência do cliente!", "danger");
+			me.CidadeCorrespondencia_Codigo.focus();
+			return false;
+		}
+
+		return true;
+	}
+
+	function jsCarregarCampos() {
+
+		tela = {
+
+			//DADOS GERAIS DO CLIENTE
+			TipoCliente: $('#TipoCliente'),
+			hfTipoCliente: $('#hfTipoCliente'),
+			Ativo: $('#Ativo'),
+			CNPJ: $('#CNPJ'),
+			RazaoSocial: $('#RazaoSocial'),
+			NomeFantasia: $('#NomeFantasia'),
+			InscricaoEstadual: $('#InscricaoEstadual'),
+			BandeiraPosto: $('#BandeiraPosto_Codigo'),
+			RedePosto: $('#RedePosto_Codigo'),
+			CodigoStatus: $('#CodigoStatus'),
+			Proprietario: $('#Proprietario'),
+			CpfProprietario: $('#CpfProprietario'),
+			RgProprietario: $('#RgProprietario'),
+			EmailPrincipal: $('#EmailPrincipal'),
+			CPF: $('#CPF'),
+			Nome: $('#Nome'),
+			RG: $('#RG'),
+
+			//DADOS DO CONTATO
+			NomeContato: $('#NomeContato'),
+			CargoContato: $('#CargoContato'),
+
+			//ENDERECO PRINCIPAL
+			Endereco: $("#Endereco"),
+			Bairro: $("#Bairro"),
+			CEP: $('#CEP'),
+			SiglaCaixaPostal: $('#SiglaCaixaPostal'),
+			Cidade_Estado: $('#Cidade_Estado'),
+			hfCidadeEstao: $('#hfCidadeEstao'),
+			Cidade_Codigo: $('#Cidade_Codigo'),
+			hfCodigoCidade: $('#hfCodigoCidade'),
+
+			//ENDERECO CORRESPONDENCIA
+			EnderecoCorrespondencia: $("#EnderecoCorrespondencia"),
+			BairroCorrespondencia: $("#BairroCorrespondencia"),
+			CepCorrespondencia: $('#CepCorrespondencia'),
+			ReferenciaEnderecoCorrespondencia: $('#ReferenciaEnderecoCorrespondencia'),
+			CidadeCorrespondencia_Estado: $('#CidadeCorrespondencia_Estado'),
+			hfCidadeCorrespondenciaEstado: $('#hfCidadeCorrespondenciaEstado'),
+			CidadeCorrespondencia_Codigo: $('#CidadeCorrespondencia_Codigo'),
+			hfCodigoCidadeCorrespondencia: $('#hfCodigoCidadeCorrespondencia'),
+
+			//DADOS PARA PAE
+			Coordenador: $('#Coordenador'),
+			CargoCoordenador: $('#CargoCoordenador'),
+
+			//DADOS PARA PPRA
+			Atividade: $('#Atividade'),
+			GrauRisco: $('#GrauRisco'),
+			CNAE: $('#CNAE'),
+			Grupo: $('#Grupo'),
+
+			//DADOS PARA PCMSO
+			HorarioFuncionamentoSegSex: $('#HorarioFuncionamentoSegSex'),
+			HorarioFuncionamentoFDS: $('#HorarioFuncionamentoFDS')
+		}
+	}
+
+	function jsAlterarLayout(tipoCliente) {
+
+		if (tipoCliente == 1) {
+			$('.divCNPJ').show()
+			$('.divCPF').hide()
+		} else {
+			$('.divCNPJ').hide()
+			$('.divCPF').show()
+		}
+	}
+
+	function GetEnderecoPrincipalCorreio(cep) {
+		GetEnderecoCorreio(cep, preencherEnderecoPrincipal);
+	}
+
+	function preencherEnderecoPrincipal(retorno) {
+
+		if (!tela) {
+			jsCarregarCampos();
+		}
+		var me = tela;
+
+		if (retorno) {
+			me.Endereco.val(retorno.logradouro);
+			me.Endereco.change();
+			me.Bairro.val(retorno.bairro);
+			me.Bairro.change();
+			me.Cidade_Estado.val(retorno.uf);
+			me.Cidade_Estado.trigger('change');
+			preencheDDLCidades(retorno.uf, $('#Cidade_Codigo'));
+		}
+	}
+
+	function GetEnderecoCorrespondenciaCorreio(cep) {
+		GetEnderecoCorreio(cep, preencherEnderecoCorrespondencia);
+	}
+
+	function preencherEnderecoCorrespondencia(retorno) {
+
+		if (!tela) {
+			jsCarregarCampos();
+		}
+		var me = tela;
+
+		if (retorno) {
+			me.EnderecoCorrespondencia.val(retorno.logradouro);
+			me.EnderecoCorrespondencia.change();
+			me.BairroCorrespondencia.val(retorno.bairro);
+			me.BairroCorrespondencia.change();
+			me.CidadeCorrespondencia_Estado.val(retorno.uf);
+			me.CidadeCorrespondencia_Estado.trigger('change');
+			preencheDDLCidades(retorno.uf, $('#CidadeCorrespondencia_Codigo'));
+		}
+	}
+
+	function jsReutilizarDados() {
+
+		if (!tela) {
+			jsCarregarCampos();
+		}
+		var me = tela;
+
+		jsLoading(true);
+
+		me.EnderecoCorrespondencia.val(me.Endereco.val()).change();
+		me.BairroCorrespondencia.val(me.Bairro.val()).change();
+		me.CepCorrespondencia.val(me.CEP.val()).change();
+		me.CidadeCorrespondencia_Estado.val(me.Cidade_Estado.val());
+		me.CidadeCorrespondencia_Estado.trigger('change');
+		preencheDDLCidades(me.CidadeCorrespondencia_Estado.val(), me.CidadeCorrespondencia_Codigo, me.Cidade_Codigo.val());
+
+		jsLoading(false);
+
+		return false;
+	}
+	
+	function buscarDadosCNPJ(cnpj) {
+		console.log($(cnpj).prop('readonly'));
+		if ($(cnpj).prop('readonly') == false) {
+			GetDadosReceitaFederal(cnpj.value, preencherDadosConcorrente);
+		}
+	}
+
+	function preencherDadosConcorrente(retorno) {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		if (retorno) {
+			me.RazaoSocial.val(retorno.nome);
+			me.RazaoSocial.change();
+			me.NomeFantasia.val(retorno.fantasia);
+			me.NomeFantasia.change();
+			me.Endereco.val(retorno.logradouro);
+			me.Endereco.change();
+			me.Bairro.val(retorno.bairro);
+			me.Bairro.change();
+			me.CEP.val(retorno.cep);
+			me.CEP.change();
+			GetEnderecoPrincipalCorreio(me.CEP.val());
+			me.Atividade.val(retorno.atividade_principal[0].text);
+			me.Atividade.change();
+			me.CNAE.val(retorno.atividade_principal[0].code);
+			me.CNAE.change();
+
+			//INSERT TELEFONES
+			if (retorno.telefone != "") {
+				openPartialTelefones();
+				var arrayTelefonesReceita = retorno.telefone.split(' / ');
+
+				for (var i = 0; i < arrayTelefonesReceita.length; i++) {
+					addTelefoneCode(arrayTelefonesReceita[i]);
+				}
+			}
+
+			//INSERT EMAILS
+			if (retorno.email != "") {
+				openPartialEmails();
+				addEmailCode(retorno.email);
+			}
+		}
+	}
+
+	function jsLimparCampos() {
+
+		if (!tela) {
+			jsCarregarCampos();
+		}
+		var me = tela;
+
+		me.Ativo.val('true');
+		me.Ativo.trigger('change');
+		me.CNPJ.val('').change();
+		me.RazaoSocial.val('').change();
+		me.NomeFantasia.val('').change();
+		me.InscricaoEstadual.val('').change();
+		me.BandeiraPosto.val('1');
+		me.BandeiraPosto.trigger('change');
+		me.RedePosto.val('2052');
+		me.RedePosto.trigger('change');
+		me.CodigoStatus.val('2');
+		me.CodigoStatus.trigger('change');
+		me.Proprietario.val('').change();
+		me.CpfProprietario.val('').change();
+		me.RgProprietario.val('').change();
+		me.EmailPrincipal.val('');
+		me.EmailPrincipal.trigger('change');
+		me.CPF.val('').change();
+		me.Nome.val('').change();
+		me.RG.val('').change();
+
+		me.NomeContato.val('').change();
+		me.CargoContato.val('').change();
+
+		me.Endereco.val('').change();
+		me.Bairro.val('').change();
+		me.CEP.val('').change();
+		me.SiglaCaixaPostal.val('').change();
+		me.Cidade_Estado.val('');
+		me.Cidade_Estado.trigger('change');
+		me.Cidade_Codigo.empty();
+		me.Cidade_Estado.trigger('change');
+
+		me.EnderecoCorrespondencia.val('').change();
+		me.BairroCorrespondencia.val('').change();
+		me.CepCorrespondencia.val('').change();
+		me.ReferenciaEnderecoCorrespondencia.val('').change();
+		me.CidadeCorrespondencia_Estado.val('');
+		me.CidadeCorrespondencia_Estado.trigger('change');
+		me.CidadeCorrespondencia_Codigo.empty();
+		me.CidadeCorrespondencia_Codigo.trigger('change');
+
+		me.Coordenador.val('').change();
+		me.CargoCoordenador.val('').change();
+
+		me.Atividade.val('').change();
+		me.GrauRisco.val('').change();
+		me.CNAE.val('').change();
+		me.Grupo.val('').change();
+
+		me.HorarioFuncionamentoSegSex.val('').change();
+		me.HorarioFuncionamentoFDS.val('').change();
+	}
+
+	function jsValidaRelato() {
+
+		if (getCookie("CODIGO_PERFIL") == '1' && $('#hfRegistrouAtendimento').val() == 'false') {
+			OpenAlert("Atenção!", "Informe no mínimo um atendimento para o cliente!", "danger");
+			return false;
+		}
+
+		return true;
+
+	}
+</script>

@@ -1,0 +1,95 @@
+﻿@model CODE.Meso
+
+<section id="main-content">
+	<section class="content">
+		<div class="panel">
+			<header class="panel-heading">
+				<h4>@Html.Raw(Model == null ? "NOVA MESO" : "EDITAR MESO")</h4>
+				<div class="top-nav">
+					<button id="btnVoltar" class="btn btn-primary" onclick="return jsVoltar();"><span aria-hidden="true" class="zmdi zmdi-arrow-left"></span> &nbsp; VOLTAR</button>
+					@if (Model == null)
+					{
+						<button id="btnLimpar" class="btn btn-primary" onclick="return jsLimpar();"><span aria-hidden="true" class="zmdi zmdi-close"></span> &nbsp; LIMPAR</button>
+					}
+					<button id="btnSalvar" class="btn btn-primary" onclick="return jsSalvar();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; SALVAR</button>
+				</div>
+			</header>
+			<div class="panel-body">
+				@using (Html.BeginForm("Salvar", "Meso", FormMethod.Post, new { @name = "formNovo", @id = "formNovo" }))
+				{
+					@Html.HiddenFor(x => Model.Codigo, new { @class = "form-control" })
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Descricao, new { @class = "form-control noBlank" })
+							<label class="required">Descrição</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	var tela;
+
+	function jsCarregarCampos() {
+
+		tela = {
+			Codigo: $('#Codigo'),
+			Descricao: $('#Descricao')
+
+		}
+	}
+
+	function jsVoltar() {
+		jsLimpar();
+		window.location.assign("@Url.Action("List", "Meso")");
+	}
+
+	function jsLimpar() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		me.Codigo.val('');
+		me.Descricao.val('');
+
+		jsRemoverFocus(me.Descricao);
+
+		jsLoading(false);
+
+		return false;
+	}
+
+	function jsSalvar() {
+
+		jsLoading(true);
+
+		if (!jsValidaCampos()) {
+			jsLoading(false);
+			return false;
+		}
+
+		document.getElementById('formNovo').submit();
+
+	}
+
+	function jsValidaCampos() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		if (me.Descricao.val() == "") {
+			OpenAlert("Atenção!", "Informe a descrição da meso!", "danger");
+			me.Descricao.focus();
+			return false;
+		}
+
+		return true;
+
+	}
+
+</script>

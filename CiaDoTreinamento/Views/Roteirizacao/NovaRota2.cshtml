@@ -1,0 +1,921 @@
+﻿@model CODE.Rota
+
+@{
+	CODE.MesoBLL mesoBLL = new CODE.MesoBLL();
+	CODE.MicroBLL microBLL = new CODE.MicroBLL();
+	string mensagemErro;
+
+	//GET ESTADOS
+	List<SelectListItem> listaEstados = CODE.Uteis.RetornarEstadosComboCompleto();
+
+	//GET MESOS
+	var mesos = mesoBLL.getMesos(null, null, out mensagemErro);
+	var listaMesos = new List<SelectListItem>();
+	foreach (CODE.Meso meso in mesos)
+	{
+		listaMesos.Add(new SelectListItem()
+		{
+			Text = meso.Descricao,
+			Value = meso.Codigo.ToString()
+		});
+	}
+
+	//GET MESOS
+	var micros = microBLL.getMicros(null, null, out mensagemErro);
+	var listaMicros = new List<SelectListItem>();
+	foreach (CODE.Micro micro in micros)
+	{
+		listaMicros.Add(new SelectListItem()
+		{
+			Text = micro.Descricao,
+			Value = micro.Codigo.ToString()
+		});
+	}
+
+	//GET INSTRUTORES
+	List<CODE.Funcionario> agentesInstrutores = CODE.FuncionarioBLL.getFuncionarioByPerfil(10, out mensagemErro);
+	List<SelectListItem> listaInstrutores = new List<SelectListItem>();
+	foreach (CODE.Funcionario func in agentesInstrutores)
+	{
+		listaInstrutores.Add(new SelectListItem()
+		{
+			Text = func.Nome,
+			Value = func.Codigo.ToString(),
+			Selected = (Model != null ? Model.Instrutor.Codigo == func.Codigo : false)
+		});
+	}
+
+	//GET PRODUTOS
+	CODE.ProdutoBLL produtoBLL = new CODE.ProdutoBLL();
+	List<CODE.Produto.ProdutoTela> produtos = produtoBLL.GetProdutosTela(out mensagemErro, true);
+	List<SelectListItem> listaProdutos = new List<SelectListItem>();
+	foreach (CODE.Produto.ProdutoTela prod in produtos)
+	{
+		listaProdutos.Add(new SelectListItem()
+		{
+			Text = prod.Descricao,
+			Value = prod.Codigo.ToString()
+		});
+	}
+}
+@Html.Partial("Roteirizacao/PartialDetalhesPedidoRota")
+@Html.Partial("Roteirizacao/PartialConfirmarPedidoRota")
+
+<section id="main-content">
+	<section class="content">
+		<!--PANEL 1-->
+		<div class="panel">
+			<header class="panel-heading">
+				<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapsePanel1" aria-expanded="true">Dados Gerais da Rota</h4>
+				<div class="top-nav">
+					<button id="btnAtualizarRota" class="btn btn-primary" onclick="jsAtualizarRota();" style="display: none;"><span aria-hidden="true" class="zmdi zmdi-truck"></span> &nbsp; ATUALIZAR ROTA</button>
+					<button id="btnCriarRota" class="btn btn-primary" onclick="jsCriarRota();" style="display: none;"><span aria-hidden="true" class="zmdi zmdi-truck"></span> &nbsp; CRIAR ROTA</button>
+				</div>
+			</header>
+			<div id="divCollapsePanel1" class="panel-collapse collapse show">
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-4">
+							<label>Código Rota</label>
+							@Html.TextBoxFor(x => Model.Codigo, new { @id="txtCodigoRota", @class = "form-control", @readonly = "readonly" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="col-sm-4">
+							<label>Instrutor</label>
+							@Html.DropDownList("ddlInstrutorRota", listaInstrutores, "Selecione o Instrutor...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="col-sm-4">
+							<label>Observação Rota</label>
+							@Html.TextBoxFor(x => Model.Observacao, new { @class = "form-control" })
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--PANEL 2-->
+		<div class="panel" style="margin-top: 10px;">
+			<header class="panel-heading">
+				<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapsePanel2" aria-expanded="false">Cidades Disponíveis</h4>
+			</header>
+			<div id="divCollapsePanel2" class="panel-collapse collapse">
+				<div style="display: flex;">
+					<!--CIDADES-->
+					<div class="col-sm-6" style="height: 500px; padding: 10px; overflow: auto;">
+						<!--FILTRO-->
+						<div class="panel">
+							<header class="panel-heading">
+								<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseFiltro" aria-expanded="true">Filtros</h4>
+								<div class="top-nav">
+									<button id="btnPesquisar" class="btn btn-primary" onclick="jsPesquisar();"><span aria-hidden="true" class="zmdi zmdi-search"></span> &nbsp; PESQUISAR</button>
+								</div>
+							</header>
+							<div id="divCollapseFiltro" class="panel-collapse collapse show">
+								<div class="panel-body">
+									<div class="row">
+										<div class="col-sm-6">
+											<label>Estado</label>
+											@Html.DropDownList("ddlEstadosFiltro", listaEstados, "Selecione o Estado...", new { @class = "select2", @onchange = "return preencheDDLCidades(this.value, $('#ddlCidadesFiltro'));" })
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="col-sm-6">
+											<label>Cidade</label>
+											@Html.DropDownList("ddlCidadesFiltro", new List<SelectListItem>(), "Todas as Cidades", new { @class = "select2" })
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="col-sm-6">
+											<label>Meso</label>
+											@Html.DropDownList("ddlMesoFiltro", listaMesos, "Selecione a Meso...", new { @class = "select2" })
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="col-sm-6">
+											<label>Micro</label>
+											@Html.DropDownList("ddlMicroFiltro", listaMicros, "Selecione a Micro...", new { @class = "select2" })
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="col-sm-12">
+											<label>Produtos</label>
+											@Html.DropDownList("ddlProdutosFiltro", listaProdutos, "Selecione o Produto...", new { @class = "select2" })
+											<i class="form-group__bar"></i>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!--RESULTADO-->
+						<div id="divResult" class="panel" style="padding-top: 10px; display: none">
+							<header class="panel-heading">
+								<h4>Resultado</h4>
+							</header>
+							<div class="panel-body">
+								<div class="table-responsive">
+									<table id="tbCidades" class="table table-striped table-hover">
+										<thead class="thead-default">
+											<tr>
+												<th>Cidade - UF</th>
+												<th class="center">Qtde Pedidos</th>
+												<th class="center">Valor Total</th>
+												<th></th>
+											</tr>
+										</thead>
+										<tbody id="tbCidades"></tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!--MAPA-->
+					<div class="col-sm-6" style="height: 500px; padding: 8px;">
+						<div id="map" style="height:485px;"></div>
+						<button id="btnDistanceRoutes" class="btnDistanceRoutes" onclick="jsOpenCloseContentDistance()"><span class="zmdi zmdi-truck"></span></button>
+						<button id="btnPoints" class="btnPoints" onclick="jsOpenClosePoints()"><span class="zmdi zmdi-city"></span></button>
+						<div id="listDistances" class="listDistances" style="display: none;"></div>
+						<div id="listPoints" class="listPoints" style="display: none;">
+							<div class="row">
+								<div class="col-sm-12">
+									<label>Ponto Inicio</label>
+									<input type="text" class="form-control" id="txtPointStart" />
+									<i class="form-group__bar"></i>
+								</div>
+								<div class="form-group col-sm-12">
+									<label>Ponto Final</label>
+									<input type="text" class="form-control" id="txtPointEnd" />
+									<i class="form-group__bar"></i>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--PANEL 3-->
+		<div class="panel" style="margin-top: 10px;">
+			<header class="panel-heading">
+				<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapsePanel3" aria-expanded="false">Pedidos Selecionados</h4>
+			</header>
+			<div id="divCollapsePanel3" class="panel-collapse collapse">
+				<div class="panel-body">
+					<div class="table-responsive">
+						<table class="table table-striped table-hover">
+							<thead class="thead-default">
+								<tr>
+									<th>Código Pedido</th>
+									<th>Razão Social / Nome</th>
+									<th>CNPJ / CPF</th>
+									<th>Cidade - UF</th>
+									<th>Data Inicio Treinamento</th>
+									<th>Data Fim Treinamento</th>
+									<th>Valor Total</th>
+									<th class="th70px"></th>
+								</tr>
+							</thead>
+							<tbody id="tbPedidos"></tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--PANEL 4-->
+		<div class="panel" style="margin-top: 10px;">
+			<header class="panel-heading">
+				<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapsePanel4" aria-expanded="false">Pedidos inseridos na Rota</h4>
+			</header>
+			<div id="divCollapsePanel4" class="panel-collapse collapse">
+				<div class="panel-body">
+					<div class="table-responsive">
+						<table class="table table-striped table-hover">
+							<thead class="thead-default">
+								<tr>
+									<th></th>
+									<th>Código Pedido</th>
+									<th>Razão Social / Nome</th>
+									<th>CNPJ / CPF</th>
+									<th>Cidade - UF</th>
+									<th>Data Inicio Treinamento</th>
+									<th>Data Fim Treinamento</th>
+									<th>Valor Total</th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody id="tbPedidosRota"></tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</section>
+
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCu1NVvUi33FURh7lRtc91DacG7FtLrvk8&callback=initMap"></script>
+<script type="text/javascript">
+
+	var pontoInicio = "Uberlândia - MG, 38400-000";
+	var pontoFinal = "Uberlândia - MG, 38400-000";
+
+	$('#txtPointStart').val(pontoInicio);
+	$('#txtPointEnd').val(pontoFinal);
+
+	var map;
+	var directionsService;
+	var directionsDisplay;
+	var infoWindow;
+	var waypts = [];
+	var arrayCidades = [];
+	var arrayCidadesSelecionadas = [];
+	var arrayPedidos = [];
+	var distances = [];
+	var ordemCidadesRota = [];
+	var arrayPedidosDaRota = [];
+	var arrayCidadesDaRota = [];
+
+	$(document).ready(function () { 
+
+		if ($('#txtCodigoRota').val() == "" || $('#txtCodigoRota').val() == 0)
+		{
+			$('#btnCriarRota').show();
+		}
+		else
+		{ 
+			$('#btnAtualizarRota').show();
+			jsMontaTabelaPedidosRota();
+		}
+	});
+
+	function initMap() {
+		directionsService = new google.maps.DirectionsService;
+		directionsDisplay = new google.maps.DirectionsRenderer;
+		infoWindow = new google.maps.InfoWindow();
+		map = new google.maps.Map(document.getElementById('map'), {
+			zoom: 6,
+			center: { lat: -18.875427, lng: -48.235579 }
+		});
+		directionsDisplay.setMap(map);
+
+		if (arrayCidades.length > 0) {
+			calculateAndDisplayRoute(directionsService, directionsDisplay, arrayCidadesSelecionadas);
+		}
+	}
+
+	function calculateAndDisplayRoute(directionsService, directionsDisplay, points) {
+
+		waypts = [];
+
+		pointsAux = [];
+
+		for (var i = 0; i < points.length; i++)
+		{
+			var obj = {
+				cidade: points[i].cidade.descricao,
+				estado: points[i].cidade.estado
+			};
+
+			if (pointsAux.indexOf(obj) == -1) {
+				pointsAux.push(obj);
+			}
+		}
+
+		for (var i = 0; i < pointsAux.length; i++) {
+			waypts.push({
+				location: pointsAux[i].cidade + " - " + pointsAux[i].estado,
+				stopover: true
+			});
+		}
+
+		directionsDisplay.setMap(map);
+
+		directionsService.route({
+			origin: pontoInicio,
+			destination: pontoFinal,
+			waypoints: waypts,
+			optimizeWaypoints: true,
+			travelMode: 'DRIVING'
+		}, function (response, status) {
+			if (status === 'OK') {
+				directionsDisplay.setDirections(response);
+				ordemCidadesRota = response.routes[0].waypoint_order;
+				distances = response.routes[0].legs;
+				jsMontaTabelaPedidos();
+				jsMontaContentDistance();
+			} else {
+				window.alert('Não foi possível construir a rota. ' + status);
+			}
+		});
+	}
+
+	function calculateAndDisplayRoute2(directionsService, directionsDisplay, points) {
+
+		waypts = [];
+
+		for (var i = 0; i < points.length; i++) {
+			waypts.push({
+				location: points[i].cidade.descricao + " - " + points[i].cidade.estado,
+				stopover: true
+			});
+		}
+
+		directionsDisplay.setMap(map);
+
+		directionsService.route({
+			origin: pontoInicio,
+			destination: pontoFinal,
+			waypoints: waypts,
+			optimizeWaypoints: true,
+			travelMode: 'DRIVING'
+		}, function (response, status) {
+			if (status === 'OK') {
+				directionsDisplay.setDirections(response);
+				ordemCidadesRota = response.routes[0].waypoint_order;
+				distances = response.routes[0].legs;
+				jsMontaContentDistance();
+			} else {
+				window.alert('Não foi possível construir a rota. ' + status);
+			}
+		});
+	}
+
+	function jsMontaTabelaPedidos() {
+		var tbPedidos = $('#tbPedidos');
+
+		tbPedidos.empty();
+		arrayPedidos = [];
+
+		for (var i = 0; i < ordemCidadesRota.length; i++) {
+			//IDENTIFICAR CIDADE
+			var wp = waypts[ordemCidadesRota[i]];
+			var cidade = null;
+
+			for (var j = 0; j < arrayCidadesSelecionadas.length; j++) {
+				if ((arrayCidadesSelecionadas[j].cidade.descricao + " - " + arrayCidadesSelecionadas[j].cidade.estado) === wp.location) {
+					cidade = arrayCidadesSelecionadas[j];
+					break;
+				}
+			}
+
+			if (cidade != null) {
+				for (var k = 0; k < cidade.listaPedidos.length; k++) {
+					var ac = cidade.listaPedidos[k];
+					arrayPedidos.push(ac);
+				}
+			}
+		}
+
+		jsMontaTabelaArrayPedidos();
+	}
+
+	function jsMontaTabelaArrayPedidos() {
+
+		var tbPedidos = $('#tbPedidos');
+
+		tbPedidos.empty();
+
+		for (var i = 0; i < arrayPedidos.length; i++) {
+			var ac = arrayPedidos[i];
+			var control = false;
+
+			for (var j = 0; j < arrayPedidosDaRota.length; j++)
+			{
+				if (ac.codigo === arrayPedidosDaRota[j].cabecalhoPedido.codigo) { 
+					control = true;
+					break;
+				}
+			}
+
+			if (!control)
+			{
+				var tr = document.createElement('tr');
+
+				var td1 = document.createElement('td');
+				td1.innerHTML = ac.codigo;
+				tr.append(td1);
+
+				var td2 = document.createElement('td');
+				td2.innerHTML = ac.cliente.razaoSocial;
+				tr.append(td2);
+
+				var td3 = document.createElement('td');
+				td3.innerHTML = ac.cliente.cnpj;
+				tr.append(td3);
+
+				var td4 = document.createElement('td');
+				td4.innerHTML = ac.cliente.cidade.descricao + " - " + ac.cliente.cidade.estado;
+				tr.append(td4);
+
+				var td4 = document.createElement('td');
+				if (ac.dataInicioTreinamento == "0001-01-01T00:00:00") {
+					td4.innerHTML = '<input type="text" id="dtpDataInicioTreinamento_' + ac.codigo + '" class="form-control date-picker" value="' + moment(new Date()).format("DD/MM/YYYY hh:mm") + '" />';
+				} else {
+					td4.innerHTML = '<input type="text" id="dtpDataInicioTreinamento_' + ac.codigo + '" class="form-control date-picker" value="' + moment(new Date(ac.dataInicioTreinamento)).format("DD/MM/YYYY hh:mm") + '" />';
+				}
+				tr.append(td4);
+
+				var td5 = document.createElement('td');
+				if (ac.dataFinalTreinamento == "0001-01-01T00:00:00") {
+					td5.innerHTML = '<input type="text" id="dtpDataFimTreinamento_' + ac.codigo + '" class="form-control date-picker" value="' + moment(new Date()).format("DD/MM/YYYY hh:mm") + '" />';
+				} else {
+					td5.innerHTML = '<input type="text" id="dtpDataFimTreinamento_' + ac.codigo + '" class="form-control date-picker" value="' + moment(new Date(ac.dataFinalTreinamento)).format("DD/MM/YYYY hh:mm") + '" />';
+				}
+				tr.append(td5);
+
+				var td6 = document.createElement('td');
+				td6.innerHTML = ac.valorTotalFormatado;
+				tr.append(td6);
+
+				var td7 = document.createElement('td');
+				td7.innerHTML = "<a onclick='jsConfirmarPedido(" + ac.codigo + "," + i + ")'><span class='zmdi zmdi-check'></span></a> &nbsp; " +
+					"<a onclick='jsInfoPedido(" + ac.codigo + ")'><span class='zmdi zmdi-info'></span></a> &nbsp; " +
+					"<a onclick='jsRemoverPedido(" + i + ")'><span class='zmdi zmdi-delete'></span></a>  &nbsp; ";
+				tr.append(td7);
+
+				tbPedidos.append(tr);
+			}
+			
+		}
+
+		$(".date-picker")[0] && $(".date-picker").flatpickr({
+			enableTime: true,
+			nextArrow: '<i class="zmdi zmdi-long-arrow-right" />',
+			prevArrow: '<i class="zmdi zmdi-long-arrow-left" />'
+		});
+	}
+
+	function jsRemoverPedido(index) {
+
+		arrayPedidos.splice(index, 1);
+
+		jsMontaTabelaArrayPedidos();
+	}
+
+	function jsInfoPedido(codigoPedido) {
+		jsLoading(true);
+		openModalRoteirizacaoSimples(codigoPedido);
+	}
+
+	function jsMontaContentDistance() {
+		var listDistances = $('#listDistances');
+		listDistances.empty();
+
+		var content = "<ul class=\"list-group list-group-flush\">";
+
+		for (var i = 0; i < distances.length; i++) {
+			content += "<li class=\"list-group-item\">" + distances[i].start_address + " <> " + distances[i].end_address + " <> <strong>" + distances[i].distance.text + "</strong></li>";
+		}
+
+		content += "</ul>";
+
+		listDistances.append(content);
+	}
+
+	function jsOpenCloseContentDistance() {
+		var listDistances = $('#listDistances');
+
+		if ($('#listDistances').is(':visible')) {
+			$('#listDistances').hide();
+		} else {
+			$('#listDistances').show();
+		}
+	}
+
+	function jsOpenClosePoints() {
+		if ($('#listPoints').is(':visible')) {
+			$('#listPoints').hide();
+
+			if (pontoInicio != $('#txtPointStart').val() || pontoFinal != $('#txtPointEnd').val()) {
+				pontoInicio = $('#txtPointStart').val();
+				pontoFinal = $('#txtPointEnd').val();
+
+				calculateAndDisplayRoute(directionsService, directionsDisplay, arrayCidadesSelecionadas.concat(arrayCidadesDaRota));
+			}
+
+		} else {
+			$('#listPoints').show();
+		}
+	}
+
+	function jsPesquisar() {
+
+		jsLoading(true);
+
+		arrayCidades = [];
+		arrayCidadesSelecionadas = [];
+
+		var data = {
+			estado: $('#ddlEstadosFiltro').val(),
+			cidade: $('#ddlCidadesFiltro').val(),
+			meso: $('#ddlMesoFiltro').val(),
+			micro: $('#ddlMicroFiltro').val(),
+			produto: $('#ddlProdutosFiltro').val()
+		};
+
+		$.ajax({
+			type: "GET",
+			url: "/Roteirizacao/BuscarCidadesRota/",
+			data: data,
+			success: function (result) {
+				if (result.sucesso) {
+					arrayCidades = result.listaCidades;
+					if (arrayCidades.length > 0) {
+						jsMontaTabelaCidades();
+						jsMontaCidadesMapa();
+					} else {
+						jsLoading(false);
+						OpenAlert("Atenção!", "Não foi encontrado nenhum pedido para roteirizar!", "warning");
+					}
+
+				} else {
+					jsLoading(false);
+					OpenAlert("Atenção!", "Não foi encontrado nenhum pedido para roteirizar!", "warning");
+				}
+			}
+		});
+	}
+
+	function jsMontaTabelaCidades() {
+		var tbCidades = $('#tbCidades');
+
+		tbCidades.empty();
+
+		if (arrayCidades.length > 0) {
+
+			for (var i = 0; i < arrayCidades.length; i++) {
+				var ac = arrayCidades[i];
+
+				var tr = document.createElement('tr');
+
+				var td1 = document.createElement('td');
+				td1.innerHTML = ac.cidade.descricao + " - " + ac.cidade.estado;
+				tr.append(td1);
+
+				var td2 = document.createElement('td');
+				td2.innerHTML = ac.qtdePedidos;
+				td2.style = 'text-align: center;'
+				tr.append(td2);
+
+				var td3 = document.createElement('td');
+				td3.innerHTML = ac.valorTotalFormatado;
+				td3.style = 'text-align: center;'
+				tr.append(td3);
+
+				var td4 = document.createElement('td');
+				td4.innerHTML = "<a class='sun' onclick='jsSelecionarCidade(" + i + ", this)'><span class='zmdi zmdi-check'></span></a>";
+				tr.append(td4);
+
+				tbCidades.append(tr);
+			}
+
+			$('#divResult').show();
+		} else {
+			$('#divResult').hide();
+		}
+
+		jsLoading(false);
+
+	}
+
+	function jsSelecionarCidade(index, obj) {
+		var cidade = arrayCidades[index];
+
+		var indexOf = arrayCidadesSelecionadas.indexOf(cidade);
+
+		if (indexOf > -1) {
+			arrayCidadesSelecionadas.splice(indexOf, 1);
+			$($(obj).children()).addClass('zmdi-check');
+			$($(obj).children()).removeClass('zmdi-close');
+
+		} else {
+			arrayCidadesSelecionadas.push(cidade);
+			$($(obj).children()).removeClass('zmdi-check');
+			$($(obj).children()).addClass('zmdi-close');
+		}
+
+		calculateAndDisplayRoute(directionsService, directionsDisplay, arrayCidadesSelecionadas.concat(arrayCidadesDaRota));
+	}
+
+	function jsCriarRota()
+	{
+		jsLoading(true);
+
+		var data = {
+			codigoRota: null,
+			codigoInstrutor: $('#ddlInstrutorRota').val(),
+			observacao: $('#Observacao').val()
+		};
+
+		$.ajax({
+			type: "POST",
+			url: "/Roteirizacao/CriarAtualizarNovaRota/",
+			data: data,
+			success: function (result) {
+				if (result.sucesso) {
+					$('#txtCodigoRota').val(result.codigoRota);
+					$('#btnCriarRota').hide();
+					$('#btnAtualizarRota').show();
+					jsAbrePartial('Sucesso!', 'Rota criada com sucesso!', 'success');
+					jsLoading(false);
+				} else {
+					jsLoading(false);
+					OpenAlert("Atenção!", result.mensagemErro, "warning");
+				}
+			}
+		});
+	}
+
+	function jsAtualizarRota()
+	{
+		jsLoading(true);
+
+		var data = {
+			codigoRota: $('#txtCodigoRota').val(),
+			codigoInstrutor: $('#ddlInstrutorRota').val(),
+			observacao: $('#Observacao').val()
+		};
+
+		$.ajax({
+			type: "POST",
+			url: "/Roteirizacao/CriarAtualizarNovaRota/",
+			data: data,
+			success: function (result) {
+				if (result.sucesso) {
+					$('#txtCodigoRota').val(result.codigoRota);
+					jsAbrePartial('Sucesso!', 'Rota atualizada com sucesso!', 'success');
+					jsLoading(false);
+				} else {
+					jsLoading(false);
+					OpenAlert("Atenção!", result.mensagemErro, "warning");
+				}
+			}
+		});
+	}
+
+	function jsConfirmarPedido(codigoPedido, indice)
+	{
+		var txtCodigoRota = $('#txtCodigoRota');
+
+		if (txtCodigoRota.val() == "" && txtCodigoRota.val() == 0)
+		{ 
+			jsAbrePartial('Atenção!', 'Antes de prossegui é necessário criar a rota!', 'danger');
+			return false;
+		}
+
+		var pedido = arrayPedidos[indice];
+
+		//VALIDAR SE A DATA INFORMADA ESTÁ NO PERÍODO DA ROTA
+		var _dataInicioTreinamento = $('#dtpDataInicioTreinamento_' + codigoPedido).val().split('/');
+		var _dataFimTreinamento = $('#dtpDataFimTreinamento_' + codigoPedido).val().split('/');
+
+		var dataInicioTreinamento = new Date(_dataInicioTreinamento[1] + "/" + _dataInicioTreinamento[0] + "/" + _dataInicioTreinamento[2]);
+		var dataFimTreinamento = new Date(_dataFimTreinamento[1] + "/" + _dataFimTreinamento[0] + "/" + _dataFimTreinamento[2]);
+
+		if (dataInicioTreinamento > dataFimTreinamento) {
+			jsAbrePartial('Atenção!', 'A data de inicio não pode ser maior que a data final!', 'danger');
+			return false;
+		}
+
+		pedido.dataInicioTreinamento = dataInicioTreinamento;
+		pedido.dataFimTreinamento = dataFimTreinamento;
+
+		jsLoading(true);
+
+		var data = {
+			codigoRota: $('#txtCodigoRota').val(),
+			codigoPedido: pedido.codigo,
+			dataInicio: $('#dtpDataInicioTreinamento_' + codigoPedido).val(),
+			dataFim: $('#dtpDataFimTreinamento_' + codigoPedido).val()
+		};
+
+		$.ajax({
+			type: "POST",
+			url: "/Roteirizacao/InserirNovoItemRota/",
+			data: data,
+			success: function (result) {
+				if (result.sucesso) {
+					jsAbrePartial('Sucesso!', 'Pedido incluído na rota com sucesso!', 'success');
+					jsRemoverPedido(indice);
+					jsMontaTabelaPedidosRota();
+					jsLoading(false);
+				} else {
+					jsLoading(false);
+					OpenAlert("Atenção!", result.mensagemErro, "warning");
+				}
+			}
+		});
+	}
+
+	function jsRemoverPedidoRota(codigoPedido)
+	{
+		jsLoading(true);
+		var data = {
+			codigoRota: $('#txtCodigoRota').val(),
+			codigoPedido: codigoPedido
+		};
+
+		$.ajax({
+			type: "POST",
+			url: "/Roteirizacao/RemoverItemRota/",
+			data: data,
+			success: function (result) {
+				if (result.sucesso) {
+					jsAbrePartial('Sucesso!', 'Pedido removido da rota com sucesso!', 'success');
+					jsMontaTabelaPedidosRota();
+					jsLoading(false);
+				} else {
+					OpenAlert("Atenção!", result.mensagemErro, "warning");
+					jsLoading(false);
+				}
+			}
+		});
+	}
+
+	function jsMontaTabelaPedidosRota()
+	{
+		arrayPedidosDaRota = [];
+
+		var data = {
+			codigoRota: $('#txtCodigoRota').val()
+		};
+
+		$.ajax({
+			type: "GET",
+			url: "/Roteirizacao/BuscarItensRota/",
+			data: data,
+			success: function (result) {
+				if (result.sucesso) {
+					arrayPedidosDaRota = result.listaItens;
+					jsMontaTabelaPedidosRota2();
+					jsLoading(false);
+				} else {
+					jsLoading(false);
+					OpenAlert("Atenção!", result.mensagemErro, "warning");
+				}
+			}
+		});
+	}
+
+	function jsMontaTabelaPedidosRota2()
+	{ 
+		var tbPedidosRota = $('#tbPedidosRota');
+		tbPedidosRota.empty();
+
+		for (var i = 0; i < arrayPedidosDaRota.length; i++)
+		{
+			var ac = arrayPedidosDaRota[i];
+
+			var obj = {
+				cidade: {
+					descricao: ac.cabecalhoPedido.cliente.cidade.descricao,
+					estado: ac.cabecalhoPedido.cliente.cidade.estado
+				}
+			}
+
+			if (arrayCidadesDaRota.indexOf(obj) == -1)
+			{ 
+				arrayCidadesDaRota.push(obj);
+			}
+
+			var tr = document.createElement('tr');
+
+			var td1 = document.createElement('td');
+			if (!ac.aprovado) { 
+				td1.innerHTML = '<span class="zmdi zmdi-delete"></span>';
+				td1.dataset.id = ac.cabecalhoPedido.codigo;
+				td1.onclick = function () {
+					jsRemoverPedidoRota($(this).data('id'));
+				}
+			}
+			tr.append(td1);
+
+			var td2 = document.createElement('td');
+			td2.innerHTML = ac.cabecalhoPedido.codigo;
+			tr.append(td2);
+
+			var td3 = document.createElement('td');
+			td3.innerHTML = ac.cabecalhoPedido.cliente.razaoSocial;
+			tr.append(td3);
+
+			var td4 = document.createElement('td');
+			td4.innerHTML = ac.cabecalhoPedido.cliente.cnpj;
+			tr.append(td4);
+
+			var td5 = document.createElement('td');
+			td5.innerHTML = ac.cabecalhoPedido.cliente.cidade.descricao + " - " + ac.cabecalhoPedido.cliente.cidade.estado;
+			tr.append(td5);
+
+			var td6 = document.createElement('td');
+			td6.innerHTML = ac.dataInicioFormatada;
+			tr.append(td6);
+
+			var td7 = document.createElement('td');
+			td7.innerHTML = ac.dataFimFormatada;
+			tr.append(td7);
+
+			var td8 = document.createElement('td');
+			td8.innerHTML = ac.cabecalhoPedido.valorTotalFormatado;
+			tr.append(td8);
+
+			var td9 = document.createElement('td');
+			if (ac.aprovado) {
+				td9.innerHTML = "Confirmado";
+			} else {
+				td9.innerHTML = '<select class="select2 chk_' + ac.cabecalhoPedido.codigo + '" onchange="jsConfirmarPedidoRota(this, ' + i + ')">' +
+					'<option value="S">confirmado</option>' +
+					'<option value="N" selected>Não confirmado</option>' +
+					'</select > ';
+			}
+			
+			tr.append(td9);
+
+			tbPedidosRota.append(tr);
+		}
+
+		calculateAndDisplayRoute2(directionsService, directionsDisplay, arrayCidadesDaRota);
+
+		return true;
+
+	}
+
+	function jsConfirmarPedidoRota(obj, indice) {
+		var pedido = arrayPedidosDaRota[indice];
+
+		if ($(obj).val() == "S") {
+			openModalConfirmarPedidoRota(pedido.cabecalhoPedido.cliente.codigo, pedido.cabecalhoPedido.codigo, pedido.cabecalhoPedido.cliente.cidade.codigo, $('#ddlInstrutorRota').val(), new Date(pedido.dataInicio), new Date(pedido.dataFim), $('#txtCodigoRota').val());
+			$('.chk_' + pedido.cabecalhoPedido.codigo).each(function () {
+				$(this).val('N');
+			});
+		}
+	}
+
+	function jsMontaCidadesMapa() { 
+
+		for (var i = 0; i < arrayCidades.length; i++) { 
+
+			var ac = arrayCidades[i];
+
+			var myLatLng = { lat: parseFloat(ac.cidade.latitude), lng: parseFloat(ac.cidade.longitude) };
+
+			var marker = new google.maps.Marker({
+				map: map,
+				position: myLatLng,
+				label: "" + ac.qtdePedidos,
+				icon: '/images/Markers/marker.png'
+			});
+
+			// Allow each marker to have an info window
+			google.maps.event.addListener(marker, 'click', (function (marker, i) {
+				return function () {
+					infoWindow.setContent(jsBoxDetails(i));
+					infoWindow.open(map, marker);
+				}
+			})(marker, i));
+		}
+
+		directionsDisplay.setMap(map);
+	}
+
+	function jsBoxDetails(id) {
+
+		var str = "<div class='info-content'><h5>" + arrayCidades[id].cidade.descricao + "<h5><h6>Quantidade: " + arrayCidades[id].qtdePedidos + "</h6></div>";
+
+		return str;
+	}
+
+</script>

@@ -1,0 +1,338 @@
+﻿@model CODE.Ambiente
+
+<section id="main-content">
+	<section class="content">
+		<div class="panel">
+			<header class="panel-heading">
+				<h4>@Html.Raw(Model == null ? "NOVO AMBIENTE": "EDITAR AMBIENTE")</h4>
+				<div class="top-nav">
+					<button id="btnVoltar" class="btn btn-primary" onclick="jsVoltar();"><span aria-hidden="true" class="zmdi zmdi-arrow-left"></span> &nbsp; VOLTAR</button>
+					@if (Model == null)
+					{
+						<button id="btnLimpar" class="btn btn-primary" onclick="jsLimpar();"><span aria-hidden="true" class="zmdi zmdi-close"></span> &nbsp; LIMPAR</button>
+					}
+					<button id="btnSalvar" class="btn btn-primary" onclick="jsSalvar();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; SALVAR</button>
+				</div>
+			</header>
+			<div class="panel-body">
+				@using (Html.BeginForm("Salvar", "Ambiente", FormMethod.Post, new { @name = "formNovo", @id = "formNovo" }))
+				{
+					@Html.HiddenFor(x => Model.Codigo, new { @class = "form-control" })
+					<div class="row">
+						<div class="form-group form-group--float col-sm-6">
+							@Html.TextBoxFor(x => Model.Descricao, new { @class = "form-control noBlank" })
+							<label>Descrição</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-6">
+							@Html.TextBoxFor(x => Model.NomeArqModelo, new { @class = "form-control noBlank" })
+							<label>Nome Arq. Modelo</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="form-group form-group--float col-sm-6">
+							@Html.TextBoxFor(x => Model.Cargos, new { @class = "form-control noBlank" })
+							<label>Cargos</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-6">
+							@Html.TextBoxFor(x => Model.DescricaoAtividade, new { @class = "form-control noBlank" })
+							<label>Descrição Cargo</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group form-group--float col-sm-6">
+							@Html.TextBoxFor(x => Model.RiscosErgonomicos, new { @class = "form-control noBlank" })
+							<label>Riscos Ergonômicos</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-6">
+							@Html.TextBoxFor(x => Model.RiscosAcidentes, new { @class = "form-control noBlank" })
+							<label>Riscos Acidentais</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<br />
+					<!--QUIMÍCOS-->
+					<div class="panel">
+						<header class="panel-heading">
+							<h5>QUÍMICOS</h5>
+						</header>
+						<div class="panel-body">
+							<div class="row">
+								<div class="form-group form-group--float col-sm-6">
+									@Html.TextBoxFor(x => Model.AgentesQuimicos, new { @class = "form-control noBlank" })
+									<label>Agentes</label>
+									<i class="form-group__bar"></i>
+								</div>
+								<div class="form-group form-group--float col-sm-6">
+									@Html.TextBoxFor(x => Model.ExposicaoQuimicos, new { @class = "form-control noBlank" })
+									<label>Exposição</label>
+									<i class="form-group__bar"></i>
+								</div>
+							</div>
+							<div class="row">
+								<div class="form-group form-group--float col-sm-6">
+									@Html.TextBoxFor(x => Model.FonteQuimicos, new { @class = "form-control noBlank" })
+									<label>Fonte</label>
+									<i class="form-group__bar"></i>
+								</div>
+								<div class="form-group form-group--float col-sm-6">
+									@Html.TextBoxFor(x => Model.PropagacaoQuimicos, new { @class = "form-control noBlank" })
+									<label>Propagação</label>
+									<i class="form-group__bar"></i>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!--FISÍCOS-->
+					<div class="panel">
+						<header class="panel-heading">
+							<h5>FISÍCOS</h5>
+						</header>
+						<div class="panel-body">
+							<div class="row">
+								<div class="form-group form-group--float col-sm-6">
+									@Html.TextBoxFor(x => Model.AgentesFisicos, new { @class = "form-control noBlank" })
+									<label>Agentes</label>
+									<i class="form-group__bar"></i>
+								</div>
+								<div class="form-group form-group--float col-sm-6">
+									@Html.TextBoxFor(x => Model.ExposicaoFisicos, new { @class = "form-control noBlank" })
+									<label>Exposição</label>
+									<i class="form-group__bar"></i>
+								</div>
+							</div>
+							<div class="row">
+								<div class="form-group form-group--float col-sm-6">
+									@Html.TextBoxFor(x => Model.FonteFisicos, new { @class = "form-control noBlank" })
+									<label>Fonte</label>
+									<i class="form-group__bar"></i>
+								</div>
+								<div class="form-group form-group--float col-sm-6">
+									@Html.TextBoxFor(x => Model.PropagacaoFisicos, new { @class = "form-control noBlank" })
+									<label>Propagação</label>
+									<i class="form-group__bar"></i>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!--BIOLÓGICOS-->
+					<div class="panel">
+						<header class="panel-heading">
+							<h5>BIOLÓGICOS</h5>
+						</header>
+						<div class="panel-body">
+							<div class="row">
+								<div class="form-group form-group--float col-sm-6">
+									@Html.TextBoxFor(x => Model.AgentesBiologicos, new { @class = "form-control noBlank" })
+									<label>Agentes</label>
+									<i class="form-group__bar"></i>
+								</div>
+								<div class="form-group form-group--float col-sm-6">
+									@Html.TextBoxFor(x => Model.ExposicaoBiologicos, new { @class = "form-control noBlank" })
+									<label>Exposição</label>
+									<i class="form-group__bar"></i>
+								</div>
+							</div>
+							<div class="row">
+								<div class="form-group form-group--float col-sm-6">
+									@Html.TextBoxFor(x => Model.FonteBiologicos, new { @class = "form-control noBlank" })
+									<label>Fonte</label>
+									<i class="form-group__bar"></i>
+								</div>
+								<div class="form-group form-group--float col-sm-6">
+									@Html.TextBoxFor(x => Model.PropagacaoBiologicos, new { @class = "form-control noBlank" })
+									<label>Propagação</label>
+									<i class="form-group__bar"></i>
+								</div>
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	var tela;
+
+	$(document).ready(function () {
+
+		if (!tela) {
+			jsCarregarCampos();
+		}
+		var me = tela;
+
+	});
+
+	function jsCarregarCampos() {
+
+		tela = {
+			Descricao: $('#Descricao'),
+			NomeArqModelo: $('#NomeArqModelo'),
+			DescricaoAtividade: $('#DescricaoAtividade'),
+			AgentesQuimicos: $('#AgentesQuimicos'),
+			ExposicaoQuimicos: $('#ExposicaoQuimicos'),
+			FonteQuimicos: $('#FonteQuimicos'),
+			PropagacaoQuimicos: $('#PropagacaoQuimicos'),
+			AgentesFisicos: $('#AgentesFisicos'),
+			ExposicaoFisicos: $('#ExposicaoFisicos'),
+			FonteFisicos: $('#FonteFisicos'),
+			PropagacaoFisicos: $('#PropagacaoFisicos'),
+			AgentesBiologicos: $('#AgentesBiologicos'),
+			ExposicaoBiologicos: $('#ExposicaoBiologicos'),
+			FonteBiologicos: $('#FonteBiologicos'),
+			PropagacaoBiologicos: $('#PropagacaoBiologicos'),
+			RiscosErgonomicos: $('#RiscosErgonomicos'),
+			RiscosAcidentes: $('#RiscosAcidentes'),
+			Cargos: $('#Cargos')
+		}
+	}
+
+	function jsVoltar() {
+		window.location.assign("@Url.Action("List", "Ambiente")");
+	}
+
+	function jsLimpar() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		me.Descricao.val('');
+		me.NomeArqModelo.val('');
+		me.DescricaoAtividade.val('');
+		me.AgentesQuimicos.val('');
+		me.ExposicaoQuimicos.val('');
+		me.FonteQuimicos.val('');
+		me.PropagacaoQuimicos.val('');
+		me.AgentesFisicos.val('');
+		me.ExposicaoFisicos.val('');
+		me.FonteFisicos.val('');
+		me.PropagacaoFisicos.val('');
+		me.AgentesBiologicos.val('');
+		me.ExposicaoBiologicos.val('');
+		me.FonteBiologicos.val('');
+		me.PropagacaoBiologicos.val('');
+		me.RiscosErgonomicos.val('');
+		me.RiscosAcidentes.val('');
+		me.Cargos.val('');
+
+		jsRemoverFocus(me.Descricao);
+		jsRemoverFocus(me.NomeArqModelo);
+		jsRemoverFocus(me.DescricaoAtividade);
+		jsRemoverFocus(me.AgentesQuimicos);
+		jsRemoverFocus(me.ExposicaoQuimicos);
+		jsRemoverFocus(me.FonteQuimicos);
+		jsRemoverFocus(me.PropagacaoQuimicos);
+		jsRemoverFocus(me.AgentesFisicos);
+		jsRemoverFocus(me.ExposicaoFisicos);
+		jsRemoverFocus(me.FonteFisicos);
+		jsRemoverFocus(me.PropagacaoFisicos);
+		jsRemoverFocus(me.AgentesBiologicos);
+		jsRemoverFocus(me.ExposicaoBiologicos);
+		jsRemoverFocus(me.FonteBiologicos);
+		jsRemoverFocus(me.PropagacaoBiologicos);
+		jsRemoverFocus(me.RiscosErgonomicos);
+		jsRemoverFocus(me.RiscosAcidentes);
+		jsRemoverFocus(me.Cargos);
+
+	}
+
+	function jsSalvar() {
+
+		jsLoading(true);
+
+		if (!jsValidaCampos()) {
+			jsLoading(false);
+			return false;
+		}
+		document.getElementById('formNovo').submit();
+	}
+
+	function jsValidaCampos() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		if (me.Descricao.val() == "") {
+			OpenAlert("Atenção!", "Informe a descrição do ambiente!", "danger");
+			me.Descricao.focus();
+			return false;
+		} else if (me.NomeArqModelo.val() == "") {
+			OpenAlert("Atenção!", "Informe o nome do arquivo modelo!", "danger");
+			me.NomeArqModelo.focus();
+			return false;
+		} else if (me.Cargos.val() == "") {
+			OpenAlert("Atenção!", "Informe os dados solicitados!", "danger");
+			me.Cargos.focus();
+			return false;
+		} else if (me.DescricaoAtividade.val() == "") {
+			OpenAlert("Atenção!", "Informe a descrição da atividade!", "danger");
+			me.DescricaoAtividade.focus();
+			return false;
+		} else if (me.RiscosErgonomicos.val() == "") {
+			OpenAlert("Atenção!", "Informe os dados solicitados!", "danger");
+			me.RiscosErgonomicos.focus();
+			return false;
+		} else if (me.RiscosAcidentes.val() == "") {
+			OpenAlert("Atenção!", "Informe os dados solicitados!", "danger");
+			me.RiscosAcidentes.focus();
+			return false;
+		} else if (me.AgentesQuimicos.val() == "") {
+			OpenAlert("Atenção!", "Informe os dados solicitados!", "danger");
+			me.AgentesQuimicos.focus();
+			return false;
+		} else if (me.ExposicaoQuimicos.val() == "") {
+			OpenAlert("Atenção!", "Informe os dados solicitados!", "danger");
+			me.ExposicaoQuimicos.focus();
+			return false;
+		} else if (me.FonteQuimicos.val() == "") {
+			OpenAlert("Atenção!", "Informe os dados solicitados!", "danger");
+			me.FonteQuimicos.focus();
+			return false;
+		} else if (me.PropagacaoQuimicos.val() == "") {
+			OpenAlert("Atenção!", "Informe os dados solicitados!", "danger");
+			me.PropagacaoQuimicos.focus();
+			return false;
+		} else if (me.AgentesFisicos.val() == "") {
+			OpenAlert("Atenção!", "Informe os dados solicitados!", "danger");
+			me.AgentesFisicos.focus();
+			return false;
+		} else if (me.ExposicaoFisicos.val() == "") {
+			OpenAlert("Atenção!", "Informe os dados solicitados!", "danger");
+			me.ExposicaoFisicos.focus();
+			return false;
+		} else if (me.FonteFisicos.val() == "") {
+			OpenAlert("Atenção!", "Informe os dados solicitados!", "danger");
+			me.FonteFisicos.focus();
+			return false;
+		} else if (me.PropagacaoFisicos.val() == "") {
+			OpenAlert("Atenção!", "Informe os dados solicitados!", "danger");
+			me.PropagacaoFisicos.focus();
+			return false;
+		} else if (me.AgentesBiologicos.val() == "") {
+			OpenAlert("Atenção!", "Informe os dados solicitados!", "danger");
+			me.AgentesBiologicos.focus();
+			return false;
+		} else if (me.ExposicaoBiologicos.val() == "") {
+			OpenAlert("Atenção!", "Informe os dados solicitados!", "danger");
+			me.ExposicaoBiologicos.focus();
+			return false;
+		} else if (me.FonteBiologicos.val() == "") {
+			OpenAlert("Atenção!", "Informe os dados solicitados!", "danger");
+			me.FonteBiologicos.focus();
+			return false;
+		} else if (me.PropagacaoBiologicos.val() == "") {
+			OpenAlert("Atenção!", "Informe os dados solicitados!", "danger");
+			me.PropagacaoBiologicos.focus();
+			return false;
+		}
+		return true;
+	}
+</script>

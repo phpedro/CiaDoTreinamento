@@ -1,0 +1,216 @@
+﻿@model CODE.Cliente
+
+<div class="panel" id="divPartialTelefonesClienteNew">
+	<input type="hidden" id="paginaCarregadaTelefones" value="false" />
+	<header class="panel-heading">
+		<h4 id="headerTelefone">NOVO TELEFONE</h4>
+		<div class="top-nav">
+			<a id="btnAdicionarTelefone" class="btn btn-primary" onclick="return jsAdicionarTelefone();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; ADICIONAR</a>
+		</div>
+	</header>
+	<div class="panel-body">
+		<input type="hidden" id="hfCodigoTelefone" />
+		<div class="row">
+			<div class="form-group form-group--float col-sm-6">
+				<input type="text" id="txtTelefone" class="form-control maskPhone" />
+				<label class="required">Telefone</label>
+				<i class="form-group__bar"></i>
+			</div>
+			<div class="form-group form-group--float col-sm-6">
+				<input type="text" id="txtResponsavelTelefone" class="form-control" />
+				<label class="required">Responsável</label>
+				<i class="form-group__bar"></i>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="panel" id="divPartialTelefonesResult">
+	<input type="hidden" id="hfListaTelefones" name="hfListaTelefones" />
+	<header class="panel-heading">
+		<h4>LISTA DE TELEFONES</h4>
+	</header>
+	<div class="panel-body">
+		<table id="tbResultadoTelefones" class="table table-hover table-striped table-bordered">
+			<thead class="thead-default">
+				<tr>
+					<th class="center">AÇÕES</th>
+					<th class="center">TELEFONE</th>
+					<th class="center">RESPONSÁVEL</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	var arrayTelefones = [];
+	var indice = 1;
+
+	function openPartialTelefones() {
+		if ($('#paginaCarregadaTelefones').val() == 'false') {
+			var data = {
+				codigoCliente: @(Model == null ? "-1" : Model.Codigo.ToString())
+			}
+			$.ajax({
+				type: "GET",
+				url: "/Cliente/GetTelefones/",
+				data: data,
+				async: true,
+				success: function (result) {
+					if (result) {
+						if (result != "") {
+							arrayTelefones = result;
+							MontarTabelaTelefones();
+							$('#paginaCarregadaTelefones').val('true');
+						}
+					}
+				}
+			});
+		}
+	}
+
+    function jsEditarTelefone(indiceTelefone) {
+
+        var telefone = arrayTelefones[indiceTelefone];
+
+        $('#headerTelefone').html('EDITAR TELEFONE');
+
+		$('#hfCodigoTelefone').val(telefone.codigo);
+		$('#txtTelefone').val(telefone.descricao).change();
+		$('#txtResponsavelTelefone').val(telefone.observacao).change();
+
+    }
+
+	function jsAdicionarTelefone() {
+
+        if (jsValidarCamposTelefone()) {
+
+            if ($('#hfCodigoTelefone').val() != '') {
+
+                var indice = -1;
+                for (var i = 0; i < arrayTelefones.length; i++) {
+                    if (arrayTelefones[i].codigo == $('#hfCodigoTelefone').val()) {
+                        indice = i;
+                        break;
+                    }
+                }
+
+				arrayTelefones[indice].codigo = $('#hfCodigoTelefone').val();
+				arrayTelefones[indice].descricao = $('#txtTelefone').val();
+				arrayTelefones[indice].observacao = $('#txtResponsavelTelefone').val();
+				if (arrayTelefones[indice].tipo != 1) {
+					arrayTelefones[indice].tipo = 2;
+                }
+
+                OpenAlert("Sucesso!", "Alteração realizada com sucesso!", "success");
+
+            } else {
+
+                var telefone = {
+                    codigo: "",
+                    descricao: $('#txtTelefone').val(),
+                    observacao: $('#txtResponsavelTelefone').val(),
+                    tipo: 1
+                };
+
+                arrayTelefones.push(telefone);
+
+                OpenAlert("Sucesso!", "Inclusão realizada com sucesso!", "success");
+
+            }
+
+            MontarTabelaTelefones();
+            jsLimparCamposTelefone();
+
+        }
+
+        return false;
+
+    }
+
+    function jsValidarCamposTelefone() {
+
+        if ($('#txtTelefone').val() == "") {
+			OpenAlert("Atenção!", "Informe o telefone!", "danger");
+			$('#txtTelefone').focus();
+            return false;
+        } else if ($('#txtResponsavelTelefone').val() == "") {
+			OpenAlert("Atenção!", "Informe o responsável pelo telefone!", "danger");
+			$('#txtResponsavelTelefone').focus();
+            return false;
+        }
+
+        return true;
+
+    }
+
+    function jsLimparCamposTelefone() {
+
+        $('#headerTelefone').html('NOVO TELEFONE');
+
+        $('#hfCodigoTelefone').val('');
+        $('#txtTelefone').val('');
+        $('#txtResponsavelTelefone').val('');
+
+        return false;
+
+    }
+
+	function MontarTabelaTelefones() {
+
+		$('#hfListaTelefones').val(JSON.stringify(arrayTelefones));
+
+        var tabelaObjeto = document.getElementById('tbResultadoTelefones');
+        removeAllChilds(tabelaObjeto);
+
+        if (tabelaObjeto.tHead == null) {
+            var listaColunas = ["AÇÕES", "DESCRIÇÃO", "RESPONSÁVEL"];
+            jsAdicionarCabecalhoTabela(tabelaObjeto, listaColunas, 'center');
+        }
+
+        var tbody = jsAdicionarCorpoTabela(tabelaObjeto);
+
+        for (i = 0; i < arrayTelefones.length; i++) {
+
+            var tr = document.createElement('tr');
+            var td1 = document.createElement('td');
+            var td2 = document.createElement('td');
+            var td3 = document.createElement('td');
+
+            td1.setAttribute("class", "center");
+            td2.setAttribute("class", "center");
+            td3.setAttribute("class", "center");
+
+            td1.innerHTML = '<a href="#" title="Editar" onclick="jsEditarTelefone(' + i + ');"><span aria-hidden="true" class="zmdi zmdi-edit"></span></a>';
+            td2.innerHTML = arrayTelefones[i].descricao;
+            td3.innerHTML = arrayTelefones[i].observacao;
+
+            var listaColunas = [td1, td2, td3];
+
+            jsAdicionarLinhaTabela(listaColunas, tr);
+
+            tbody.appendChild(tr);
+        }
+	}
+
+	function addTelefoneCode(telefone) {
+
+		var telefone = {
+			codigo: indice,
+			descricao: telefone,
+			observacao: "SEM RESPONSÁVEL",
+			tipo: 1
+		};
+
+		arrayTelefones.push(telefone);
+
+		indice = indice + 1;
+
+		MontarTabelaTelefones();
+
+		return false;
+	}
+
+</script>

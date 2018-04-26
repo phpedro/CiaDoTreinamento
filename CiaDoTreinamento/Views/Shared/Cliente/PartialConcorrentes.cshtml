@@ -1,0 +1,208 @@
+﻿@model CODE.Cliente
+
+@{
+	string mensagemErro;
+	CODE.ConcorrenteBLL concorrenteBLL = new CODE.ConcorrenteBLL();
+	List<CODE.Concorrente> Concorrentes = concorrenteBLL.getConcorrentes(null, null, out mensagemErro);
+	List<SelectListItem> listaConcorrentes = new List<SelectListItem>();
+	foreach (CODE.Concorrente item in Concorrentes)
+	{
+		listaConcorrentes.Add(new SelectListItem()
+		{
+			Text = item.RazaoSocial,
+			Value = item.Codigo.ToString()
+		});
+	}
+}
+
+<div class="panel" id="divPartialConcorrentesNew">
+	<input type="hidden" id="paginaCarregadaConcorrente" value="false" />
+	<header class="panel-heading">
+		<h4 id="headerAluno">NOVO CONCORRENTE</h4>
+		<div class="top-nav">
+			<a id="btnAdicionarConcorrente" class="btn btn-primary" onclick="return jsAdicionarConcorrente();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; ADICIONAR CONCORRENTE</a>
+		</div>
+	</header>
+	<div class="panel-body">
+		<div class="row">
+			<div class="form-group col-sm-4">
+				<label class="required">Concorrente</label>
+				@Html.DropDownList("ddlConcorrentes", listaConcorrentes, "Selecione...", new { @class = "select2" })
+				<i class="form-group__bar"></i>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="panel" id="divPartialConcorrenteResult">
+	<header class="panel-heading">
+		<h4>LISTA DE CONCORRENTES</h4>
+	</header>
+	<div class="panel-body">
+		<input type="hidden" id="hfListaConcorrentes" name="hfListaConcorrentes" />
+		<table id="tbResultadoConcorrentes" class="table table-hover">
+			<thead class="thead-default">
+				<tr>
+					<th class="center">AÇÕES</th>
+					<th class="center">RAZÃO SOCIAL</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	var arrayConcorrentes = [];
+
+	function openPartialConcorrente() {
+		if ($('#paginaCarregadaConcorrente').val() == 'false') {
+			var data = {
+				codigoCliente: @(Model == null ? "-1" : Model.Codigo.ToString())
+			};
+			$.ajax({
+				type: "GET",
+				url: "/Cliente/GetConcorrentes/",
+				data: data,
+				async: true,
+				success: function (result) {
+					if (result) {
+						if (result != "") {
+							arrayConcorrentes = result;
+							MontarTabelaConcorrentes();
+							$('#paginaCarregadaConcorrente').val('true');
+						}
+					}
+				}
+			});
+		}
+	}
+
+    function MontarTabelaConcorrentes() {
+
+        var tabelaObjeto = document.getElementById('tbResultadoConcorrentes');
+        removeAllChilds(tabelaObjeto);
+
+        if (tabelaObjeto.tHead == null) {
+            var listaColunas = ["AÇÕES", "RAZÃO SOCIAL"];
+            jsAdicionarCabecalhoTabela(tabelaObjeto, listaColunas, 'center');
+        }
+
+        var tbody = jsAdicionarCorpoTabela(tabelaObjeto);
+
+        for (i = 0; i < arrayConcorrentes.length; i++) {
+
+            var tr = document.createElement('tr');
+            var td1 = document.createElement('td');
+            var td2 = document.createElement('td');
+
+            td1.setAttribute("class", "center");
+            td2.setAttribute("class", "center");
+
+            td1.innerHTML = '<a href="#" title="Excluir" onclick="jsRemoverConcorrente(' + i + ');"><span aria-hidden="true" class="zmdi zmdi-delete"></span></a>';
+            td2.innerHTML = arrayConcorrentes[i].concorrente.razaoSocial;
+
+            var listaColunas = [td1, td2];
+
+            jsAdicionarLinhaTabela(listaColunas, tr);
+
+            tbody.appendChild(tr);
+        }
+    }
+
+	function jsAdicionarConcorrente() {
+
+        if (jsValidarCamposConcorrente()) {
+
+            var _concorrente = {
+                codigo: "",
+                codigoCliente: @(Model == null ? "-1" : Model.Codigo.ToString()),
+				concorrente: { codigo: $('#ddlConcorrentes option:selected').val(), razaoSocial: $('#ddlConcorrentes option:selected').text() },
+				tipo: 1
+			};
+
+			arrayConcorrentes.push(_concorrente);
+
+			OpenAlert("Sucesso!", "Inclusão realizada com sucesso!", "success");
+
+			$('#hfListaConcorrentes').val(JSON.stringify(arrayConcorrentes));
+
+			MontarTabelaConcorrentes();
+
+			$('#ddlConcorrentes').val('');
+			$('#ddlConcorrentes').trigger('change');
+
+		}
+
+		return false;
+
+	}
+
+	function jsValidarCamposConcorrente() {
+
+		var codigo = $('#ddlConcorrentes  option:selected').val();
+
+		if (codigo == "") {
+			OpenAlert("Atenção!", "Informe o concorrente!", "danger");
+			return false;
+		}
+
+		for (var i = 0; i < arrayConcorrentes.length; i++) {
+
+			if (codigo == arrayConcorrentes[i].concorrente.codigo) {
+				OpenAlert("Atenção!", "A relação com a empresa já foi cadastrada!", "danger");
+				return false;
+
+			}
+
+		}
+
+		return true;
+
+	}
+
+	function jsRemoverConcorrente(i) {
+
+		var concorrente = arrayConcorrentes[i];
+
+		if (concorrente.codigo == "") {
+
+			arrayConcorrentes.splice(i, 1);
+
+			$('#hfListaConcorrentes').val(JSON.stringify(arrayConcorrentes));
+
+			MontarTabelaConcorrentes();
+
+		} else {
+
+			jsLoading(true);
+
+			var data = {
+				codigo: concorrente.codigo
+			}
+			$.ajax({
+				type: "POST",
+				url: "/Cliente/DeleteRelacaoConcorrente/",
+				data: data,
+				async: false,
+				success: function (result) {
+					if (result.sucesso) {
+						arrayConcorrentes.splice(i, 1);
+
+						$('#hfListaConcorrentes').val(JSON.stringify(arrayConcorrentes));
+
+						MontarTabelaConcorrentes();
+
+						jsLoading(false);
+
+						OpenAlert("Sucesso!", result.mensagem, "success");
+					} else {
+						OpenAlert("Atenção!", result.mensagem, "danger");
+						jsLoading(false);
+					}
+				}
+			});
+		}
+	}
+
+</script>

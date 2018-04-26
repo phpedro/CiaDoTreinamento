@@ -1,0 +1,151 @@
+﻿@model List<CODE.RegistroCorreio>
+
+<section id="main-content">
+	<section class="content">
+		<!--FILTROS-->
+		<div class="panel">
+			<header class="panel-heading">
+				<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseFiltros" aria-expanded="true">RELATÓRIO DE ENVIO CORREIO</h4>
+				<div class="top-nav">
+					<button id="btnNovo" class="btn btn-primary" onclick="jsNovo();"><span aria-hidden="true" class="zmdi zmdi-file-plus"></span> &nbsp; NOVO</button>
+					<button id="btnPesquisar" class="btn btn-primary" onclick="jsPesquisar();"><span aria-hidden="true" class="zmdi zmdi-search"></span> &nbsp; PESQUISAR</button>
+				</div>
+			</header>
+			<div id="divCollapseFiltros" class="panel-collapse collapse show">
+				<div class="panel-body">
+					<form action="@Url.Action("Consultar","RelatorioCorreio")" method="post" id="formSearch">
+						<div class="row">
+							<div class="form-group form-group--float col-sm-4">
+								<input type="text" id="txtCnpjFiltro" name="txtCnpjFiltro" class="form-control maskCNPJ" />
+								<label>CNPJ</label>
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group form-group--float col-sm-4">
+								<input type="text" id="txtRazaoSocialFiltro" name="txtRazaoSocialFiltro" class="form-control" />
+								<label>Razão Social</label>
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group form-group--float col-sm-4">
+								<input type="text" id="txtCodigoClienteFiltro" name="txtCodigoClienteFiltro" class="form-control" />
+								<label>Código Cliente</label>
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+						<div class="row">
+							<div class="form-group form-group--float col-sm-4">
+								<input type="text" id="txtCpfFiltro" name="txtCpfFiltro" class="form-control maskCPF" />
+								<label>CPF</label>
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group form-group--float col-sm-4">
+								<input type="text" id="txtNomeClienteFiltro" name="txtNomeClienteFiltro" class="form-control" />
+								<label>Nome Cliente</label>
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group form-group--float col-sm-4">
+								<input type="text" id="txtCodigoPedidoFiltro" name="txtCodigoPedidoFiltro" class="form-control" />
+								<label>Código Pedido</label>
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-4">
+								<label>Data Inicial</label>
+								<div class="input-group">
+									<span class="input-group-addon"><i class="zmdi zmdi-calendar"></i></span>
+									<div class="form-group">
+										<input type="text" id="dtpDataInicialFiltro" name="dtpDataInicialFiltro" class="form-control date-picker">
+										<i class="form-group__bar"></i>
+									</div>
+								</div>
+							</div>
+							<div class="col-sm-4">
+								<label>Data Final</label>
+								<div class="input-group">
+									<span class="input-group-addon"><i class="zmdi zmdi-calendar"></i></span>
+									<div class="form-group">
+										<input type="text" id="dtpDataFinalFiltro" name="dtpDataFinalFiltro" class="form-control date-picker">
+										<i class="form-group__bar"></i>
+									</div>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<br />
+		<!--RESULTADO-->
+		<div class="panel">
+			<header class="panel-heading">
+				<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseResultado" aria-expanded="true">RESULTADO</h4>
+			</header>
+			<div id="divCollapseResultado" class="panel-collapse collapse show">
+				<div class="panel-body">
+					<div class="table-responsive" style="overflow-x:unset">
+						<table id="data-table" class="table table-striped table-bordered table-hover">
+							<thead class="thead-default">
+								<tr>
+									<th class="center">CNPJ</th>
+									<th class="center">Razão Social</th>
+									<th class="center">Código Pedido</th>
+									<th class="center">Código de rastreamento</th>
+									<th class="center">Correio</th>
+									<th class="center">Data Envio</th>
+									<th class="center">Observações</th>
+									<th class="center" style="width:70px;">Ações</th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach (CODE.RegistroCorreio item in Model)
+								{
+									<tr>
+										<td class="center">@item.cliente.CNPJ</td>
+										<td class="center">@item.cliente.RazaoSocial</td>
+										<td class="center">@item.CodigoPedido</td>
+										<td class="center">@item.CodigoPostagem</td>
+										<td class="center">@item.Descricao </td>
+										<td class="center">@item.dataPostagem.ToShortDateString()</td>
+										<td class="center">@item.Comentario</td>
+										<td class="center">
+											<a href="#" title="Editar" onclick="jsEditar(@Html.Raw(item.Codigo))"><span aria-hidden="true" class="zmdi zmdi-border-color"></span></a>
+											&nbsp;
+											<a href="#" title="Excluir" onclick="jsExcluir(@Html.Raw(item.Codigo))"><span aria-hidden="true" class="zmdi zmdi-delete"></span></a>
+											&nbsp;
+											<a href="#" title="Rastrear" onclick="jsRastrear()"><span aria-hidden="true" class="zmdi zmdi-truck"></span></a>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	function jsPesquisar() {
+		jsLoading(true);
+		document.getElementById('formSearch').submit();
+	}
+
+	function jsNovo() {
+		window.location.assign("@Url.Action("Edit", "RelatorioCorreio")");
+	}
+
+	function jsEditar(codigoRegistro) {
+		window.location.assign("@Url.Action("Edit", "RelatorioCorreio")?codigoRegistro=" + codigoRegistro);
+	}
+
+	function jsExcluir(codigoRegistro) {
+		window.location.assign("@Url.Action("Delete", "RelatorioCorreio")?codigoRegistro=" + codigoRegistro);
+	}
+
+	function jsRastrear() {
+		window.open('http://www2.correios.com.br/sistemas/rastreamento/', '_blank');
+	}
+
+</script>

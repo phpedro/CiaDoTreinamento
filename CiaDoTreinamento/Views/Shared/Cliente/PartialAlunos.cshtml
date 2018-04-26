@@ -1,0 +1,295 @@
+﻿@model CODE.Cliente
+
+<div class="panel" id="divPartialAlunoNew">
+	<input type="hidden" id="paginaCarregadaAlunos" value="false" />
+	<header class="panel-heading">
+		<h4 id="headerAluno">NOVO ALUNO</h4>
+		<div class="top-nav">
+			<a id="btnAdicionarAluno" class="btn btn-primary" onclick="return jsAdicionarAluno();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; ADICIONAR ALUNO</a>
+		</div>
+	</header>
+	<div class="panel-body">
+		<input type="hidden" id="hfCodigoAluno" />
+		<div class="row">
+			<div class="form-group form-group--float col-sm-4">
+				<input type="text" id="txtNomeAluno" class="form-control" />
+				<label class="required">Nome</label>
+				<i class="form-group__bar"></i>
+			</div>
+			<div class="form-group form-group--float col-sm-4">
+				<input type="text" id="txtCPFAluno" class="form-control maskCPF" />
+				<label>CPF</label>
+				<i class="form-group__bar"></i>
+			</div>
+			<div class="form-group form-group--float col-sm-4">
+				<input type="text" id="txtRGAluno" class="form-control" />
+				<label>RG</label>
+				<i class="form-group__bar"></i>
+			</div>
+		</div>
+		<div class="row">
+			<div class="form-group col-sm-4">
+				<label class="required">Sexo</label>
+				<select class="select2" id="ddlSexo">
+					<option value="">Selecione...</option>
+					<option value="F">Feminino</option>
+					<option value="M">Masculino</option>
+				</select>
+				<i class="form-group__bar"></i>
+			</div>
+			<div class="form-group form-group--float col-sm-4">
+				<input type="text" id="txtCargoAluno" class="form-control" />
+				<label>Cargo</label>
+				<i class="form-group__bar"></i>
+			</div>
+			<div class="form-group col-sm-4">
+				<label class="required">Cargo Brigada</label>
+				<select class="select2" id="ddlCargoBrigada">
+					<option value="0">Sem Cargo</option>
+					<option value="1">Brigadista</option>
+					<option value="2">Chefe</option>
+					<option value="3">Coordenador</option>
+					<option value="4">Lider 1</option>
+					<option value="5">Lider 2</option>
+					<option value="6">Lider 3</option>
+					<option value="7">Lider 4</option>
+					<option value="8">Lider 5</option>
+					<option value="9">Lider 6</option>
+					<option value="10">Lider 7</option>
+					<option value="11">Lider 8</option>
+					<option value="12">Lider 9</option>
+					<option value="13">Lider 10</option>
+				</select>
+				<i class="form-group__bar"></i>
+			</div>
+		</div>
+		<div class="row">
+			<div class="form-group col-sm-4">
+				<label>Ativo</label>
+				<select class="select2" id="ddlAtivo">
+					<option value="true">Sim</option>
+					<option value="false">Não</option>
+				</select>
+				<i class="form-group__bar"></i>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="panel" id="divPartialAlunosResult">
+	<input type="hidden" id="hfListaAlunos" name="hfListaAlunos" />
+	<header class="panel-heading">
+		<h4>LISTA ALUNOS</h4>
+	</header>
+	<div class="panel-body">
+		<table id="tbResultadoAlunos" class="table table-hover table-striped table-bordered">
+			<thead class="thead-default">
+				<tr>
+					<th>AÇÕES</th>
+					<th>NOME</th>
+					<th>CARGO</th>
+					<th>ATIVO</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	var arrayAlunos = [];
+
+	function openPartialAluno() {
+
+		if ($('#paginaCarregadaAlunos').val() == 'false') {
+			var data = {
+				codigoCliente: @(Model == null ? "-1" : Model.Codigo.ToString())
+			};
+			$.ajax({
+				type: "GET",
+				url: "/Cliente/GetAlunos/",
+				data: data,
+				async: true,
+				success: function (result) {
+					if (result) {
+						if (result != "") {
+							arrayAlunos = JSON.parse(result);
+
+							MontarTabelaAlunos();
+
+							$('#paginaCarregadaAlunos').val('true')
+						}
+					}
+				}
+			});
+		}
+	}
+
+    function jsEditar(indiceAluno) {
+
+        var aluno = arrayAlunos[indiceAluno];
+
+        $('#headerAluno').html('EDITAR ALUNO');
+
+        $('#hfCodigoAluno').val(aluno.Codigo).change();
+		$('#txtNomeAluno').val(aluno.Nome).change();
+		$('#txtCPFAluno').val(aluno.CPF).change();
+		$('#txtRGAluno').val(aluno.RG).change();
+        $('#ddlSexo').val(aluno.Sexo);
+        $('#ddlSexo').trigger('change');
+		$('#txtCargoAluno').val(aluno.Cargo).change();
+        $('#ddlCargoBrigada').val(aluno.CargoBrigada);
+        $('#ddlCargoBrigada').trigger('change');
+        if (aluno.Ativo) {
+            $('#ddlAtivo').val('true');
+        } else {
+            $('#ddlAtivo').val('false');
+        }
+        $('#ddlAtivo').trigger('change');
+    }
+
+	function jsAdicionarAluno() {
+
+        if (jsValidarCampos()) {
+
+            if ($('#hfCodigoAluno').val() != '') {
+                //UPDATE ALUNO
+
+                var indice = -1;
+                for (var i = 0; i < arrayAlunos.length; i++) {
+                    if (arrayAlunos[i].Codigo == $('#hfCodigoAluno').val()) {
+                        indice = i;
+                        break;
+                    }
+                }
+
+				arrayAlunos[indice].Codigo = $('#hfCodigoAluno').val();
+				arrayAlunos[indice].Nome = $('#txtNomeAluno').val();
+				arrayAlunos[indice].CPF = $('#txtCPFAluno').val();
+				arrayAlunos[indice].RG = $('#txtRGAluno').val();
+				arrayAlunos[indice].Sexo = $('#ddlSexo').val();
+				arrayAlunos[indice].Cargo = $('#txtCargoAluno').val();
+				arrayAlunos[indice].CargoBrigada = $('#ddlCargoBrigada').val();
+				arrayAlunos[indice].Ativo = ($('#ddlAtivo').val() == 'true');
+				if (arrayAlunos[indice].tipo != 1) {
+					arrayAlunos[indice].tipo = 2;
+                }
+
+                OpenAlert("Sucesso!", "Alteração realizada com sucesso!", "success");
+
+            } else {
+                //INSERT ALUNO
+                var aluno = {
+                    Codigo: "",
+                    Nome: $('#txtNomeAluno').val(),
+                    CPF: $('#txtCPFAluno').val(),
+                    RG: $('#txtRGAluno').val(),
+                    Sexo: $('#ddlSexo').val(),
+                    Cargo: $('#txtCargoAluno').val(),
+                    CargoBrigada: $('#ddlCargoBrigada').val(),
+                    Ativo: ($('#ddlAtivo').val() == 'true'),
+                    tipo: 1
+                };
+
+                arrayAlunos.push(aluno);
+
+                OpenAlert("Sucesso!", "Inclusão realizada com sucesso!", "success");
+
+            }
+
+			$('#hfListaAlunos').val(JSON.stringify(arrayAlunos));
+
+			console.log(arrayAlunos);
+
+            MontarTabelaAlunos();
+			jsLimparCamposAlunos();
+
+        }
+
+        return false;
+
+    }
+
+    function jsValidarCampos() {
+
+        if ($('#txtNomeAluno').val() == "") {
+			OpenAlert("Atenção!", "Informe o nome do aluno", "danger");
+			$('#txtNomeAluno').focus();
+            return false;
+        } else if ($('#ddlSexo').val() == "") {
+            OpenAlert("Atenção!", "Informe o sexo do aluno", "danger");
+            return false;
+        } else if ($('#txtCargoAluno').val() == "") {
+			OpenAlert("Atenção!", "Informe o cargo do aluno", "danger");
+			$('#txtCargoAluno').focus();
+            return false;
+        }
+
+        return true;
+
+    }
+
+    function jsLimparCamposAlunos() {
+
+        $('#headerAluno').html('NOVO ALUNO');
+
+		$('#hfCodigoAluno').val('').change();
+		$('#txtNomeAluno').val('').change();
+		$('#txtCPFAluno').val('').change();
+		$('#txtRGAluno').val('').change();
+		$('#ddlSexo').val('').change();
+		$('#ddlSexo').trigger('change');
+		$('#txtCargoAluno').val('').change();
+		$('#ddlCargoBrigada').val('0').change();
+        $('#ddlCargoBrigada').trigger('change');
+		$('#ddlAtivo').val('true').change();
+        $('#ddlAtivo').trigger('change');
+
+        return false;
+
+    }
+
+    function MontarTabelaAlunos() {
+
+        var tabelaObjeto = document.getElementById('tbResultadoAlunos');
+        removeAllChilds(tabelaObjeto);
+
+        if (tabelaObjeto.tHead == null) {
+            var listaColunas = ["AÇÕES", "NOME", "CARGO", "ATIVO"];
+            jsAdicionarCabecalhoTabela(tabelaObjeto, listaColunas, 'center');
+        }
+
+        var tbody = jsAdicionarCorpoTabela(tabelaObjeto);
+
+        for (i = 0; i < arrayAlunos.length; i++) {
+
+            var tr = document.createElement('tr');
+            var td1 = document.createElement('td');
+            var td2 = document.createElement('td');
+            var td3 = document.createElement('td');
+            var td4 = document.createElement('td');
+
+            td1.setAttribute("class", "center");
+            td2.setAttribute("class", "center");
+            td3.setAttribute("class", "center");
+            td4.setAttribute("class", "center");
+
+            td1.innerHTML = '<a href="#" title="Editar" onclick="jsEditar(' + i + ');"><span aria-hidden="true" class="zmdi zmdi-edit"></span></a>';
+            td2.innerHTML = arrayAlunos[i].Nome;
+            td3.innerHTML = arrayAlunos[i].Cargo;
+
+            if (arrayAlunos[i].Ativo){
+                td4.innerHTML = "Sim";
+            } else {
+                td4.innerHTML = "Não";
+            }
+
+            var listaColunas = [td1, td2, td3, td4];
+
+            jsAdicionarLinhaTabela(listaColunas, tr);
+
+            tbody.appendChild(tr);
+        }
+    }
+
+</script>

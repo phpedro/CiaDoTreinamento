@@ -1,0 +1,242 @@
+﻿@{
+	string mensagemErro = String.Empty;
+	//GET ESTADOS
+	List<SelectListItem> listaEstados = CODE.Uteis.RetornarEstadosComboCompleto();
+
+	//GET MESOS
+	CODE.MesoBLL mesoBLL = new CODE.MesoBLL();
+	List<CODE.Meso> mesos = mesoBLL.getMesos(null, null, out mensagemErro);
+	List<SelectListItem> listaMesos = new List<SelectListItem>();
+	foreach (CODE.Meso meso in mesos)
+	{
+		listaMesos.Add(new SelectListItem() {
+			Text = meso.Descricao,
+			Value = meso.Codigo.ToString()
+		});
+	}
+
+	//GET MICROS
+	CODE.MicroBLL microBLL = new CODE.MicroBLL();
+	List<CODE.Micro> micros = microBLL.getMicros(null, null, out mensagemErro);
+	List<SelectListItem> listaMicros = new List<SelectListItem>();
+	foreach (CODE.Micro micro in micros)
+	{
+		listaMicros.Add(new SelectListItem()
+		{
+			Text = micro.Descricao,
+			Value = micro.Codigo.ToString()
+		});
+	}
+}
+
+<section id="main-content">
+	<section class="content">
+		<!--FILTRO-->
+		<div class="panel">
+			<header class="panel-heading">
+				<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseFiltro" aria-expanded="false">DASHBOARD LOGISTICA</h4>
+				<div class="top-nav">
+					<button id="btnPesquisar" class="btn btn-primary" onclick="jsPesquisar();"><span aria-hidden="true" class="zmdi zmdi-search"></span> &nbsp; PESQUISAR</button>
+				</div>
+			</header>
+			<div id="divCollapseFiltro" class="panel-collapse collapse">
+				<div class="panel-body">
+					<div class="row">
+						<div class="form-group col-sm-6">
+							<label>Estado</label>
+							@Html.DropDownList("ddlEstadosFiltro", listaEstados, "Selecione o Estado...", new { @class = "select2", @onchange = "return preencheDDLCidades(this.value, $('#ddlCidadesFiltro'));" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-6">
+							<label>Cidade</label>
+							@Html.DropDownList("ddlCidadesFiltro", new List<SelectListItem>(), "Todas as Cidades", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group col-sm-6">
+							<label>Meso</label>
+							@Html.DropDownList("ddlMesoFiltro", listaMesos, "Selecione a Meso...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-6">
+							<label>Micro</label>
+							@Html.DropDownList("ddlMicroFiltro", listaMicros, "Selecione a Micro...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<br />
+		<!--MAPA-->
+		<div id="map" style="min-height:550px;"></div>
+	</section>
+</section>
+
+<!-- Maps API Javascript -->
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCu1NVvUi33FURh7lRtc91DacG7FtLrvk8&callback=initMap"></script>
+<script type="text/javascript">
+
+	var map;
+	var geocoder;
+	var points = [];
+	var markers = [];
+
+	function initMap() {
+
+		jsLoading(true);
+
+		geocoder = new google.maps.Geocoder();
+		map = new google.maps.Map(document.getElementById('map'), {
+			zoom: 5,
+			center: { lat: -12.858910, lng: -51.196304 }
+		});
+		
+		drawMarkers();
+	}
+
+	async function drawMarkers() {
+
+		var infoWindow = new google.maps.InfoWindow();
+
+		points = await jsGetMarkers();
+
+		for (var i = 0; i < points.length; i++) {
+
+			if (points[i].latitude == null || points[i].latitude == "" || points[i].latitude == "0") {
+				var result = await getGeoCode(points[i]);
+
+				if (result != null) {
+					//map.setCenter(result[0].geometry.location);
+					var marker = new google.maps.Marker({
+						map: map,
+						position: result[0].geometry.location,
+						label: "" + points[i].qtde
+						//icon: '/images/Markers/marker.png'
+					});
+
+					markers.push();
+
+					// Allow each marker to have an info window
+					google.maps.event.addListener(marker, 'click', (function (marker, i) {
+						return function () {
+							infoWindow.setContent(jsBoxDetails(i));
+							infoWindow.open(map, marker);
+						}
+					})(marker, i));
+				}
+
+			} else { 
+
+				var myLatLng = { lat: parseFloat(points[i].latitude), lng: parseFloat(points[i].longitude) };
+
+				var marker = new google.maps.Marker({
+					map: map,
+					position: myLatLng,
+					label: "" + points[i].qtde
+					//icon: '/images/Markers/marker.png'
+				});
+
+				markers.push(marker);
+
+				// Allow each marker to have an info window
+				google.maps.event.addListener(marker, 'click', (function (marker, i) {
+					return function () {
+						infoWindow.setContent(jsBoxDetails(i));
+						infoWindow.open(map, marker);
+					}
+				})(marker, i));
+
+			}
+		}
+
+
+		jsLoading(false);
+	}
+
+	function jsGetMarkers() {
+
+		return new Promise(resolve => { 
+
+			var data = {
+				codigoEstado: $('#ddlEstadosFiltro').val(),
+				codigoCidade: $('#ddlCidadesFiltro').val(),
+				codigoMeso: $('#ddlMesoFiltro').val(),
+				codigoMicro: $('#ddlMicroFiltro').val()
+			}
+
+			$.ajax({
+				type: "GET",
+				url: "/Roteirizacao/BuscarPedidosAgrupadosPorCidade/",
+				data: data,
+				async: true,
+				success: function (result) {
+					if (result.sucesso) {
+						
+						for (var i = 0; i < result.listaPedidos.length; i++) {
+
+							var obj = {
+								id: i,
+								location: result.listaPedidos[i].cidade,
+								latitude: result.listaPedidos[i].latitude,
+								longitude: result.listaPedidos[i].longitude,
+								description: result.listaPedidos[i].cidade,
+								qtde: result.listaPedidos[i]._quantidadePedidos
+							};
+
+							points.push(obj);
+						}
+						resolve(points);
+					} else {
+						OpenAlert("Atenção!", "Não foi encontrado nenhum pedido para roteirizar!", "warning");
+						resolve();
+					}
+				}
+			});
+		});
+	}
+
+	 function getGeoCode(obj) { 
+
+		 return new Promise(resolve => {
+			 setTimeout(function () { 
+				 geocoder.geocode({ 'address': obj.location }, function (results, status) {
+					 if (status == google.maps.GeocoderStatus.OK) {
+						 resolve(results);
+					 } else {
+						 OpenAlert("Atenção!", 'Geocode was not successful for the following reason: ' + status, "danger");
+						 resolve(null);
+					 }
+				 });
+			}, 4 * 200);
+		});
+	}
+
+	 function jsBoxDetails(id) { 
+
+		 var str = "<div class='info-content'><h5>" + points[id].description + "<h5><h6>Quantidade: " + points[id].qtde + "</h6></div>";
+
+		 return str;
+	 }
+
+	 function jsPesquisar() { 
+
+		 jsLoading(true);
+
+		 setMapOnAll(null);
+
+		 points = [];
+		 markers = [];
+
+		 drawMarkers();
+	 }
+
+	 function setMapOnAll(map) {
+		 for (var i = 0; i < markers.length; i++) {
+			 markers[i].setMap(map);
+		 }
+	 }
+
+
+</script>

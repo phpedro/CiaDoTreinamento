@@ -1,0 +1,16 @@
+﻿Confirmação de prestação de serviços
+
+Sr(a). @nomeCliente
+
+Conforme combinado via contato telefônico, encaminharemos o técnico @instrutor para realizar o (s) serviço (s) acordado com sua empresa, @razaoSocial, segue abaixo. 
+
+Lista de Serviços:
+@servicos
+
+Data do Atendimento: @dataAtendimento
+
+Local do Atendimento: @localAtendimento
+
+1º Obs.: No horário em que o técnico estiver prestando atendimento, é necessário um responsável presente para passar as informações necessárias, para elaboração da documentação solicitada, ou até mesmo para que você cliente possa sanar suas dúvidas. No mais, me coloco à disposição para futuros esclarecimentos.
+
+@observacao

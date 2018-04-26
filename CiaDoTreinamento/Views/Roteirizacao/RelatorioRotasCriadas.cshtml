@@ -1,0 +1,92 @@
+﻿@model List<CODE.Rota>
+
+@{
+	string mensagemErro;
+
+	//GET INSTRUTORES
+	List<CODE.Funcionario> agentesInstrutores = CODE.FuncionarioBLL.getFuncionarioByPerfil(10, out mensagemErro);
+	List<SelectListItem> listaInstrutores = new List<SelectListItem>();
+	foreach (CODE.Funcionario func in agentesInstrutores)
+	{
+		listaInstrutores.Add(new SelectListItem()
+		{
+			Text = func.Nome,
+			Value = func.Codigo.ToString()
+		});
+	}
+}
+
+<section id="main-content">
+	<section class="content">
+		<!--FILTROS-->
+		<div class="panel">
+			<header class="panel-heading">
+				<h4>RELATÓRIO DE ROTAS</h4>
+				<div class="top-nav">
+					<button id="btnPesquisar" class="btn btn-primary" onclick="jsPesquisar();"><span aria-hidden="true" class="zmdi zmdi-search"></span> &nbsp; PESQUISAR</button>
+				</div>
+			</header>
+			<div class="panel-body">
+				<form action="@Url.Action("ConsutarRotasInstrutor","Roteirizacao")" method="get" id="formSearch">
+					<div class="form-group col-sm-3">
+						<label>Instrutor</label>
+						@Html.DropDownList("ddlInstrutorFiltro", listaInstrutores, "Selecione o Instrutor...", new { @class = "select2" })
+						<i class="form-group__bar"></i>
+					</div>
+				</form>
+			</div>
+		</div>
+		<br />
+		<!--RESULTADO-->
+		@if (Model != null && Model.Count() > 0)
+		{
+			<div class="panel">
+				<header class="panel-heading">
+					<h4>RESULTADO</h4>
+				</header>
+				<div class="panel-body">
+					<div class="table-responsive">
+						<table id="data-table" class="table table-striped table-bordered table-hover">
+							<thead class="thead-default">
+								<tr>
+									<th></th>
+									<th>Rota</th>
+									<th>Instrutor</th>
+									<th>Data inicio</th>
+									<th>Data fim</th>
+									<th>Status</th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach (CODE.Rota rota in Model)
+								{
+									<tr>
+										<td class="center"><a href="#" title="Editar" onclick="jsEditar(@Html.Raw(rota.Codigo))"><span aria-hidden="true" class="zmdi zmdi-border-color"></span></a></td>
+										<td>@rota.Codigo</td>
+										<td>@rota.Instrutor.Nome</td>
+										<td>@rota.DataInicio.ToShortDateString()</td>
+										<td>@rota.DataFim.ToShortDateString()</td>
+										<td>@rota._status</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		}
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	function jsPesquisar()
+	{
+		$('#formSearch').submit();
+	}
+
+	function jsEditar(codigoRede) {
+		window.location.assign("@Url.Action("NovaRotaManual", "Roteirizacao")?codigoRota=" + codigoRede);
+	}
+
+</script>

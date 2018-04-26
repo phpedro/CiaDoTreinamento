@@ -1,0 +1,214 @@
+﻿@model CODE.CabecalhoPedido 
+
+@{
+	//LISTA TIPOS CLIENTES
+	List<SelectListItem> listaTipos = new List<SelectListItem>();
+	listaTipos.Add(new SelectListItem()
+	{
+		Value = "1",
+		Text = "PESSOA JURÍDICA",
+		Selected = (Model == null ? true : Model.Cliente.TipoCliente == 1)
+	});
+	listaTipos.Add(new SelectListItem()
+	{
+		Value = "2",
+		Text = "PESSOA FÍSICA",
+		Selected = (Model == null ? false : Model.Cliente.TipoCliente == 2)
+	});
+
+	//GET ESTADOS
+	List<SelectListItem> listaEstados = CODE.Uteis.RetornarEstadosComboCompleto();
+}
+
+<div class="panel" id="divDadosClienteResumido">
+	<header class="panel-heading">
+		<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseCliente" aria-expanded="true">DADOS DO CLIENTE</h4>
+	</header>
+	<div id="divCollapseCliente" class="panel-collapse collapse">
+		<div class="panel-body">
+			<div class="row">
+				<div class="form-group form-group--float col-sm-6">
+					@Html.TextBoxFor(x => Model.Cliente.Codigo, new { @class = "form-control", @readonly = "readonly" })
+					<label>Código</label>
+					<i class="form-group__bar"></i>
+				</div>
+				<div class="form-group col-sm-6">
+					<label>Tipo Cliente</label>
+					@Html.DropDownListFor(x => Model.Cliente.TipoCliente, listaTipos, new { @class = "select2", @disabled = "true" })
+					<i class="form-group__bar"></i>
+				</div>
+			</div>
+			@if (Model.Cliente.TipoCliente == 1)
+			{
+				<div class="row">
+					<div class="form-group form-group--float col-sm-6">
+						@Html.TextBoxFor(x => Model.Cliente.CNPJ, new { @class = "form-control maskCNPJ", @readonly = "readonly" })
+						<label>CNPJ</label>
+						<i class="form-group__bar"></i>
+					</div>
+					<div class="form-group form-group--float col-sm-6">
+						@Html.TextBoxFor(x => Model.Cliente.RazaoSocial, new { @class = "form-control" })
+						<label>Razão social</label>
+						<i class="form-group__bar"></i>
+					</div>
+				</div>
+				<div class="row">
+					<div class="form-group form-group--float col-sm-6">
+						@Html.TextBoxFor(x => Model.Cliente.InscricaoEstadual, new { @class = "form-control" })
+						<label>Inscrição Estadual</label>
+						<i class="form-group__bar"></i>
+					</div>
+					<div class="form-group form-group--float col-sm-6">
+						@Html.TextBoxFor(x => Model.Cliente.NomeFantasia, new { @class = "form-control" })
+						<label>Nome Fantasia</label>
+						<i class="form-group__bar"></i>
+					</div>
+				</div>
+			}
+			else
+			{
+				<div class="row">
+					<div class="form-group form-group--float col-sm-6">
+						@Html.TextBoxFor(x => Model.Cliente.CPF, new { @class = "form-control maskCPF", @readonly = "readonly" })
+						<label>CPF</label>
+						<i class="form-group__bar"></i>
+					</div>
+					<div class="form-group form-group--float col-sm-6">
+						@Html.TextBoxFor(x => Model.Cliente.Nome, new { @class = "form-control" })
+						<label>Nome</label>
+						<i class="form-group__bar"></i>
+					</div>
+				</div>
+				<div class="row">
+					<div class="form-group form-group--float col-sm-6">
+						@Html.TextBoxFor(x => Model.Cliente.RG, new { @class = "form-control" })
+						<label>RG</label>
+						<i class="form-group__bar"></i>
+					</div>
+				</div>
+			}
+
+			<!--ENDEREÇO PRINCIPAL-->
+			<div class="row">
+				<div class="form-group form-group--float col-sm-6">
+					@Html.TextBoxFor(x => Model.Cliente.Endereco, new { @class = "form-control noBlank" })
+					<label>Endereço</label>
+					<i class="form-group__bar"></i>
+				</div>
+				<div class="form-group form-group--float col-sm-6">
+					@Html.TextBoxFor(x => Model.Cliente.Bairro, new { @class = "form-control noBlank" })
+					<label>Bairro</label>
+					<i class="form-group__bar"></i>
+				</div>
+			</div>
+			<div class="row">
+				<div class="form-group form-group--float col-sm-6">
+					@Html.TextBoxFor(x => Model.Cliente.CEP, new { @class = "form-control noBlank maskCEP", @onblur = "return GetEnderecoPrincipalCorreio(this.value)" })
+					<label>CEP</label>
+					<i class="form-group__bar"></i>
+				</div>
+				<div class="form-group form-group--float col-sm-6">
+					@Html.TextBoxFor(x => Model.Cliente.SiglaCaixaPostal, new { @class = "form-control noBlank" })
+					<label>Caixa Postal</label>
+					<i class="form-group__bar"></i>
+				</div>
+			</div>
+			<div class="row">
+				<div class="form-group col-sm-6">
+					<label>ESTADO</label>
+					@Html.DropDownListFor(x => Model.Cliente.Cidade.Estado, listaEstados, "Selecione o Estado...", new { @class = "select2", @onchange = "return preencheDDLCidades(this.value, $('#Cidade_Codigo'));" })
+					@Html.HiddenFor(x => Model.Cliente.Cidade.Estado, new { @id = "hfCidadeEstado" })
+					<i class="form-group__bar"></i>
+				</div>
+				<div class="form-group col-sm-6">
+					<label>CIDADE</label>
+					@Html.DropDownListFor(x => Model.Cliente.Cidade.Codigo, new List<SelectListItem>(), "Todas as Cidades", new { @class = "select2" })
+					@Html.HiddenFor(x => Model.Cliente.Cidade.Codigo, new { @id = "hfCodigoCidade" })
+					<i class="form-group__bar"></i>
+				</div>
+			</div>
+			<!--ENDEREÇO CORRESPONDÊNCIA-->
+			<div class="row">
+				<div class="form-group form-group--float col-sm-6">
+					@Html.TextBoxFor(x => Model.Cliente.EnderecoCorrespondencia, new { @class = "form-control noBlank" })
+					<label>Endereço Correspondência</label>
+					<i class="form-group__bar"></i>
+				</div>
+				<div class="form-group form-group--float col-sm-6">
+					@Html.TextBoxFor(x => Model.Cliente.BairroCorrespondencia, new { @class = "form-control noBlank" })
+					<label>Bairro Correspondência</label>
+					<i class="form-group__bar"></i>
+				</div>
+			</div>
+			<div class="row">
+				<div class="form-group form-group--float col-sm-6">
+					@Html.TextBoxFor(x => Model.Cliente.CepCorrespondencia, new { @class = "form-control noBlank maskCEP", @onblur = "return GetEnderecoCorrespondenciaCorreio(this.value)" })
+					<label>CEP Correspondência</label>
+					<i class="form-group__bar"></i>
+				</div>
+				<div class="form-group form-group--float col-sm-6">
+					@Html.TextBoxFor(x => Model.Cliente.ReferenciaEnderecoCorrespondencia, new { @class = "form-control noBlank" })
+					<label>Referência</label>
+					<i class="form-group__bar"></i>
+				</div>
+			</div>
+			<div class="row">
+				<div class="form-group col-sm-6">
+					<label>ESTADO</label>
+					@Html.DropDownListFor(x => Model.Cliente.CidadeCorrespondencia.Estado, listaEstados, "Selecione o Estado...", new { @class = "select2", @onchange = "return preencheDDLCidades(this.value, $('#CidadeCorrespondencia_Codigo'));" })
+					@Html.HiddenFor(x => Model.Cliente.CidadeCorrespondencia.Estado, new { @id = "hfCidadeCorrespondenciaEstado" })
+					<i class="form-group__bar"></i>
+				</div>
+				<div class="form-group col-sm-6">
+					<label>CIDADE</label>
+					@Html.DropDownListFor(x => Model.Cliente.CidadeCorrespondencia.Codigo, new List<SelectListItem>(), "Todas as Cidades", new { @class = "select2" })
+					@Html.HiddenFor(x => Model.Cliente.CidadeCorrespondencia.Codigo, new { @id = "hfCodigoCidadeCorrespondencia" })
+					<i class="form-group__bar"></i>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	$(document).ready(function () { 
+
+		preencheDDLCidades($('#hfCidadeEstado').val(), $('#Cliente_Cidade_Codigo'), $('#hfCodigoCidade').val());
+		preencheDDLCidades($('#hfCidadeCorrespondenciaEstado').val(), $('#Cliente_CidadeCorrespondencia_Codigo'), $('#hfCodigoCidadeCorrespondencia').val());
+
+	});
+
+	function GetEnderecoPrincipalCorreio(cep) {
+		GetEnderecoCorreio(cep, preencherEnderecoPrincipal);
+	}
+
+	function preencherEnderecoPrincipal(retorno) {
+
+		if (retorno) {
+			$('#Cliente_Endereco').val(retorno.logradouro);
+			$('#Cliente_Endereco').change();
+			$('#Cliente_Bairro').val(retorno.bairro);
+			$('#Cliente_Bairro').change();
+			$('#Cliente_Cidade_Estado').val(retorno.uf);
+			$('#Cliente_Cidade_Estado').trigger('change');
+			preencheDDLCidades(retorno.uf, $('#Cliente_Cidade_Codigo'));
+		}
+	}
+
+	function GetEnderecoCorrespondenciaCorreio(cep) {
+		GetEnderecoCorreio(cep, preencherEnderecoCorrespondencia);
+	}
+
+	function preencherEnderecoCorrespondencia(retorno) {
+
+		if (retorno) {
+			$('#Cliente_EnderecoCorrespondencia').val(retorno.logradouro);
+			$('#Cliente_EnderecoCorrespondencia').change();
+			$('#Cliente_BairroCorrespondencia').val(retorno.bairro);
+			$('#Cliente_BairroCorrespondencia').change();
+			$('#Cliente_CidadeCorrespondencia_Estado').val(retorno.uf);
+			$('#Cliente_CidadeCorrespondencia_Estado').trigger('change');
+			preencheDDLCidades(retorno.uf, $('#Cliente_CidadeCorrespondencia_Codigo'));
+		}
+	}
+</script>

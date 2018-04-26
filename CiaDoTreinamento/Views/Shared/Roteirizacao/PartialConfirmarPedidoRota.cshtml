@@ -1,0 +1,259 @@
+﻿<div id="divModalConfirmarPedidoRota" class="modalAlerta animate-zoom" style="display: none">
+	<div class="contentModal">
+		<!--MODAL HEADER-->
+		<div class="modal-header">
+			<h5>CONFIRMAR PEDIDO PARA ROTA</h5>
+		</div>
+		<!--MODAL CONTENT-->
+		<div class="modal-content" style="max-height:400px; overflow-y:auto">
+			<div class="panel">
+				<header class="panel-heading">
+					<h4>Dados gerais</h4>
+				</header>
+				<div class="panel-body">
+					<div class="row">
+						<div class="form-group col-sm-4">
+							<label>Hotel</label>
+							@Html.DropDownList("ddlHotelRota", new List<SelectListItem>(), "Selecione o hotel...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label>Sala para treinamento</label>
+							@Html.DropDownList("ddlSalaRota", new List<SelectListItem>(), "Selecione a sala...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label>Observação(Cliente)</label>
+							<input type="text" class="form-control" name="txtObservacaoItemRota" id="txtObservacaoItemRota" />
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group col-sm-4">
+							<label>Observação(Instrutor)</label>
+							<input type="text" class="form-control" name="txtObservacaoInstrutorItemRota" id="txtObservacaoInstrutorItemRota" />
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label>Responsável confirmação</label>
+							<input type="text" class="form-control" name="nomeCliente" id="nomeCliente" />
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label>Horário atendimento</label>
+							<input type="text" class="form-control" name="horarioAtendimento" id="horarioAtendimento" />
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<!--LISTA EMAILS-->
+						<div class="form-group col-sm-4">
+							<label>Email</label>
+							@Html.DropDownList("ddlEmails", new List<SelectListItem>(), "Selecione...", new { @class = "select2", @multiple = "multiple" })
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--MODAL FOOTER-->
+		<div class="modal-footer">
+			<button id="btnConfirmar" class="btn btn-secondary confirmar" onclick="jsGravar()">CONFIRMAR</button>
+			&nbsp;
+			<button id="btnCancelar" class="btn btn-secondary cancelar" onclick="closeModal(this)">CANCELAR</button>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	var _codigoCliente;
+	var _codigoPedido;
+	var _codigoCidade;
+	var _codigoInstrutor;
+	var _dataInicioTreinamento;
+	var _dataFimTreinamento;
+	var _codigoRota;
+
+	function openModalConfirmarPedidoRota(codigoCliente, codigoPedido, codigoCidade, codigoInstrutor, dataInicioTreinamento, dataFimTreinamento, codigoRota) {
+
+		_codigoCliente = codigoCliente;
+		_codigoPedido = codigoPedido;
+		_codigoCidade = codigoCidade;
+		_codigoInstrutor = codigoInstrutor;
+		_dataInicioTreinamento = dataInicioTreinamento;
+		_dataFimTreinamento = dataFimTreinamento;
+		_codigoRota = codigoRota;
+		
+		//CALCULAR O HORÁRIO DE ATENDIMENTO
+		var listaHorarios = "";
+		var setouInicioData = false;
+
+		while (_dataInicioTreinamento <= _dataFimTreinamento)
+		{
+			if (_dataInicioTreinamento == _dataFimTreinamento)
+			{
+				if (!setouInicioData)
+				{
+					listaHorarios += jsPadLeft0(_dataInicioTreinamento.getUTCDate()) + "/" + jsPadLeft0(_dataInicioTreinamento.getMonth() + 1) + "/" + _dataInicioTreinamento.getFullYear() + " " + jsPadLeft0(_dataInicioTreinamento.getHours()) + ":" + jsPadLeft0(_dataInicioTreinamento.getMinutes()) + "Hrs - " + _dataFimTreinamento.getHours() + ":" + _dataFimTreinamento.getMinutes() + "Hrs ";
+					setouInicioData = true;
+				}
+				else
+				{
+					listaHorarios += "#" + jsPadLeft0(_dataInicioTreinamento.getUTCDate()) + "/" + jsPadLeft0(_dataInicioTreinamento.getMonth() + 1) + "/" + _dataInicioTreinamento.getFullYear() + " 08:00Hrs - " + jsPadLeft0(_dataFimTreinamento.getHours()) + ":" + jsPadLeft0(_dataFimTreinamento.getMinutes()) + "Hrs ";
+				}
+				
+			}
+			else
+			{ 
+				if (!setouInicioData) {
+					listaHorarios += jsPadLeft0(_dataInicioTreinamento.getUTCDate()) + "/" + jsPadLeft0(_dataInicioTreinamento.getMonth() + 1) + "/" + _dataInicioTreinamento.getFullYear() + " " + jsPadLeft0(_dataInicioTreinamento.getHours()) + ":" + jsPadLeft0(_dataInicioTreinamento.getMinutes()) + "Hrs - 18:00Hrs ";
+					setouInicioData = true;
+				}
+				else {
+					listaHorarios += "#" + jsPadLeft0(_dataInicioTreinamento.getUTCDate()) + "/" + jsPadLeft0(_dataInicioTreinamento.getMonth() + 1) + "/" + _dataInicioTreinamento.getFullYear() + " 08:00Hrs - " + jsPadLeft0(_dataFimTreinamento.getHours()) + ":" + jsPadLeft0(_dataFimTreinamento.getMinutes()) + "Hrs";
+				}
+			}
+
+			_dataInicioTreinamento.setDate(_dataInicioTreinamento.getDate() + 1);
+		}
+
+		$('#horarioAtendimento').val(listaHorarios);
+
+		jsBuscarParceirosHoteis(codigoCidade);
+		jsBuscarParceirosSala(codigoCidade);
+		jsMontaListaEmails();
+
+		$('#divModalConfirmarPedidoRota').show();
+	}
+
+	function jsBuscarParceirosSala(codigoCidade) {
+
+		var data = {
+			codigoCidade: codigoCidade
+		};
+
+		var $el = $('#ddlSalaRota');
+
+		$.ajax({
+			type: "GET",
+			url: "/Roteirizacao/BuscarParceirosSala/",
+			data: data,
+			success: function (data) {
+				if (data.sucesso) {
+					$el.empty(); // remove old options
+					$el.append($("<option></option>")
+						.attr("value", '').text('No Posto'));
+					$.each(data.listaParceirosSala, function (i, obj) {
+						$el.append($("<option></option>")
+							.attr("value", obj.codigo).text(obj.descricao));
+					});
+					$el.trigger("change");
+
+					jsLoading(false);
+				}
+			}
+		});
+	}
+
+	function jsBuscarParceirosHoteis(codigoCidade) {
+
+		var data = {
+			codigoCidade: codigoCidade
+		};
+
+		var $el = $('#ddlHotelRota');
+
+		$.ajax({
+			type: "GET",
+			url: "/Roteirizacao/BuscarParceirosHotel/",
+			data: data,
+			success: function (data) {
+				if (data.sucesso) {
+					$el.empty(); // remove old options
+					$el.append($("<option></option>")
+						.attr("value", '').text('Selecione...'));
+					$.each(data.listaParceirosSala, function (i, obj) {
+						$el.append($("<option></option>")
+							.attr("value", obj.codigo).text(obj.descricao));
+					});
+
+					$el.trigger("change");
+
+					jsLoading(false);
+				}
+			}
+		});
+	}
+
+	function jsGravar() {
+
+		jsLoading(true);
+
+		var data = {
+			codigoRota: _codigoRota,
+			codigoPedido: _codigoPedido,
+			codigoInstrutor: _codigoInstrutor,
+			dataInicioTreinamento: _dataInicioTreinamento,
+			dataFimTreinamento: _dataFimTreinamento,
+			codigoSala: $('#ddlSalaRota').val(),
+			codigoHotel: $('#ddlHotelRota').val(),
+			observacao: $('#txtObservacaoItemRota').val(),
+			ObservacaoInstrutor: $('#txtObservacaoInstrutorItemRota').val(),
+			nomeCliente: $('#nomeCliente').val(),
+			horarioAtendimento: $('#horarioAtendimento').val(),
+			listaEmails: $('#ddlEmails').val()
+		}
+
+		$.ajax({
+			type: "POST",
+			url: "/Roteirizacao/ConfirmarItemRota/",
+			data: data,
+			success: function (result) {
+				jsLoading(false);
+
+				if (result.sucesso) {
+					$('#divModalConfirmarPedidoRota').hide();
+					$('.chk_' + _codigoPedido).each(function () { 
+						$(this).val('S');
+						$(this).attr("disabled", "disabled");
+					});
+					
+					OpenAlert("Sucesso!", "Pedido roteirizado com sucesso!", "success");
+				} else {
+					OpenAlert("Atenção!", result.mensagemErro, "danger");
+				}
+			}
+		});
+	}
+
+	function jsMontaListaEmails() {
+
+		var $el = $('#ddlEmails');
+
+		var data = {
+			codigoCliente: _codigoCliente
+		};
+
+		$.ajax({
+			type: "GET",
+			url: "/Cliente/GetEmails/",
+			data: data,
+			async: true,
+			success: function (result) {
+				if (result) {
+					$el.empty(); // remove old options
+					$el.append($("<option></option>")
+						.attr("value", '').text('Selecione...'));
+					$.each(result, function (i, obj) {
+						$el.append($("<option></option>")
+							.attr("value", obj.descricao).text(obj.descricao));
+					});
+
+					$el.trigger("change");
+				}
+			}
+		});
+	}
+
+</script>

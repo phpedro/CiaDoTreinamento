@@ -1,0 +1,183 @@
+﻿@model CODE.Cidade
+
+@{
+	string mensagemErro = "";
+
+	//GET ESTADOS
+	List<SelectListItem> listaEstados = CODE.Uteis.RetornarEstadosComboCompleto();
+
+	//GET MESOS
+	CODE.MesoBLL MesoBLL = new CODE.MesoBLL();
+	List<CODE.Meso> Mesos = MesoBLL.getMesos(0, "", out mensagemErro);
+	List<SelectListItem> listaMesos = new List<SelectListItem>();
+	foreach (CODE.Meso meso in Mesos)
+	{
+		listaMesos.Add(new SelectListItem()
+		{
+			Text = meso.Descricao,
+			Value = meso.Codigo.ToString(),
+			Selected = meso.Codigo == ViewBag.MesoFiltro
+		});
+	}
+
+	//GET MICROS
+	CODE.MicroBLL MicroBLL = new CODE.MicroBLL();
+	List<CODE.Micro> Micros = MicroBLL.getMicros(0, "", out mensagemErro);
+	List<SelectListItem> listaMicros = new List<SelectListItem>();
+	foreach (CODE.Micro micro in Micros)
+	{
+		listaMicros.Add(new SelectListItem()
+		{
+			Text = micro.Descricao,
+			Value = micro.Codigo.ToString(),
+			Selected = micro.Codigo == ViewBag.MicroFiltro
+		});
+	}
+}
+
+<section id="main-content">
+	<section class="content">
+		<div class="panel">
+			<header class="panel-heading">
+				<h4>@Html.Raw(Model == null ? "NOVA CIDADE" : "EDITAR CIDADE")</h4>
+				<div class="top-nav">
+					<button id="btnVoltar" class="btn btn-primary" onclick="return jsVoltar();"><span aria-hidden="true" class="zmdi zmdi-arrow-left"></span> &nbsp; VOLTAR</button>
+					@if (Model == null)
+					{
+						<button id="btnLimpar" class="btn btn-primary" onclick="return jsLimpar();"><span aria-hidden="true" class="zmdi zmdi-close"></span> &nbsp; LIMPAR</button>
+					}
+					<button id="btnSalvar" class="btn btn-primary" onclick="return jsSalvar();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; SALVAR</button>
+				</div>
+			</header>
+			<div class="panel-body">
+				@using (Html.BeginForm("Salvar", "Cidade", FormMethod.Post, new { @name = "formNovo", @id = "formNovo" }))
+				{
+					@Html.HiddenFor(x => Model.Codigo, new { @class = "form-control" })
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Descricao, new { @class = "form-control noBlank" })
+							<label class="required">Descrição</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label class="required">Estado</label>
+							@Html.DropDownListFor(x => Model.Estado, listaEstados, "Selecione o Estado...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label class="required">Meso</label>
+							@Html.DropDownListFor(x => Model.Meso.Codigo, listaMesos, "Selecione a Meso...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group col-sm-4">
+							<label class="required">Micro</label>
+							@Html.DropDownListFor(x => Model.Micro.Codigo, listaMicros, "Selecione a Micro...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.TelefoneHospital, new { @class = "form-control maskPhone noBlank" })
+							<label class="required">Telefone Hospital</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.TelefonePrefeitura, new { @class = "form-control maskPhone" })
+							<label>Telefone Prefeitura</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	var tela;
+
+	function jsCarregarCampos() {
+
+		tela = {
+			Codigo: $('#Codigo'),
+			Descricao: $('#Descricao'),
+			Estado: $('#Estado'),
+			Meso_Codigo: $('#Meso_Codigo'),
+			Micro_Codigo: $('#Micro_Codigo'),
+			TelefoneHospital: $('#TelefoneHospital'),
+			TelefonePrefeitura: $('#TelefonePrefeitura')
+
+		}
+	}
+
+	function jsVoltar() {
+		jsLimpar();
+		window.location.assign("@Url.Action("List", "Cidade")");
+	}
+
+	function jsLimpar() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		me.Codigo.val('');
+		me.Estado.val('');
+		me.Estado.trigger('change');
+		me.Meso_Codigo.val('');
+		me.Meso_Codigo.trigger('change');
+		me.Micro_Codigo.val('');
+		me.Micro_Codigo.trigger('change');
+		me.TelefoneHospital.val('');
+		me.TelefonePrefeitura.val('');
+
+		jsRemoverFocus(me.Descricao);
+		jsRemoverFocus(me.TelefoneHospital);
+
+		jsLoading(false);
+
+		return false;
+	}
+
+	function jsSalvar() {
+
+		jsLoading(true);
+
+		if (!jsValidaCampos()) {
+			jsLoading(false);
+			return false;
+		}
+
+		document.getElementById('formNovo').submit();
+
+	}
+
+	function jsValidaCampos() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		if (me.Descricao.val() == "") {
+			OpenAlert("Atenção!", "Informe a descrição da cidade!", "danger");
+			me.Descricao.focus();
+			return false;
+		} else if (me.Estado.val() == "") {
+			OpenAlert("Atenção!", "Informe o estado da cidade!", "danger");
+			return false;
+		} else if (me.Meso_Codigo.val() == "") {
+			OpenAlert("Atenção!", "Informe a meso da cidade!", "danger");
+			return false;
+		} else if (me.Micro_Codigo.val() == "") {
+			OpenAlert("Atenção!", "Informe a micro da cidade!", "danger");
+			return false;
+		} else if (me.TelefoneHospital.val() == "") {
+			OpenAlert("Atenção!", "Informe o telefone do hospital da cidade!", "danger");
+			me.TelefoneHospital.focus();
+			return false;
+		}
+
+		return true;
+
+	}
+
+</script>

@@ -1,0 +1,1060 @@
+﻿@using Newtonsoft.Json;
+@model CODE.CabecalhoOrcamento
+
+@{
+	string mensagemErro;
+
+	//GET CONDIÇÕES DE PAGAMENTO
+	CODE.CondicaoPagamentoBLL condicaoPagamentoBLL = new CODE.CondicaoPagamentoBLL();
+	List<CODE.CondicaoPagamento> condicoes = condicaoPagamentoBLL.getCondicoes(null, null, out mensagemErro);
+	List<SelectListItem> listaCondicoes = new List<SelectListItem>();
+	foreach (CODE.CondicaoPagamento item in condicoes)
+	{
+		listaCondicoes.Add(new SelectListItem()
+		{
+			Text = item.Descricao,
+			Value = item.Codigo.ToString(),
+			Selected = (Model == null ? false : Model.CondicaoPagamento.Codigo == item.Codigo)
+		});
+	}
+
+	//GET STATUS ORÇAMENTO
+	CODE.StatusOrcamentoBLL statusOrcamentoBLL = new CODE.StatusOrcamentoBLL();
+	List<CODE.StatusOrcamento> status = statusOrcamentoBLL.getStatusNegociacao(null, null, out mensagemErro);
+	List<SelectListItem> listaStatus = new List<SelectListItem>();
+	foreach (CODE.StatusOrcamento item in status)
+	{
+		listaStatus.Add(new SelectListItem()
+		{
+			Text = item.Descricao,
+			Value = item.Codigo.ToString(),
+			Selected = (Model == null ? false : Model.StatusOrcamento.Codigo == item.Codigo)
+		});
+	}
+
+	//GET PRODUTOS
+	CODE.ProdutoBLL produtoBLL = new CODE.ProdutoBLL();
+	List<CODE.Produto.ProdutoTela> listaProdutos = produtoBLL.GetProdutosTela(out mensagemErro, true);
+
+	List<CODE.Produto.ProdutoTela> listaProdutosTreinamento = listaProdutos.Where(x => x.CategoriaProduto == "Treinamentos").ToList();
+	List<CODE.Produto.ProdutoTela> listaProdutosDocumento = listaProdutos.Where(x => x.CategoriaProduto == "Documentos").ToList();
+	List<CODE.Produto.ProdutoTela> listaProdutosLaudo = listaProdutos.Where(x => x.CategoriaProduto == "Laudos").ToList();
+	List<CODE.Produto.ProdutoTela> listaProdutos2Via = listaProdutos.Where(x => x.CategoriaProduto == "2ª Via").ToList();
+	List<CODE.Produto.ProdutoTela> listaProdutosOutros = listaProdutos.Where(x => x.CategoriaProduto == "Outros").ToList();
+
+	//GET PRODUTOS VENDIDOS
+	List<CODE.ItemOrcamento> listaItensVendidos = new List<CODE.ItemOrcamento>();
+	List<CODE.ItemOrcamento.ItemOrcamentoTela> itensTela = new List<CODE.ItemOrcamento.ItemOrcamentoTela>();
+	string prodVendidos = "";
+
+	if (Model.Codigo != 0)
+	{
+		CODE.ItemOrcamentoBLL itemOrcamentoBLL = new CODE.ItemOrcamentoBLL();
+		listaItensVendidos = itemOrcamentoBLL.getItensOrcamento(Convert.ToInt32(Model.Codigo), null, out mensagemErro);
+		itensTela = itemOrcamentoBLL.getItensOrcamentoTela(Convert.ToInt32(Model.Codigo), out mensagemErro);
+
+		prodVendidos = JsonConvert.SerializeObject(itensTela);
+		@Html.Hidden("ProdVendido", prodVendidos)
+	}
+
+}
+
+<section id="main-content">
+	<section class="content">
+		<div class="panel">
+			<header class="panel-heading">
+				<h4>NOVO ORÇAMENTO</h4>
+				<div class="top-nav">
+					<button id="btnSalvar" class="btn btn-primary" onclick="return jsSalvar();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; SALVAR</button>
+				</div>
+			</header>
+			<div class="panel-body">
+				<div>
+					<ul id="tabs">
+						<li><a name="tab-1">CADASTRO DADOS</a></li>
+						<li><a name="tab-2">MONTAR ORÇAMENTO</a></li>
+						<li><a name="tab-3">CONFIRMAR INFORMAÇÕES E CONCLUIR</a></li>
+					</ul>
+					<div id="content_tabs">
+						@Html.HiddenFor(x => Model.Codigo, new { @id = "Codigo_Orcamento" })
+						@Html.HiddenFor(x => Model.Cliente.Codigo, new { @id = "Codigo_Cliente" })
+						@Html.HiddenFor(x => Model.FuncionarioVendedor.Codigo, new { @id = "Codigo_Funcionario" })
+						<!--CADASTRO DADOS-->
+						<div id="tab-1">
+							<!--DADOS DO ESTABELECIMENTO-->
+							<div class="panel">
+								<header class="panel-heading">
+									<h4>Dados Cadastrais - Estabelecimento</h4>
+								</header>
+								<div class="panel-body">
+									<div class="row">
+										<div class="form-group form-group--float col-sm-4">
+											@Html.TextBoxFor(x => Model.Cliente.CNPJ, new { @class = "form-control noBlank", @readonly = "readonly" })
+											<label>CNPJ</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="form-group form-group--float col-sm-4">
+											@Html.TextBoxFor(x => Model.Cliente.RazaoSocial, new { @class = "form-control noBlank", @readonly = "readonly" })
+											<label>Razão Social</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="form-group form-group--float col-sm-4">
+											@Html.TextBoxFor(x => Model.Cliente.Cidade.Descricao, new { @class = "form-control noBlank", @readonly = "readonly" })
+											<label>Cidade</label>
+											<i class="form-group__bar"></i>
+										</div>
+									</div>
+									<div class="row">
+										<div class="form-group form-group--float col-sm-4">
+											@Html.TextBoxFor(x => Model.Cliente.Cidade.Estado, new { @class = "form-control noBlank", @readonly = "readonly" })
+											<label>Estado</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="form-group form-group--float col-sm-4">
+											@Html.TextBoxFor(x => Model.TelefoneContato, new { @class = "form-control noBlank maskPhone", @onblur = "AtualizaTelefoneFinal(this.value);" })
+											<label class="required">Telefone</label>
+											<i class="form-group__bar"></i>
+										</div>
+									</div>
+								</div>
+							</div>
+							<!--DADOS DE RASTREABILIDADE-->
+							<div class="panel">
+								<header class="panel-heading">
+									<h4>Dados Cadastrais - Estabelecimento</h4>
+								</header>
+								<div class="panel-body">
+									<div class="row">
+										<div class="form-group form-group--float col-sm-4">
+											@Html.TextBoxFor(x => Model.FuncionarioVendedor.Nome, new { @class = "form-control noBlank", @readonly = "readonly" })
+											<label>Representante</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="form-group form-group--float col-sm-4">
+											<input type="text" class="form-control" value="(34) 3253-0533" readonly />
+											<label>Telefone do Representante</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="form-group form-group--float col-sm-4">
+											@Html.TextBoxFor(x => Model.FuncionarioVendedor.Telefone, new { @class = "form-control noBlank", @readonly = "readonly" })
+											<label>Celular do Representante</label>
+											<i class="form-group__bar"></i>
+										</div>
+									</div>
+									<div class="row">
+										<div class="form-group form-group--float col-sm-4">
+											@Html.TextBoxFor(x => Model.FuncionarioVendedor.Email, new { @class = "form-control noBlank", @readonly = "readonly" })
+											<label>Email</label>
+											<i class="form-group__bar"></i>
+										</div>
+									</div>
+								</div>
+							</div>
+							<!--CONDIÇÕES DE FORNECIMENTO-->
+							<div class="panel">
+								<header class="panel-heading">
+									<h4>Condições de Fornecimento</h4>
+								</header>
+								<div class="panel-body">
+									<div class="row">
+										<div class="form-group form-group--float col-sm-4">
+											<input type="text" class="form-control" id="txtPrazo" name="txtPrazo" value="30 dias úteis" onblur="AtualizaPrazoEntrega();" />
+											<label>Prazo de Entrega</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="form-group form-group--float col-sm-4">
+											@Html.TextBoxFor(x => Model.ValidadeOrcamento, new { @class = "form-control noBlank", @onkeypress="return jsSomenteNumero(arguments[0] || window.event);", @onblur = "AtualizaValidadeProposta();" })
+											<label>Validade da Proposta</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="form-group col-sm-4">
+											<label>Condição de Pagamento</label>
+											@Html.DropDownListFor(x => Model.CondicaoPagamento.Codigo, listaCondicoes, "Selecione a condição de pagamento...", new { @class = "select2", @onchange = "AtualizaCondicaoPagamento()" })
+											<i class="form-group__bar"></i>
+										</div>
+									</div>
+									<div class="row">
+										<div class="form-group col-sm-4">
+											<label>Status</label>
+											@Html.DropDownListFor(x => Model.StatusOrcamento.Codigo, listaStatus, "Selecione o status...", new { @class = "select2" })
+											<i class="form-group__bar"></i>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!--MONTAR ORÇAMENTO-->
+						<div id="tab-2">
+							<div class="panel">
+								<header class="panel-heading">
+									<h4>Produtos Disponíveis</h4>
+								</header>
+								<div class="panel-body">
+									<div>
+										<ul id="tabs_2" style="display: block">
+											<li><a name="tab_treinamento">TREINAMENTOS</a></li>
+											<li><a name="tab_documentos">DOCUMENTOS</a></li>
+											<li><a name="tab_laudo">LAUDOS</a></li>
+											<li><a name="tab_2Via">2ª VIA</a></li>
+											<li><a name="tab_outros">OUTROS</a></li>
+										</ul>
+										<div id="content_tabs_2">
+											<!--TREINAMENTO-->
+											<div id="tab_treinamento">
+												<div class="table-responsive" style="overflow-x:unset">
+													<table id="data-table" class="table table-striped table-bordered">
+														<thead class="thead-default">
+															<tr>
+																<th>CÓDIGO</th>
+																<th>QUANTIDADE</th>
+																<th>PRODUTO</th>
+																<th>UNITÁRIO</th>
+																<th>ACRÉSCIMO</th>
+																<th>TOTAL</th>
+																<th>DESCONTO (%)</th>
+																<th>TOTAL C/ DESCONTO</th>
+															</tr>
+														</thead>
+														<tbody>
+															@foreach (CODE.Produto.ProdutoTela item in listaProdutosTreinamento)
+															{
+																CODE.ItemOrcamento itemOrcamento = listaItensVendidos.Where(x => x.produto.Codigo == item.Codigo).FirstOrDefault();
+
+																if (itemOrcamento == null)
+																{
+																	<tr>
+																		<td>
+																			@item.Codigo
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("qtde" + item.Codigo)" value="0" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="AtualizaQuantidade(this)" />
+																		</td>
+																		<td>
+																			@item.Descricao
+																		</td>
+																		<td>
+																			@item.ValorPorPessoa
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Acrescimo" + item.Codigo)" value="0,00" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarTotal(this)" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Total" + item.Codigo)" value="0,00" class="form-control" readonly  />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Desconto" + item.Codigo)" value="0" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarDesconto(this);" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("TotalcDesconto" + item.Codigo)" value="0,00" class="form-control" readonly />
+																		</td>
+																	</tr>		
+																}
+																else
+																{
+																	<tr>
+																		<td>
+																			@item.Codigo
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("qtde" + item.Codigo)" value="@Html.Raw(itemOrcamento.quantidade)" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="AtualizaQuantidade(this)" />
+																		</td>
+																		<td>
+																			@item.Descricao
+																		</td>
+																		<td>
+																			@item.ValorPorPessoa
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Acrescimo" + item.Codigo)" value="@Html.Raw(Convert.ToString(itemOrcamento.acrescimo).Replace(",","."))" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarTotal(this)" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Total" + item.Codigo)" value="@Html.Raw(Convert.ToString((item.ValorPorPessoa + itemOrcamento.acrescimo) * itemOrcamento.quantidade).Replace(",","."))" class="form-control" readonly />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Desconto" + item.Codigo)" value="@Html.Raw(Convert.ToString(itemOrcamento.percentualDesconto).Replace(",","."))" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarDesconto(this);" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("TotalcDesconto" + item.Codigo)" value="@Html.Raw(Convert.ToString(itemOrcamento.subtotal).Replace(",","."))" class="form-control" readonly />
+																		</td>
+																	</tr>		
+																}
+															}
+														</tbody>
+													</table>
+												</div>
+											</div>
+											<!--DOCUMENTOS-->
+											<div id="tab_documentos">
+												<div class="table-responsive" style="overflow-x:unset">
+													<table id="data-table" class="table table-striped table-bordered">
+														<thead class="thead-default">
+															<tr>
+																<th>CÓDIGO</th>
+																<th>QUANTIDADE</th>
+																<th>PRODUTO</th>
+																<th>UNITÁRIO</th>
+																<th>ACRÉSCIMO</th>
+																<th>TOTAL</th>
+																<th>DESCONTO (%)</th>
+																<th>TOTAL C/ DESCONTO</th>
+															</tr>
+														</thead>
+														<tbody>
+															@foreach (CODE.Produto.ProdutoTela item in listaProdutosDocumento)
+															{
+																CODE.ItemOrcamento itemOrcamento = listaItensVendidos.Where(x => x.produto.Codigo == item.Codigo).FirstOrDefault();
+
+																if (itemOrcamento == null)
+																{
+																	<tr>
+																		<td>
+																			@item.Codigo
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("qtde" + item.Codigo)" value="0" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="AtualizaQuantidade(this)" />
+																		</td>
+																		<td>
+																			@item.Descricao
+																		</td>
+																		<td>
+																			@item.ValorPorPessoa
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Acrescimo" + item.Codigo)" value="0,00" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarTotal(this)" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Total" + item.Codigo)" value="0,00" class="form-control" readonly />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Desconto" + item.Codigo)" value="0" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarDesconto(this);" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("TotalcDesconto" + item.Codigo)" value="0,00" class="form-control" readonly />
+																		</td>
+																	</tr>			
+																}
+																else
+																{
+																	<tr>
+																		<td>
+																			@item.Codigo
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("qtde" + item.Codigo)" value="@Html.Raw(itemOrcamento.quantidade)" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="AtualizaQuantidade(this)" />
+																		</td>
+																		<td>
+																			@item.Descricao
+																		</td>
+																		<td>
+																			@item.ValorPorPessoa
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Acrescimo" + item.Codigo)" value="@Html.Raw(Convert.ToString(itemOrcamento.acrescimo).Replace(",","."))" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarTotal(this)" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Total" + item.Codigo)" value="@Html.Raw(Convert.ToString((item.ValorPorPessoa + itemOrcamento.acrescimo) * itemOrcamento.quantidade).Replace(",","."))" class="form-control" readonly />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Desconto" + item.Codigo)" value="@Html.Raw(Convert.ToString(itemOrcamento.percentualDesconto).Replace(",","."))" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarDesconto(this);" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("TotalcDesconto" + item.Codigo)" value="@Html.Raw(Convert.ToString(itemOrcamento.subtotal).Replace(",","."))" class="form-control" readonly />
+																		</td>
+																	</tr>			
+																}
+															}
+														</tbody>
+													</table>
+												</div>
+											</div>
+											<!--LAUDOS-->
+											<div id="tab_laudo">
+												<div class="table-responsive" style="overflow-x:unset">
+													<table id="data-table" class="table table-striped table-bordered">
+														<thead class="thead-default">
+															<tr>
+																<th>CÓDIGO</th>
+																<th>QUANTIDADE</th>
+																<th>PRODUTO</th>
+																<th>UNITÁRIO</th>
+																<th>ACRÉSCIMO</th>
+																<th>TOTAL</th>
+																<th>DESCONTO (%)</th>
+																<th>TOTAL C/ DESCONTO</th>
+															</tr>
+														</thead>
+														<tbody>
+															@foreach (CODE.Produto.ProdutoTela item in listaProdutosLaudo)
+															{
+																CODE.ItemOrcamento itemOrcamento = listaItensVendidos.Where(x => x.produto.Codigo == item.Codigo).FirstOrDefault();
+
+																if (itemOrcamento == null)
+																{
+																	<tr>
+																		<td>
+																			@item.Codigo
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("qtde" + item.Codigo)" value="0" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="AtualizaQuantidade(this)" />
+																		</td>
+																		<td>
+																			@item.Descricao
+																		</td>
+																		<td>
+																			@item.ValorPorPessoa
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Acrescimo" + item.Codigo)" value="0,00" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarTotal(this)" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Total" + item.Codigo)" value="0,00" class="form-control" readonly />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Desconto" + item.Codigo)" value="0" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarDesconto(this);" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("TotalcDesconto" + item.Codigo)" value="0,00" class="form-control" readonly />
+																		</td>
+																	</tr>			
+																}
+																else
+																{
+																	<tr>
+																		<td>
+																			@item.Codigo
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("qtde" + item.Codigo)" value="@Html.Raw(itemOrcamento.quantidade)" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="AtualizaQuantidade(this)" />
+																		</td>
+																		<td>
+																			@item.Descricao
+																		</td>
+																		<td>
+																			@item.ValorPorPessoa
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Acrescimo" + item.Codigo)" value="@Html.Raw(Convert.ToString(itemOrcamento.acrescimo).Replace(",","."))" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarTotal(this)" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Total" + item.Codigo)" value="@Html.Raw(Convert.ToString((item.ValorPorPessoa + itemOrcamento.acrescimo) * itemOrcamento.quantidade).Replace(",","."))" class="form-control" readonly />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Desconto" + item.Codigo)" value="@Html.Raw(Convert.ToString(itemOrcamento.percentualDesconto).Replace(",","."))" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarDesconto(this);" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("TotalcDesconto" + item.Codigo)" value="@Html.Raw(Convert.ToString(itemOrcamento.subtotal).Replace(",","."))" class="form-control" readonly />
+																		</td>
+																	</tr>			
+																}
+															}
+														</tbody>
+													</table>
+												</div>
+
+											</div>
+											<!--2ª VIA-->
+											<div id="tab_2Via">
+												<div class="table-responsive" style="overflow-x:unset">
+													<table id="data-table" class="table table-striped table-bordered">
+														<thead class="thead-default">
+															<tr>
+																<th>CÓDIGO</th>
+																<th>QUANTIDADE</th>
+																<th>PRODUTO</th>
+																<th>UNITÁRIO</th>
+																<th>ACRÉSCIMO</th>
+																<th>TOTAL</th>
+																<th>DESCONTO (%)</th>
+																<th>TOTAL C/ DESCONTO</th>
+															</tr>
+														</thead>
+														<tbody>
+															@foreach (CODE.Produto.ProdutoTela item in listaProdutos2Via)
+															{
+																CODE.ItemOrcamento itemOrcamento = listaItensVendidos.Where(x => x.produto.Codigo == item.Codigo).FirstOrDefault();
+
+																if (itemOrcamento == null)
+																{
+																	<tr>
+																		<td>
+																			@item.Codigo
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("qtde" + item.Codigo)" value="0" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="AtualizaQuantidade(this)" />
+																		</td>
+																		<td>
+																			@item.Descricao
+																		</td>
+																		<td>
+																			@item.ValorPorPessoa
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Acrescimo" + item.Codigo)" value="0,00" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarTotal(this)" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Total" + item.Codigo)" value="0,00" class="form-control" readonly />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Desconto" + item.Codigo)" value="0" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarDesconto(this);" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("TotalcDesconto" + item.Codigo)" value="0,00" class="form-control" readonly />
+																		</td>
+																	</tr>			
+																}
+																else
+																{
+																	<tr>
+																		<td>
+																			@item.Codigo
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("qtde" + item.Codigo)" value="@Html.Raw(itemOrcamento.quantidade)" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="AtualizaQuantidade(this)" />
+																		</td>
+																		<td>
+																			@item.Descricao
+																		</td>
+																		<td>
+																			@item.ValorPorPessoa
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Acrescimo" + item.Codigo)" value="@Html.Raw(Convert.ToString(itemOrcamento.acrescimo).Replace(",","."))" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarTotal(this)" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Total" + item.Codigo)" value="@Html.Raw(Convert.ToString((item.ValorPorPessoa + itemOrcamento.acrescimo) * itemOrcamento.quantidade).Replace(",","."))" class="form-control" readonly />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Desconto" + item.Codigo)" value="@Html.Raw(Convert.ToString(itemOrcamento.percentualDesconto).Replace(",","."))" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarDesconto(this);" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("TotalcDesconto" + item.Codigo)" value="@Html.Raw(Convert.ToString(itemOrcamento.subtotal).Replace(",","."))" class="form-control" readonly />
+																		</td>
+																	</tr>			
+																}
+															}
+														</tbody>
+													</table>
+												</div>
+
+											</div>
+											<!--OUTROS-->
+											<div id="tab_outros">
+												<div class="table-responsive" style="overflow-x:unset">
+													<table id="data-table" class="table table-striped table-bordered">
+														<thead class="thead-default">
+															<tr>
+																<th>CÓDIGO</th>
+																<th>QUANTIDADE</th>
+																<th>PRODUTO</th>
+																<th>UNITÁRIO</th>
+																<th>ACRÉSCIMO</th>
+																<th>TOTAL</th>
+																<th>DESCONTO (%)</th>
+																<th>TOTAL C/ DESCONTO</th>
+															</tr>
+														</thead>
+														<tbody>
+															@foreach (CODE.Produto.ProdutoTela item in listaProdutosOutros)
+															{
+																CODE.ItemOrcamento itemOrcamento = listaItensVendidos.Where(x => x.produto.Codigo == item.Codigo).FirstOrDefault();
+
+																if (itemOrcamento == null)
+																{
+																	<tr>
+																		<td>
+																			@item.Codigo
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("qtde" + item.Codigo)" value="0" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="AtualizaQuantidade(this)" />
+																		</td>
+																		<td>
+																			@item.Descricao
+																		</td>
+																		<td>
+																			@item.ValorPorPessoa
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Acrescimo" + item.Codigo)" value="0,00" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarTotal(this)" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Total" + item.Codigo)" value="0,00" class="form-control" readonly />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Desconto" + item.Codigo)" value="0" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarDesconto(this);" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("TotalcDesconto" + item.Codigo)" value="0,00" class="form-control" readonly />
+																		</td>
+																	</tr>			
+																}
+																else
+																{
+																	<tr>
+																		<td>
+																			@item.Codigo
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("qtde" + item.Codigo)" value="@Html.Raw(itemOrcamento.quantidade)" class="form-control" onkeypress="return jsSomenteNumero(arguments[0] || window.event)" onchange="AtualizaQuantidade(this)" />
+																		</td>
+																		<td>
+																			@item.Descricao
+																		</td>
+																		<td>
+																			@item.ValorPorPessoa
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Acrescimo" + item.Codigo)" value="@Html.Raw(Convert.ToString(itemOrcamento.acrescimo).Replace(",","."))" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarTotal(this)" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Total" + item.Codigo)" value="@Html.Raw(Convert.ToString((item.ValorPorPessoa + itemOrcamento.acrescimo) * itemOrcamento.quantidade).Replace(",","."))" class="form-control" readonly />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("Desconto" + item.Codigo)" value="@Html.Raw(Convert.ToString(itemOrcamento.percentualDesconto).Replace(",","."))" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="AtualizarDesconto(this);" />
+																		</td>
+																		<td>
+																			<input type="text" id="@Html.Raw("TotalcDesconto" + item.Codigo)" value="@Html.Raw(Convert.ToString(itemOrcamento.subtotal).Replace(",","."))" class="form-control" readonly />
+																		</td>
+																	</tr>			
+																}
+															}
+														</tbody>
+													</table>
+												</div>
+
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!--CONFIRMAR INFORMAÇÕES E CONCLUIR-->
+						<div id="tab-3">
+							<!--DADOS DO CLIENTE-->
+							<div class="panel">
+								<header class="panel-heading">
+									<h4>Dados do Cliente</h4>
+								</header>
+								<div class="panel-body">
+									<div class="row">
+										<div class="form-group form-group--float col-sm-3">
+											@Html.TextBoxFor(x => Model.Cliente.CNPJ, new { @class = "form-control noBlank", @readonly = "readonly" })
+											<label>CNPJ</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="form-group form-group--float col-sm-3">
+											@Html.TextBoxFor(x => Model.Cliente.RazaoSocial, new { @class = "form-control noBlank", @readonly = "readonly" })
+											<label>Razão Social</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="form-group form-group--float col-sm-3">
+											<input type="text" class="form-control" id="txtTelefoneFinal" name="txtTelefoneFinal" value="@Html.Raw(Model.TelefoneContato)" readonly />
+											<label class="required">Telefone</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="form-group form-group--float col-sm-3">
+											<input type="text" value="@Html.Raw(Model.Cliente.Cidade.Descricao) - @Html.Raw(Model.Cliente.Cidade.Estado)" class="form-control" readonly />
+											<label>Cidade</label>
+											<i class="form-group__bar"></i>
+										</div>
+									</div>
+								</div>
+							</div>
+							<!--DADOS DA CIA-->
+							<div class="panel">
+								<header class="panel-heading">
+									<h4>Dados da CIA</h4>
+								</header>
+								<div class="panel-body">
+									<div class="row">
+										<div class="form-group form-group--float col-sm-3">
+											@Html.TextBoxFor(x => Model.FuncionarioVendedor.Nome, new { @class = "form-control noBlank", @readonly = "readonly" })
+											<label>Representante</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="form-group form-group--float col-sm-3">
+											<input type="text" class="form-control" value="(34) 3253-0533" readonly />
+											<label>Telefone do Representante</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="form-group form-group--float col-sm-3">
+											@Html.TextBoxFor(x => Model.FuncionarioVendedor.Telefone, new { @class = "form-control noBlank", @readonly = "readonly" })
+											<label>Celular do Representante</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="form-group form-group--float col-sm-3">
+											@Html.TextBoxFor(x => Model.FuncionarioVendedor.Email, new { @class = "form-control noBlank", @readonly = "readonly" })
+											<label>Email</label>
+											<i class="form-group__bar"></i>
+										</div>
+									</div>
+									<div class="row">
+										<div class="form-group form-group--float col-sm-3">
+											<input type="text" class="form-control" id="txtValProposta" name="txtValProposta" value="@Html.Raw(Model.ValidadeOrcamento)" readonly />
+											<label>Validade Proposta</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="form-group form-group--float col-sm-3">
+											<input type="text" class="form-control" id="txtCondicao" name="txtCondicao" value="@Html.Raw(Model.CondicaoPagamento.Descricao)" readonly />
+											<label>Condição de pagamento</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<div class="form-group form-group--float col-sm-3">
+											<input type="text" class="form-control" id="txtPrazoEntrega" name="txtPrazoEntrega" value="30 dias úteis" readonly />
+											<label>Prazo de entrega</label>
+											<i class="form-group__bar"></i>
+										</div>
+									</div>
+								</div>
+							</div>
+							<!--PRODUTOS VENDIDOS-->
+							<div class="panel">
+								<header class="panel-heading">
+									<h4>PRODUTOS SELECIONADOS</h4>
+								</header>
+								<div class="panel-body">
+									<div class="table-responsive">
+										<table class="table table-striped table-bordered table-hover" id="tbProdutos">
+											<thead class="thead-default">
+												<tr>
+													<th style="width:50px;">Código</th>
+													<th>Produto</th>
+													<th style="width:100px;">Unitário</th>
+													<th style="width:100px;">Acréscimo</th>
+													<th style="width:100px;">Total</th>
+													<th style="width:100px; text-align:center;">Desconto (%)</th>
+													<th style="width:150px;">Valor Final</th>
+												</tr>
+											</thead>
+											<tbody></tbody>
+											<tfoot></tfoot>
+										</table>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	var produtosVendidos = [];
+
+	$(document).ready(function () { 
+
+		$("#content_tabs").find("[id^='tab-']").hide(); // Hide all content
+		$("#tabs li:first").attr("id", "current"); // Activate the first tab
+		$("#content_tabs #tab-1").fadeIn(); // Show first tab's content
+
+		$('#tabs a').click(function (e) {
+			e.preventDefault();
+			if ($(this).closest("li").attr("id") == "current") { //detection for current tab
+				return;
+			}
+			else {
+				$("#content_tabs").find("[id^='tab-']").hide(); // Hide all content
+				$("#tabs li").attr("id", ""); //Reset id's
+				$(this).parent().attr("id", "current"); // Activate this
+				$('#' + $(this).attr('name')).fadeIn(); // Show content for the current tab
+			}
+		});
+
+		$("#content_tabs_2").find("[id^='tab']").hide(); // Hide all content
+		$("#tabs_2 li:first").attr("id", "current"); // Activate the first tab
+		$("#content_tabs_2 #tab_treinamento").fadeIn(); // Show first tab's content
+
+		$('#tabs_2 a').click(function (e) {
+			e.preventDefault();
+			if ($(this).closest("li").attr("id") == "current") { //detection for current tab
+				return;
+			}
+			else {
+				$("#content_tabs_2").find("[id^='tab']").hide(); // Hide all content
+				$("#tabs_2 li").attr("id", ""); //Reset id's
+				$(this).parent().attr("id", "current"); // Activate this
+				$('#' + $(this).attr('name')).fadeIn(); // Show content for the current tab
+			}
+		});
+
+		if ($('#ProdVendido').length > 0) {
+			produtosVendidos = JSON.parse($('#ProdVendido').val());
+
+			for (var i = 0; i < produtosVendidos.length; i++)
+			{
+				produtosVendidos[i].valorTotal = produtosVendidos[i].Quantidade * (produtosVendidos[i].valorUnitario + produtosVendidos[i].Acrescimo);
+			}
+
+			PreencheTabela();
+		}
+		
+	});
+
+	function AtualizaTelefoneFinal(telefone) {
+		$('#txtTelefoneFinal').val(telefone);
+		$('#txtTelefoneFinal').trigger('change');
+	}
+
+	function AtualizaValidadeProposta() {
+
+		var validade = $('#ValidadeOrcamento').val();
+
+		$('#txtValProposta').val(validade + " Dias");
+	}
+
+	function AtualizaCondicaoPagamento() {
+		var condicao = $('#CondicaoPagamento_Codigo option:selected').text();
+		var nParcelas = condicao.split('/');
+
+		$('#txtCondicao').val(condicao);
+		$('#txtCondicao').trigger('change');
+
+		PreencheTabela();
+	}
+
+	function AtualizaPrazoEntrega() {
+		var prazo = $('#txtPrazo').val();
+
+		$('#txtPrazoEntrega').val(prazo);
+	}
+
+	//Inserção e remoção de produtos
+	function AtualizaQuantidade(linha) {
+		a = linha;
+		if ($(linha).val() != "") {
+
+			var codigoProduto = parseInt($(linha).parent().parent().children("td:nth-child(1)").html());
+			var nomeProduto = $(linha).parent().parent().children("td:nth-child(3)").html();
+			var valorUnitario = parseFloat($(linha).parent().parent().children("td:nth-child(4)").html());
+
+			var quantidadeSelecionada = $("#qtde" + codigoProduto).val();
+			var PercentualDesconto = $("#Desconto" + codigoProduto).val();
+			var acrescimo = $("#Acrescimo" + codigoProduto).val();
+
+			var valorTotal = (parseInt(quantidadeSelecionada) * (parseFloat(valorUnitario) + parseFloat(acrescimo))).toFixed(2);
+			var valorTotalcDesconto = (valorTotal - (valorTotal * (PercentualDesconto / 100))).toFixed(2);
+
+			$("#Total" + codigoProduto).val(valorTotal);
+			$("#TotalcDesconto" + codigoProduto).val(valorTotalcDesconto);
+
+			if (quantidadeSelecionada > 0) {
+				var insert = true;
+
+				for (var i = 0; i < produtosVendidos.length; i++) {
+					if (produtosVendidos[i].produto_Codigo == codigoProduto) {
+						produtosVendidos[i].Quantidade = quantidadeSelecionada;
+						produtosVendidos[i].valorTotal = valorTotal;
+						produtosVendidos[i].PercentualDesconto = PercentualDesconto;
+						produtosVendidos[i].Subtotal = valorTotalcDesconto;
+						produtosVendidos[i].Acrescimo = acrescimo;
+
+						insert = false;
+						break;
+					}
+				}
+
+				if (insert) {
+
+					produto = new Object();
+					produto.produto_Codigo = codigoProduto;
+					produto.Quantidade = quantidadeSelecionada;
+					produto.Nome = nomeProduto;
+					produto.valorUnitario = valorUnitario;
+					produto.valorTotal = valorTotal;
+					produto.PercentualDesconto = PercentualDesconto;
+					produto.Subtotal = valorTotalcDesconto;
+					produto.Acrescimo = acrescimo;
+
+					produtosVendidos.push(produto);
+				}
+
+			}
+			else {
+				//Remover do array
+				for (var i = 0; i < produtosVendidos.length; i++) {
+					if (produtosVendidos[i].produto_Codigo == codigoProduto) {
+						produtosVendidos.splice(i, 1);
+						break;
+					}
+				}
+			}
+
+			PreencheTabela();
+		}
+	}
+
+	function AtualizarDesconto(linha) {
+
+		if ($(linha).val() != "") {
+
+			var codigoProduto = parseInt($(linha).parent().parent().children("td:nth-child(1)").html());
+
+			var PercentualDesconto = parseFloat($("#Desconto" + codigoProduto).val().replace(",","."));
+
+			if (PercentualDesconto < 0) {
+				alert("Não é permitido aplicar desconto negativo!!!");
+
+				PercentualDesconto = 0;
+				$("#Desconto" + codigoProduto).val("0");
+				$("#Desconto" + codigoProduto).focus();
+			}
+
+			var valorTotal = parseFloat($("#Total" + codigoProduto).val());
+			var acrescimo = $("#Acrescimo" + codigoProduto).val();
+
+			var valorTotalcDesconto = (valorTotal - (valorTotal * (PercentualDesconto / 100))).toFixed(2);
+
+			$("#TotalcDesconto" + codigoProduto).val(valorTotalcDesconto);
+
+			for (var i = 0; i < produtosVendidos.length; i++) {
+				if (produtosVendidos[i].produto_Codigo == codigoProduto) {
+					produtosVendidos[i].valorTotal = valorTotal;
+					produtosVendidos[i].PercentualDesconto = PercentualDesconto;
+					produtosVendidos[i].Subtotal = valorTotalcDesconto;
+					produtosVendidos[i].Acrescimo = acrescimo;
+					break;
+				}
+			}
+			PreencheTabela();
+		}
+	}
+
+	function AtualizarTotal(linha) {
+		if ($(linha).val() != "") {
+
+			var codigoProduto = parseInt($(linha).parent().parent().children("td:nth-child(1)").html());
+			var valorUnitario = parseFloat($(linha).parent().parent().children("td:nth-child(4)").html());
+
+			var quantidadeSelecionada = $("#qtde" + codigoProduto).val();
+			var PercentualDesconto = parseFloat($("#Desconto" + codigoProduto).val().replace(",", "."));
+			var acrescimo = parseFloat($("#Acrescimo" + codigoProduto).val().replace(",", "."));
+
+			//Atualiza o valor total com o acréscimo
+			var valorTotal = (parseInt(quantidadeSelecionada) * (parseFloat(valorUnitario) + parseFloat(acrescimo))).toFixed(2);
+
+			//Atualiza valores total com desconto
+			var valorTotalcDesconto = (valorTotal - (valorTotal * (PercentualDesconto / 100))).toFixed(2);
+
+			$("#Total" + codigoProduto).val(valorTotal);
+			$("#TotalcDesconto" + codigoProduto).val(valorTotalcDesconto);
+
+			for (var i = 0; i < produtosVendidos.length; i++) {
+				if (produtosVendidos[i].produto_Codigo == codigoProduto) {
+					produtosVendidos[i].valorTotal = valorTotal;
+					produtosVendidos[i].PercentualDesconto = PercentualDesconto;
+					produtosVendidos[i].Subtotal = valorTotalcDesconto;
+					produtosVendidos[i].Acrescimo = acrescimo;
+					break;
+				}
+			}
+
+			PreencheTabela();
+		}
+	}
+
+	function PreencheTabela() {
+
+		var table = $('#tbProdutos');
+		var tbody = $('#tbProdutos tbody');
+		var tfoot = $('#tbProdutos tfoot');
+
+		//limpar tbody
+		tbody.innerHTML = "";
+		var valorFinal = 0.00;
+		for (var i = 0; i < produtosVendidos.length; i++) {
+			valorFinal += parseFloat(produtosVendidos[i].Subtotal);
+			tbody.innerHTML += "<tr><td>" + produtosVendidos[i].produto_Codigo + "</td><td>" + produtosVendidos[i].Nome + "</td><td>" + produtosVendidos[i].valorUnitario.toString().replace(".", ",") + "</td><td>" + produtosVendidos[i].Acrescimo.toString().replace(".", ",") + "</td><td>" + produtosVendidos[i].valorTotal + "</td><td>" + produtosVendidos[i].PercentualDesconto + "</td><td>" + produtosVendidos[i].Subtotal + "</td></tr>";
+		}
+
+		tbody.html(tbody.innerHTML);
+
+		var condicao = $('#CondicaoPagamento_Codigo option:selected').text();
+		var nParcelas = condicao.split('/');
+
+		valorFinal = (parseFloat(valorFinal) + (nParcelas.length * parseFloat("3.00"))).toFixed(2);
+
+		tfoot.html("<tr><td colspan='6'></td><td>" + valorFinal + "</td></tr>");
+
+	}
+
+	function jsSalvar()
+	{
+		var telefone = $('#TelefoneContato').val();
+		var validade = $('#ValidadeOrcamento').val();
+		var condicao = $('#CondicaoPagamento_Codigo option:selected').val();
+
+		if (telefone == "") {
+			OpenAlert("Atenção!", "Por favor, informe o telefone de contato!", "danger");
+			$('#txtTelefone').focus();
+			return false;
+		}
+
+		if (validade == "") {
+			OpenAlert("Atenção!", "Por favor, informe o prazo de validade da proposta!", "danger");
+			$('#txtValidadeProposta').focus();
+			return false;
+		}
+
+		if (condicao == "0") {
+			OpenAlert("Atenção!", "Por favor, informe a condição de pagamento!", "danger");
+			$('#CodigoCondicao').focus();
+			return false;
+		}
+
+		if (produtosVendidos.length == 0) {
+			OpenAlert("Atenção!", "Por favor, é necessário informar pelo menos um produto para concluir o orçamento!", "danger");
+			return false;
+		}
+
+		jsLoading(true);
+
+		var data = {
+			CodigoOrcamento: $('#Codigo_Orcamento').val(),
+			CodigoCliente: $('#Codigo_Cliente').val(),
+			CodigoFuncionario: $('#Codigo_Funcionario').val(),
+			CodigoCondicao: $('#CondicaoPagamento_Codigo option:selected').val(),
+			CodigoStatus: $('#StatusOrcamento_Codigo option:selected').val(),
+			ValidadeOrcamento: $('#ValidadeOrcamento').val(),
+			TelefoneContato: $('#TelefoneContato').val(),
+			itensJson: JSON.stringify(produtosVendidos)
+		};
+
+		$.ajax({
+			type: "POST",
+			url: "/CabecalhoOrcamento/GravarOrcamento/",
+			data: data,
+			success: function (data) {
+				if (data.sucesso) {
+					jsLoading(false);
+					swal({
+						title: 'Deseja remover a coluna de desconto?',
+						text: "",
+						type: 'warning',
+						showCancelButton: true,
+						confirmButtonColor: '#3085d6',
+						cancelButtonColor: '#d33',
+						confirmButtonText: 'Sim!',
+						cancelButtonText: 'Não!',
+						closeOnConfirm: false,
+						closeOnCancel: false
+					}).then(function (result) {
+						window.location.assign("/CabecalhoOrcamento/GerarPDF/?codigoOrcamento=" + data.codigoOrcamento + "&removerColunaDesconto=true")
+					}).catch(function (result) {
+						if (result === 'cancel') {
+							window.location.assign("/CabecalhoOrcamento/GerarPDF/?codigoOrcamento=" + data.codigoOrcamento + "&removerColunaDesconto=false");
+						}
+					});
+
+				} else {
+					jsLoading(false);
+					OpenAlert("Atenção!", data.mensagemErro, "danger");
+					return false;
+				}
+			}
+		});
+
+	}
+
+</script>

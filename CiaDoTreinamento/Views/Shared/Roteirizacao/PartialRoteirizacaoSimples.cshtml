@@ -1,0 +1,396 @@
+﻿@{
+	string mensagemErro;
+
+	//GET INSTRUTORES
+	List<CODE.Funcionario> agentesInstrutores = CODE.FuncionarioBLL.getFuncionarioByPerfil(10, out mensagemErro);
+	List<SelectListItem> listaInstrutores = new List<SelectListItem>();
+	foreach (CODE.Funcionario func in agentesInstrutores)
+	{
+		listaInstrutores.Add(new SelectListItem()
+		{
+			Text = func.Nome,
+			Value = func.Codigo.ToString()
+		});
+	}
+}
+
+<div id="divModalRoteirizacao" class="modalAlerta animate-zoom" style="display: none">
+	<div class="contentModal">
+		<!--MODAL HEADER-->
+		<div class="modal-header">
+			<h5>INFORMAR DADOS PARA ROTEIRIZAÇÃO</h5>
+		</div>
+		<!--MODAL CONTENT-->
+		<div class="modal-content" style="max-height:400px; overflow-y:auto">
+			<div class="panel">
+				<header class="panel-heading">
+					<h4>Dados do cliente</h4>
+				</header>
+				<div class="panel-body">
+					<input type="hidden" id="hfCodigoPedido" name="hfCodigoPedido" />
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							<input type="text" class="form-control" name="txtaRazaoNomeCliente" id="txtaRazaoNomeCliente" readonly />
+							<label>RazaoSocial / Nome</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							<input type="text" class="form-control" name="txtCnpjCpfCliente" id="txtCnpjCpfCliente" readonly />
+							<label>CNPJ / CPF</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							<input type="text" class="form-control" name="txtNomeFantasia" id="txtNomeFantasia" readonly />
+							<label>Nome Fantasia</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							<input type="text" class="form-control" name="txtEnderecoCliente" id="txtEnderecoCliente" readonly />
+							<label>Endereço</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							<input type="text" class="form-control" name="txtCidadeEstado" id="txtCidadeEstado" readonly />
+							<label>Cidade - UF</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							<input type="text" class="form-control" name="txtCEP" id="txtCEP" readonly />
+							<label>CEP</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="panel">
+				<header class="panel-heading">
+					<h4>Produtos Vendidos</h4>
+				</header>
+				<div class="panel-body">
+					<div class="table-responsive">
+						<table name="tbProdutos" class="table table-bordered table-striped">
+							<thead class="thead-default">
+								<tr>
+									<th class="center">PRODUTO</th>
+									<th class="center">QUANTIDADE</th>
+									<th class="center">VALOR UNITÁRIO</th>
+									<th class="center">VALOR VENDA</th>
+									<th class="center">TOTAL	</th>
+								</tr>
+							</thead>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="panel">
+				<header class="panel-heading">
+					<h4>Dados para Roteirização</h4>
+				</header>
+				<div class="panel-body">
+					<div class="row">
+						<div class="form-group col-sm-4">
+							<label>Instrutor</label>
+							@Html.DropDownList("ddlInstrutorRota", listaInstrutores, "Selecione o Instrutor...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label>Sala para treinamento</label>
+							@Html.DropDownList("ddlSalaRota", new List<SelectListItem>(), "Selecione a sala...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							<input type="text" class="form-control" name="txtInformacoesAdicionais" id="txtInformacoesAdicionais" />
+							<label>Informações sobre treinamento</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-4">
+							<label>Data Inicio Treinamento</label>
+							<div class="input-group">
+								<span class="input-group-addon"><i class="zmdi zmdi-calendar"></i></span>
+								<div class="form-group">
+									<input type="text" id="dtpDataInicioTreinamento" name="dtpDataInicioTreinamento" class="form-control date-picker" />
+									<i class="form-group__bar"></i>
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-4">
+							<label>Data Fim Treinamento</label>
+							<div class="input-group">
+								<span class="input-group-addon"><i class="zmdi zmdi-calendar"></i></span>
+								<div class="form-group">
+									<input type="text" id="dtpDataFimTreinamento" name="dtpDataFimTreinamento" class="form-control date-picker" />
+									<i class="form-group__bar"></i>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--MODAL FOOTER-->
+		<div class="modal-footer">
+			<button id="btnConfirmar" class="btn btn-secondary confirmar" onclick="jsGravar(13)">CONFIRMAR</button>
+			&nbsp;
+			<button id="btnPendenteRota" class="btn btn-secondary pendente" onclick="jsValidarPendencia(17)" style="display:none">PENDENTE ROTA</button>
+			&nbsp;
+			<button id="btnPendenteVistoria" class="btn btn-secondary pendente" onclick="jsValidarPendencia(18)" style="display:none">PENDENTE VISTORIA</button>
+			&nbsp;
+			<button id="btnCancelar" class="btn btn-secondary cancelar" onclick="closeModal(this)">CANCELAR</button>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	var detalheRetornoPedido = "";
+
+	function openModalRoteirizacaoSimples(codigoPedido) {
+
+		$('#hfCodigoPedido').val(codigoPedido);
+
+		jsBuscarDadosPedido(codigoPedido);
+	}
+
+	function jsBuscarDadosPedido(codigoPedido) {
+
+		var data = {
+			codigoPedido: codigoPedido
+		};
+
+		$.ajax({
+			type: "GET",
+			url: "/Roteirizacao/BuscarPedidoARoteirizar/",
+			data: data,
+			async: false,
+			success: function (result) {
+				if (result.sucesso) {
+
+					if (result.pedido.funcionarioInstrutor.codigo && result.pedido.funcionarioInstrutor.codigo > 0) {
+						$('#ddlInstrutorRota').val(result.pedido.funcionarioInstrutor.codigo);
+						$('#ddlInstrutorRota').trigger('change');
+					}
+
+					if (result.pedido.infoTreinamento && result.pedido.infoTreinamento != "") {
+						$('#txtInformacoesAdicionais').val(result.pedido.infoTreinamento);
+						$('#txtInformacoesAdicionais').trigger('change');
+					}
+
+					if (result.pedido.dataInicioTreinamento && result.pedido.dataInicioTreinamento != "0001-01-01T00:00:00") {
+						$('#dtpDataInicioTreinamento').val(moment(result.pedido.dataInicioTreinamento).format("DD/MM/YYYY"));
+						$('#dtpDataInicioTreinamento').trigger('change');
+					} else {
+						$('#dtpDataInicioTreinamento').val(moment(new Date()).format("DD/MM/YYYY"));
+						$('#dtpDataInicioTreinamento').trigger('change');
+					}
+
+					if (result.pedido.dataFinalTreinamento && result.pedido.dataFinalTreinamento != "0001-01-01T00:00:00") {
+						$('#dtpDataFimTreinamento').val(moment(result.pedido.dataFinalTreinamento).format("DD/MM/YYYY"));
+						$('#dtpDataFimTreinamento').trigger('change');
+					} else {
+						$('#dtpDataFimTreinamento').val(moment(new Date()).format("DD/MM/YYYY"));
+						$('#dtpDataFimTreinamento').trigger('change');
+					}
+
+					jsBuscarParceirosSala(result.pedido.cliente.cidade.codigo, result.pedido.parceiraSalaTreinamento);
+					montarTabelaRoteirizacao(result.itensPedido);
+
+					if (result.pedido.cliente.tipoCliente == 1) {
+						$('#txtaRazaoNomeCliente').val(result.pedido.cliente.razaoSocial);
+						$('#txtCnpjCpfCliente').val(result.pedido.cliente.cnpj);
+					} else {
+						$('#txtaRazaoNomeCliente').val(result.pedido.cliente.nome);
+						$('#txtCnpjCpfCliente').val(result.pedido.cliente.cpf);
+					}
+
+					$('#txtNomeFantasia').val(result.pedido.cliente.nomeFantasia);
+					$('#txtEnderecoCliente').val(result.pedido.cliente.endereco + " - " + result.pedido.cliente.bairro);
+					$('#txtCidadeEstado').val(result.pedido.cliente.cidade.descricao + " - " + result.pedido.cliente.cidade.estado);
+					$('#txtCEP').val(result.pedido.cliente.cep);
+
+					$('#txtaRazaoNomeCliente').addClass("form-control--active");
+					$('#txtCnpjCpfCliente').addClass("form-control--active");
+					$('#txtNomeFantasia').addClass("form-control--active");
+					$('#txtEnderecoCliente').addClass("form-control--active");
+					$('#txtCidadeEstado').addClass("form-control--active");
+					$('#txtCEP').addClass("form-control--active");
+
+					if (result.temVistoria) {
+						$('#btnPendenteVistoria').show();
+					} else {
+						$('#btnPendenteRota').show();
+					}
+					
+					$('#divModalRoteirizacao').show();
+				} else {
+					OpenAlert("Atenção!", result.mensagemErro, "danger");
+					return false;
+				}
+			}
+		});
+	}
+
+	function jsBuscarParceirosSala(codigoCidade, codigoParceiroSalaSelecionado) {
+
+		var data = {
+			codigoCidade: codigoCidade
+		};
+
+		var $el = $('#ddlSalaRota');
+
+		$.ajax({
+			type: "GET",
+			url: "/Roteirizacao/BuscarParceirosSala/",
+			data: data,
+			success: function (data) {
+				if (data.sucesso) {
+					$el.empty(); // remove old options
+					$el.append($("<option></option>")
+						.attr("value", '').text('No Posto'));
+					$.each(data.listaParceirosSala, function (i, obj) {
+						$el.append($("<option></option>")
+							.attr("value", obj.codigo).text(obj.descricao));
+					});
+					if (codigoParceiroSalaSelecionado) {
+						$el.val(codigoParceiroSalaSelecionado);
+					}
+					$el.trigger("change");
+
+					jsLoading(false);
+				}
+			}
+		});
+	}
+
+	function montarTabelaRoteirizacao(itensPedido) {
+
+		var tabelaObjeto = document.getElementsByName('tbProdutos')[0];
+		removeAllChilds(tabelaObjeto);
+
+		if (tabelaObjeto.tHead == null) {
+			var listaColunas = ["PRODUTO", "QUANTIDADE", "VALOR UNITÁRIO", "VALOR VENDA", "TOTAL"];
+			jsAdicionarCabecalhoTabela(tabelaObjeto, listaColunas);
+		}
+
+		var tbody = jsAdicionarCorpoTabela(tabelaObjeto);
+
+		for (i = 0; i < itensPedido.length; i++) {
+
+			var tr = document.createElement('tr');
+			var td1 = document.createElement('td');
+			var td2 = document.createElement('td');
+			var td3 = document.createElement('td');
+			var td4 = document.createElement('td');
+			var td5 = document.createElement('td');
+
+			td1.innerHTML = itensPedido[i].produto.descricao;
+			td2.innerHTML = itensPedido[i].quantidade;
+			td3.innerHTML = itensPedido[i].produto.valorPorPessoa;
+			td4.innerHTML = itensPedido[i].valorFinal;
+			td5.innerHTML = itensPedido[i].subtotal;
+
+			var listaColunas = [td1, td2, td3, td4, td5];
+
+			jsAdicionarLinhaTabela(listaColunas, tr);
+
+			tbody.appendChild(tr);
+		}
+	}
+
+	function jsGravar(codigoStatus) {
+
+		if (!jsValidarDados()) {
+			return false;
+		}
+
+		var data = {
+			codigoPedido: $('#hfCodigoPedido').val(),
+			ddlInstrutorRota: $('#ddlInstrutorRota').val(),
+			ddlSalaRota: $('#ddlSalaRota').val(),
+			txtInformacoesAdicionais: $('#txtInformacoesAdicionais').val(),
+			dtpDataInicioTreinamento: $('#dtpDataInicioTreinamento').val(),
+			dtpDataFimTreinamento: $('#dtpDataFimTreinamento').val(),
+			codigoStatus: codigoStatus,
+			detalheRetornoPedido: detalheRetornoPedido
+		};
+
+		$.ajax({
+			type: "POST",
+			url: "/Roteirizacao/AtualizarPedidoRota/",
+			data: data,
+			success: function (data) {
+				if (data.sucesso) {
+					$('#divModalRoteirizacao').hide();
+					OpenAlert("Sucesso!", "Dados atualizados com sucesso!", "success");
+					return true;
+				} else {
+					OpenAlert("Atenção!", data.mensagemErro, "danger");
+					return false;
+				}
+			}
+		});
+	}
+
+	function jsValidarDados() {
+
+		if ($('#ddlInstrutorRota').val() == "") {
+			OpenAlert("Atenção!", "Informe o instrutor!", "warning");
+			return false;
+		} else if ($('#dtpDataInicioTreinamento').val() == "") {
+			OpenAlert("Atenção!", "Informe a data de inicio do treinamento!", "warning");
+			return false;
+		} else if ($('#dtpDataFimTreinamento').val() == "") {
+			OpenAlert("Atenção!", "Informe a data final do treinamento!", "warning");
+			return false;
+		}
+
+		return true;
+	}
+
+	function jsValidarPendencia(codigoStatus) {
+
+		if (!jsValidarDados()) {
+			return false;
+		}
+
+		if (codigoStatus == 17 || codigoStatus == 18) {
+			swal({
+				html: "Informe o motivo: <input type='text' id='txtMotivo' class='form-control' />",
+				type: "success",
+			showCancelButton: true,
+			closeOnConfirm: false,
+			}).then(function(){
+				if ($('#txtMotivo').val() == ""){
+					openAlert("Atenção!", "Informe o motivo!", "warning");
+					return false;
+				} else {
+					detalheRetornoPedido = $('#txtMotivo').val();
+					jsGravar(codigoStatus);
+				}
+			});
+		}
+	}
+
+</script>
+
+<style type="text/css">
+	.panel-heading {
+		background-color: #32c787;
+	}
+
+	.confirmar {
+		background-color: #11b400;
+	}
+
+	.pendente {
+		background-color: #de6600;
+	}
+
+	.cancelar {
+		background-color: red;
+	}
+
+</style>

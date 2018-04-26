@@ -1,0 +1,271 @@
+﻿@model List<CODE.CabecalhoPedido>
+
+@{
+	string mensagemErro;
+
+	//GET ESTADOS
+	List<SelectListItem> listaEstados = CODE.Uteis.RetornarEstadosComboCompleto();
+
+	//GET AGENTES VENDAS
+	List<CODE.Funcionario> agentesVendas = CODE.FuncionarioBLL.getFuncionarioByPerfil(1, out mensagemErro);
+	List<SelectListItem> listaAgenstesVendas = new List<SelectListItem>();
+	foreach (CODE.Funcionario func in agentesVendas)
+	{
+		listaAgenstesVendas.Add(new SelectListItem()
+		{
+			Text = func.Nome,
+			Value = func.Codigo.ToString()
+		});
+	}
+
+	//GET INSTRUTORES
+	List<CODE.Funcionario> agentesInstrutores = CODE.FuncionarioBLL.getFuncionarioByPerfil(10, out mensagemErro);
+	List<SelectListItem> listaInstrutores = new List<SelectListItem>();
+	foreach (CODE.Funcionario func in agentesInstrutores)
+	{
+		listaInstrutores.Add(new SelectListItem()
+		{
+			Text = func.Nome,
+			Value = func.Codigo.ToString()
+		});
+	}
+
+	//GET MESOS
+	CODE.MesoBLL mesoBLL = new CODE.MesoBLL();
+	List<CODE.Meso> mesos = mesoBLL.getMesos(null, null, out mensagemErro);
+	List<SelectListItem> listaMesos = new List<SelectListItem>();
+	foreach (CODE.Meso meso in mesos)
+	{
+		listaMesos.Add(new SelectListItem()
+		{
+			Text = meso.Descricao,
+			Value = meso.Codigo.ToString()
+		});
+	}
+
+	//GET MICROS
+	CODE.MicroBLL microBLL = new CODE.MicroBLL();
+	List<CODE.Micro> micros = microBLL.getMicros(null, null, out mensagemErro);
+	List<SelectListItem> listaMicros = new List<SelectListItem>();
+	foreach (CODE.Micro micro in micros)
+	{
+		listaMicros.Add(new SelectListItem()
+		{
+			Text = micro.Descricao,
+			Value = micro.Codigo.ToString()
+		});
+	}
+
+	//GET PRODUTOS
+	CODE.ProdutoBLL produtoBLL = new CODE.ProdutoBLL();
+	List<CODE.Produto.ProdutoTela> produtos = produtoBLL.GetProdutosTela(out mensagemErro, true);
+	List<SelectListItem> listaProdutos = new List<SelectListItem>();
+	foreach (CODE.Produto.ProdutoTela prod in produtos)
+	{
+		listaProdutos.Add(new SelectListItem() { 
+			Text = prod.Descricao,
+			Value = prod.Codigo.ToString()
+		});
+	}
+}
+@Html.Partial("Roteirizacao/PartialRoteirizacaoSimples")
+<section id="main-content">
+	<section class="content">
+		<!--FILTROS-->
+		<div class="panel">
+			<header class="panel-heading">
+				<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseFiltros" aria-expanded="true">RELATÓRIO PEDIDOS À ROTEIRIZAR</h4>
+				<div class="top-nav">
+					<button id="btnNovaRota" class="btn btn-primary" onclick="jsNovaRota();"><span aria-hidden="true" class="zmdi zmdi-file-plus"></span> &nbsp; NOVA ROTA</button>
+					<button id="btnMontarRota" class="btn btn-primary" onclick="jsMontarRota();"><span aria-hidden="true" class="zmdi zmdi-file-plus"></span> &nbsp; MONTAR ROTA</button>
+					<button id="btnPesquisar" class="btn btn-primary" onclick="jsPesquisar();"><span aria-hidden="true" class="zmdi zmdi-search"></span> &nbsp; PESQUISAR</button>
+				</div>
+			</header>
+			<div id="divCollapseFiltros" class="panel-collapse collapse show">
+				<div class="panel-body">
+					<form action="@Url.Action("Consultar","Roteirizacao")" method="post" id="formSearch">
+						<div class="row">
+							<div class="form-group col-sm-3">
+								<label>Vendedor</label>
+								@Html.DropDownList("ddlAgenteVendasFiltro", listaAgenstesVendas, "Selecione o Agente...", new { @class = "select2" })
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group col-sm-3">
+								<label>Instrutor</label>
+								@Html.DropDownList("ddlInstrutorFiltro", listaInstrutores, "Selecione o Instrutor...", new { @class = "select2" })
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group col-sm-3">
+								<label>Estado</label>
+								@Html.DropDownList("ddlEstadosFiltro", listaEstados, "Selecione o Estado...", new { @class = "select2", @onchange = "return preencheDDLCidades(this.value, $('#ddlCidadesFiltro'));" })
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group col-sm-3">
+								<label>Cidade</label>
+								@Html.DropDownList("ddlCidadesFiltro", new List<SelectListItem>(), "Todas as Cidades", new { @class = "select2" })
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+						<div class="row">
+							<div class="form-group col-sm-3">
+								<label>Meso</label>
+								@Html.DropDownList("ddlMesoFiltro", listaMesos, "Selecione a Meso...", new { @class = "select2" })
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group col-sm-3">
+								<label>Micro</label>
+								@Html.DropDownList("ddlMicroFiltro", listaMicros, "Selecione a Micro...", new { @class = "select2" })
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group col-sm-3">
+								<label>Produtos</label>
+								@Html.DropDownList("ddlProdutosFiltro", listaProdutos, "Selecione o Produto...", new { @class = "select2" })
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group col-sm-3">
+								<label>RazaoSocial / Nome</label>
+								<input type="text" class="form-control" name="txtaRazaoNomeClienteFiltro" id="txtaRazaoNomeClienteFiltro" />
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+						<div class="row">
+							<div class="form-group col-sm-3">
+								<label>Código Pedido</label>
+								<input type="text" class="form-control" name="txtaCodigoPedidoFiltro" id="txtaCodigoPedidoFiltro" />
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="col-sm-3">
+								<label>Data Inicio (Fechamento Pedido)</label>
+								<div class="input-group">
+									<span class="input-group-addon"><i class="zmdi zmdi-calendar"></i></span>
+									<div class="form-group">
+										<input type="text" id="dtpDataInicioFechamentoPedido" name="dtpDataInicioFechamentoPedido" class="form-control date-picker" />
+										<i class="form-group__bar"></i>
+									</div>
+								</div>
+							</div>
+							<div class="col-sm-3">
+								<label>Data Final (Fechamento Pedido)</label>
+								<div class="input-group">
+									<span class="input-group-addon"><i class="zmdi zmdi-calendar"></i></span>
+									<div class="form-group">
+										<input type="text" id="dtpDataFinalFechamentoPedido" name="dtpDataFinalFechamentoPedido" class="form-control date-picker" />
+										<i class="form-group__bar"></i>
+									</div>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<br />
+		<!--RESULTADO-->
+		@if (Model != null && Model.Count() > 0)
+		{
+			<div class="panel">
+				<header class="panel-heading">
+					<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseResultado" aria-expanded="true">RESULTADO</h4>
+				</header>
+				<div id="divCollapseResultado" class="panel-collapse collapse show">
+					<div class="panel-body">
+						<div class="table-responsive" style="overflow-x:unset">
+							<table id="data-table" class="table table-striped table-bordered table-hover">
+								<thead class="thead-default">
+									<tr>
+										<th></th>
+										<th class="center">Código Pedido</th>
+										<th class="center">Cliente</th>
+										<th class="center">Agente Vendas</th>
+										<th class="center">Cidade / UF</th>
+										<th class="center">Data Fechamento</th>
+										<th class="center">Valor Total</th>
+										<th class="center">Status</th>
+										<th class="center" style="width:70px;">Ações</th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (CODE.CabecalhoPedido item in Model)
+									{
+										<tr style="background-color: @item.StatusNegociacao.Cor">
+											<td class="center">
+												<div class="btn-group--colors" data-toggle="buttons">
+													<label class="btn bg-light-blue check cbox">
+														<input type="checkbox" data-value="@Html.Raw(item.Codigo)"/>
+													</label>
+												</div>
+											</td>
+											<td class="center">@item.Codigo</td>
+											<td class="center" onclick="jsAbreMotivoRetorno('@Html.Raw(item.DetalheRetornoPedido)')">@(item.Cliente.TipoCliente == 1 ? item.Cliente.RazaoSocial : item.Cliente.Nome)</td>
+											<td class="center">@item.FuncionarioVendedor.Nome </td>
+											<td class="center">@item.Cliente.Cidade.Descricao  - @item.Cliente.Cidade.Estado</td>
+											<td class="center">@item.DataFechamento.ToShortDateString() </td>
+											<td class="center">@String.Format("{0:C}", item.ValorTotal)</td>
+											<td class="center">@item.StatusNegociacao.Descricao</td>
+											<td class="center">
+												<a href="#" title="Informar Rota" onclick="jsRoteirizarPedido(@Html.Raw(item.Codigo))"><span aria-hidden="true" class="zmdi zmdi-border-color"></span></a>
+											</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		}
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	var arrayPedidosSelecionados = [];
+
+	$(document).ready(function () {
+
+		$('.cbox').on("change", function (obj) {
+			var codigoPedido = $(obj.target).data('value');
+
+			if ($(obj.target).is(":checked")) {
+				arrayPedidosSelecionados.push(codigoPedido);
+			} else {
+
+				for (var i = 0; i < arrayPedidosSelecionados.length; i++) {
+					if (arrayPedidosSelecionados[i] == codigoPedido) {
+						arrayPedidosSelecionados.splice(i, 1);
+						break;
+					}
+				}
+			}
+
+		});
+	});
+
+	function jsPesquisar() {
+		$('#formSearch').submit();
+	}
+
+	function jsRoteirizarPedido(codigoPedido) {
+		openModalRoteirizacaoSimples(codigoPedido);
+	}
+
+	function jsMontarRota() {
+
+		if (arrayPedidosSelecionados.length <= 0) {
+			OpenAlert("Atenção!", "Selecione os pedidos no grid!", "danger");
+			return false;
+		} else if (arrayPedidosSelecionados.length == 1) {
+			OpenAlert("Atenção!", "Para rotas de um único pedido atualize como rota simples!", "danger");
+			return false;
+		}
+
+		window.location.assign("@Url.Action("GerarRotaAutomatica", "Roteirizacao")?listaPedidos=" + JSON.stringify(arrayPedidosSelecionados));
+
+		return true;
+	}
+
+	function jsNovaRota() {
+		window.location.assign("@Url.Action("NovaRota2", "Roteirizacao")");
+	}
+
+</script>

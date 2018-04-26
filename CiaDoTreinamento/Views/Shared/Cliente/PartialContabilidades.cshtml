@@ -1,0 +1,208 @@
+﻿@model CODE.Cliente
+
+@{
+	string mensagemErro;
+	CODE.ContabilidadeBLL contabilidadeBLL = new CODE.ContabilidadeBLL();
+	List <CODE.Contabilidade> Contabilidades = contabilidadeBLL.getContabilidades(null, null, out mensagemErro);
+	List<SelectListItem> listaContabilidades = new List<SelectListItem>();
+	foreach (CODE.Contabilidade item in Contabilidades)
+	{
+		listaContabilidades.Add(new SelectListItem()
+		{
+			Text = item.RazaoSocial,
+			Value = item.Codigo.ToString()
+		});
+	}
+}
+
+<div class="panel" id="divPartialContabilidadeNew">
+	<input type="hidden" id="paginaCarregadaContabilidade" value="false" />
+	<header class="panel-heading">
+		<h4 id="headerAluno">NOVA EMPRESA CONTABILIDADE</h4>
+		<div class="top-nav">
+			<a id="btnAdicionarContabilidade" class="btn btn-primary" onclick="return jsAdicionarContabilidade();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; ADICIONAR</a>
+		</div>
+	</header>
+	<div class="panel-body">
+		<div class="row">
+			<div class="form-group col-sm-4">
+				<label class="required">Contabilidade</label>
+				@Html.DropDownList("ddlContabilidades", listaContabilidades, "Selecione...", new { @class = "select2" })
+				<i class="form-group__bar"></i>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="panel" id="divPartialContabilidadeResult">
+	<header class="panel-heading">
+		<h4>LISTA DE EMPRESAS DE CONTABILIDADE</h4>
+	</header>
+	<div class="panel-body">
+		<input type="hidden" id="hfListaContabilidades" name="hfListaContabilidades" />
+		<table id="tbResultadoContabilidades" class="table table-hover">
+			<thead class="thead-default">
+				<tr>
+					<th class="center">AÇÕES</th>
+					<th class="center">RAZÃO SOCIAL</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+    var arrayContabilidades = [];
+
+	function openPartialContabilidade(){
+		if($('#paginaCarregadaContabilidade').val() == 'false'){
+			var data = {
+				codigoCliente: @(Model == null ? "-1" : Model.Codigo.ToString())
+			};
+			$.ajax({
+				type: "GET",
+				url: "/Cliente/GetContabilidades/",
+				data: data,
+				async: true,
+				success: function (result) {
+					if (result) {
+						if (result != "") {
+							arrayContabilidades = result;
+							MontarTabelaContabilidades();
+							$('#paginaCarregadaContabilidade').val('true');
+						}
+					}
+				}
+			});
+		}
+	}
+
+    function MontarTabelaContabilidades() {
+
+        var tabelaObjeto = document.getElementById('tbResultadoContabilidades');
+        removeAllChilds(tabelaObjeto);
+
+        if (tabelaObjeto.tHead == null) {
+            var listaColunas = ["AÇÕES", "RAZÃO SOCIAL"];
+            jsAdicionarCabecalhoTabela(tabelaObjeto, listaColunas, 'center');
+        }
+
+        var tbody = jsAdicionarCorpoTabela(tabelaObjeto);
+
+        for (i = 0; i < arrayContabilidades.length; i++) {
+
+            var tr = document.createElement('tr');
+            var td1 = document.createElement('td');
+            var td2 = document.createElement('td');
+
+            td1.setAttribute("class", "center");
+            td2.setAttribute("class", "center");
+
+			td1.innerHTML = '<a href="#" title="Excluir" onclick="jsRemoverContabilidade(' + i + ');"><span aria-hidden="true" class="zmdi zmdi-delete"></span></a>';
+            td2.innerHTML = arrayContabilidades[i].concorrente.razaoSocial;
+
+            var listaColunas = [td1, td2];
+
+            jsAdicionarLinhaTabela(listaColunas, tr);
+
+            tbody.appendChild(tr);
+        }
+    }
+
+	function jsAdicionarContabilidade() {
+
+        if (jsValidarCamposContabilidade()) {
+
+            var _Contabilidade = {
+                codigo: "",
+                codigoCliente: @(Model == null ? "-1" : Model.Codigo.ToString()),
+				concorrente: { codigo: $('#ddlContabilidades option:selected').val(), razaoSocial: $('#ddlContabilidades option:selected').text() },
+				tipo: 1
+			};
+
+			arrayContabilidades.push(_Contabilidade);
+
+			OpenAlert("Sucesso!", "Inclusão realizada com sucesso!", "success");
+
+			$('#hfListaContabilidades').val(JSON.stringify(arrayContabilidades));
+
+			MontarTabelaContabilidades();
+
+			$('#ddlContabilidades').val('');
+			$('#ddlContabilidades').trigger('change');
+
+		}
+
+		return false;
+
+	}
+
+	function jsValidarCamposContabilidade() {
+
+		var codigo = $('#ddlContabilidades option:selected').val();
+
+		if (codigo == "") {
+			OpenAlert("Atenção!", "Informe a empresa contabilidade!", "danger");
+			return false;
+		}
+
+		for (var i = 0; i < arrayContabilidades.length; i++) {
+
+			if (codigo == arrayContabilidades[i].concorrente.codigo) {
+				OpenAlert("Atenção!", "A relação com a empresa já foi cadastrada!", "danger");
+				return false;
+
+			}
+
+		}
+
+		return true;
+
+	}
+
+	function jsRemoverContabilidade(i) {
+
+		var Contabilidade = arrayContabilidades[i];
+
+		if (Contabilidade.codigo == "") {
+
+			arrayContabilidades.splice(i, 1);
+
+			$('#hfListaContabilidades').val(JSON.stringify(arrayContabilidades));
+
+			MontarTabelaContabilidades();
+
+		} else {
+
+			jsLoading(true);
+
+			var data = {
+				codigo: Contabilidade.codigo
+			}
+			$.ajax({
+				type: "POST",
+				url: "/Cliente/DeleteRelacaoContabilidade/",
+				data: data,
+				async: false,
+				success: function (result) {
+					if (result.sucesso) {
+						arrayContabilidades.splice(i, 1);
+
+						$('#hfListaContabilidades').val(JSON.stringify(arrayContabilidades));
+
+						MontarTabelaContabilidades();
+
+						jsLoading(false);
+
+						OpenAlert("Sucesso!", result.mensagem, "success");
+					} else {
+						OpenAlert("Atenção!", result.mensagem, "danger");
+						jsLoading(false);
+					}
+				}
+			});
+		}
+	}
+
+</script>

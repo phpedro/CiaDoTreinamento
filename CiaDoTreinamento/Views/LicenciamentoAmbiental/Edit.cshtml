@@ -1,0 +1,232 @@
+﻿@model CODE.LicenciamentoAmbiental
+
+@{
+	//GET ESTADOS
+	List<SelectListItem> listaEstados = CODE.Uteis.RetornarEstadosComboCompleto();
+}
+
+<section id="main-content">
+	<section class="content">
+		<div class="panel">
+			<header class="panel-heading">
+				<h4>@Html.Raw(Model == null ? "NOVA EMPRESA DE LICENCIAMENTO AMBIENTAL" : "EDITAR EMPRESA DE LICENCIAMENTO AMBIENTAL")</h4>
+				<div class="top-nav">
+					<button id="btnVoltar" class="btn btn-primary" onclick="return jsVoltar();"><span aria-hidden="true" class="zmdi zmdi-arrow-left"></span> &nbsp; VOLTAR</button>
+					@if (Model == null)
+					{
+						<button id="btnLimpar" class="btn btn-primary" onclick="return jsLimpar();"><span aria-hidden="true" class="zmdi zmdi-close"></span> &nbsp; LIMPAR</button>
+					}
+					<button id="btnSalvar" class="btn btn-primary" onclick="return jsSalvar();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; SALVAR</button>
+				</div>
+			</header>
+			<div class="panel-body">
+				@using (Html.BeginForm("Salvar", "LicenciamentoAmbiental", FormMethod.Post, new { @name = "formNovo", @id = "formNovo" }))
+				{
+					@Html.HiddenFor(x => Model.Codigo, new { @class = "form-control" })
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.RazaoSocial, new { @class = "form-control noBlank" })
+							<label class="required">Razão Social</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.CNPJ, new { @class = "form-control noBlank maskCNPJ", @onblur = "buscarDadosCNPJ(this.value);" })
+							<label>CNPJ</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Descricao, new { @class = "form-control noBlank" })
+							<label>Descrição</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Endereco, new { @class = "form-control noBlank" })
+							<label>Endereço</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Bairro, new { @class = "form-control noBlank" })
+							<label>Bairro</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.CEP, new { @class = "form-control noBlank maskCEP", @onblur = "buscarDadosCorreio(this.value);" })
+							<label>CEP</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group col-sm-4">
+							<label>ESTADO</label>
+							@Html.DropDownListFor(x => Model.Cidade.Estado, listaEstados, "Selecione o Estado...", new { @class = "select2", @onchange = "return preencheDDLCidades(this.value, $('#Cidade_Codigo'));" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label>CIDADE</label>
+							@Html.DropDownListFor(x => Model.Cidade.Codigo, new List<SelectListItem>(), "Todas as Cidades", new { @class = "select2" })
+							@Html.HiddenFor(x => Model.Cidade.Codigo, new { @id = "hfCodigoCidade" })
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<br />
+					@Html.Partial("PartialTelefones")
+				}
+			</div>
+		</div>
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	var tela;
+
+	$(document).ready(function () {
+
+		if (!tela) {
+			jsCarregarCampos();
+		}
+		var me = tela;
+
+		if (me.Codigo.val() != "") {
+			preencheDDLCidades(me.Estado.val(), me.Cidade_Codigo, me.hfCodigoCidade.val());
+		}
+
+	});
+
+	function jsCarregarCampos() {
+
+		tela = {
+			Codigo: $('#Codigo'),
+			RazaoSocial: $('#RazaoSocial'),
+			CNPJ: $('#CNPJ'),
+			Descricao: $('#Descricao'),
+			Endereco: $('#Endereco'),
+			Bairro: $('#Bairro'),
+			CEP: $('#CEP'),
+			Estado: $('#Cidade_Estado'),
+			Cidade_Codigo: $('#Cidade_Codigo'),
+			hfCodigoCidade: $('#hfCodigoCidade')
+
+		}
+	}
+
+	function jsVoltar() {
+		jsLimpar();
+		window.location.assign("@Url.Action("List", "LicenciamentoAmbiental")");
+	}
+
+	function jsLimpar() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		me.Codigo.val('');
+		me.RazaoSocial.val('');
+		me.CNPJ.val('');
+		me.Descricao.val('');
+		me.Endereco.val('');
+		me.Bairro.val('');
+		me.CEP.val('');
+		me.Estado.val('');
+		me.Estado.trigger('change');
+		me.Cidade_Codigo.val('');
+		me.Cidade_Codigo.trigger('change');
+
+		jsRemoverFocus(me.RazaoSocial);
+		jsRemoverFocus(me.CNPJ);
+		jsRemoverFocus(me.Descricao);
+		jsRemoverFocus(me.Endereco);
+		jsRemoverFocus(me.Bairro);
+		jsRemoverFocus(me.CEP);
+
+		jsLimparTabelaTelefones();
+
+		jsLoading(false);
+
+		return false;
+	}
+
+	function jsSalvar() {
+
+		jsLoading(true);
+
+		if (!jsValidaCampos()) {
+			jsLoading(false);
+			return false;
+		}
+
+		document.getElementById('formNovo').submit();
+
+	}
+
+	function jsValidaCampos() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		if (me.RazaoSocial.val() == "") {
+			OpenAlert("Atenção!", "Informe a razão social da empresa de licenciamento ambiental!", "danger");
+			me.RazaoSocial.focus();
+			return false;
+		}
+
+		return true;
+
+	}
+
+	function buscarDadosCorreio(cep) {
+		GetEnderecoCorreio(cep, preencherEndereco);
+	}
+
+	function preencherEndereco(retorno) {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		if (retorno) {
+			me.Endereco.val(retorno.logradouro);
+			me.Endereco.change();
+			me.Bairro.val(retorno.bairro);
+			me.Bairro.change();
+			me.Estado.val(retorno.uf);
+			me.Estado.trigger('change');
+			preencheDDLCidades(retorno.uf, $('#Cidade_Codigo'));
+		}
+	}
+
+	function buscarDadosCNPJ(cnpj) {
+		GetDadosReceitaFederal(cnpj, preencherDadosEmpresaLicenciamento);
+	}
+
+	function preencherDadosEmpresaLicenciamento(retorno) {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		if (retorno) {
+			me.RazaoSocial.val(retorno.nome);
+			me.RazaoSocial.change();
+			me.Endereco.val(retorno.logradouro);
+			me.Endereco.change();
+			me.Bairro.val(retorno.bairro);
+			me.Bairro.change();
+			me.CEP.val(retorno.cep);
+			me.CEP.change();
+			me.Estado.val(retorno.uf);
+			me.Estado.trigger('change');
+			preencheDDLCidades(retorno.uf, $('#Cidade_Codigo'));
+
+			//INSERT TELEFONES
+			if (retorno.telefone != "") {
+				var arrayTelefonesReceita = retorno.telefone.split(' / ');
+
+				for (var i = 0; i < arrayTelefonesReceita.length; i++) {
+					addTelefoneCode(arrayTelefonesReceita[i]);
+				}
+			}
+		}
+	}
+
+</script>

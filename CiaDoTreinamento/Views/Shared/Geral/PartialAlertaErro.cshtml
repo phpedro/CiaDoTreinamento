@@ -1,0 +1,57 @@
+﻿<div id="divModalGeral" class="alert alert-warning alert-dismissable" style="display: none; position: fixed; top: 20%; width: 500px; left: 32%; z-index: 9999999;">
+	<button type="button" class="close" aria-hidden="true" onclick="CloseAlert()">
+		×
+	</button>
+	<b id="spanModalTitle"></b>&nbsp;<span id="spanModalContent"></span>
+</div>
+
+<script type="text/javascript">
+
+	$(document).ready(function () {
+
+		if ('@(TempData["mensagemErro"])') {
+	        jsAbrePartial("Erro!", '@(TempData["mensagemErro"])', 'danger');
+	    } else if ('@(TempData["mensagemSucesso"])') {
+	        jsAbrePartial("Sucesso!", '@(TempData["mensagemSucesso"])', 'success');
+	    } else if ('@(TempData["mensagemAlerta"])') {
+	        jsAbrePartial("Atenção!", '@(TempData["mensagemAlerta"])', 'warning');
+	    }
+	});
+
+	function jsAbrePartial(title, content, type) {
+
+		$('#spanModalTitle').html(title);
+		$('#spanModalContent').html(content);
+		$('#divModalGeral').attr('class', '');
+		$('#divModalGeral').addClass('alert alert-' + type + ' alert-dismissable');
+		$('#divModalGeral').modal('show');
+		$('#btnModalCancel').css('display', 'none');
+	}
+
+	function jsAbrePartialErro(visibilty) {
+
+		if (visibilty) {
+
+			$('#spanModalTitle').html("Atenção!");
+			$('#spanModalContent').html(visibilty);
+			$('#divModalGeral').attr('class', '');
+			$('#divModalGeral').addClass('alert alert-danger alert-dismissable');
+			$('#divModalGeral').modal('show');
+			$('#btnModalCancel').css('display', 'none');
+		}
+	}
+
+	function jsAbrePartialSucesso(visibilty) {
+
+		if (visibilty) {
+
+			$('#spanModalTitle').html("Atenção!");
+			$('#spanModalContent').html(visibilty);
+			$('#divModalGeral').attr('class', '');
+			$('#divModalGeral').addClass('alert alert-success alert-dismissable');
+			$('#divModalGeral').modal('show');
+			$('#btnModalCancel').css('display', 'none');
+		}
+	}
+
+</script>

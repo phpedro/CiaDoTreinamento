@@ -1,0 +1,251 @@
+﻿@model CODE.Perfil
+
+<style type="text/css">
+	.row {
+		margin-bottom: 0;
+	}
+</style>
+
+<section id="main-content">
+	<section class="content">
+		<div class="panel">
+			<header class="panel-heading">
+				<h4>@Html.Raw(Model == null ? "NOVO PERFIL" : "EDITAR PERFIL")</h4>
+				<div class="top-nav">
+					<button id="btnVoltar" class="btn btn-primary" onclick="jsVoltar();"><span aria-hidden="true" class="zmdi zmdi-arrow-left"></span> &nbsp; VOLTAR</button>
+					@if (Model == null)
+					{
+						<button id="btnLimpar" class="btn btn-primary" onclick="jsLimpar();"><span aria-hidden="true" class="zmdi zmdi-close"></span> &nbsp; LIMPAR</button>
+					}
+					<button id="btnSalvar" class="btn btn-primary" onclick="jsSalvar();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; SALVAR</button>
+				</div>
+			</header>
+			<div class="panel-body">
+				@using (Html.BeginForm("Salvar", "Perfil", FormMethod.Post, new { @name = "formNovo", @id = "formNovo" }))
+				{
+					@Html.HiddenFor(x => Model.Codigo, new { @class = "form-control" })
+					<div class="row">
+						<div class="form-group form-group--float col-sm-6">
+							@Html.TextBoxFor(x => Model.Descricao, new { @class = "form-control noBlank" })
+							<label>Descrição</label>
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<br />
+					<div class="panel">
+						<header class="panel-heading">
+							<h5>PERMISSÕES</h5>
+						</header>
+						<div class="panel-body">
+							<br />
+							<div class="row">
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeAlterarValorItemPedido)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode alterar valor do item de pedido</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeAlterarPercDescPedido)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode alterar o percentual de desconto do pedido</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeFazerPedidos)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode fazer pedidos</label>
+							</div>
+
+							<div class="row">
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeAlterarPerfis)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode alterar perfis</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeConfirmarPedido)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode confirmar pedido</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeGerarRemImpRetBoletos)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode gerar remessa e importar retorno de boletos</label>
+							</div>
+
+							<div class="row">
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeVisualizarRelatorios)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode visualizar relatorios</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeVisualizarRelOutrosFuncionarios)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode visualizar relatórios de outros funcionarios</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeExportarDados)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode exportar dados</label>
+							</div>
+
+							<div class="row">
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeFiltrarPedStsCli)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode filtrar pedidos por status do cliente</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeOcultarItemTelaPrincipal)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode ocultar itens de pedido na tela principal</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeVenderSemISS)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode realizar venda sem ISS</label>
+							</div>
+
+							<div class="row">
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeManterCondicoesPagamento)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode manter o cadastro de condições de pagamento</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeManterProdutos)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode manter o cadastro de produtos</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeAlterarStatusBoletos)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode alterar o status de boletos</label>
+							</div>
+
+							<div class="row">
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeCancelarPedidos)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode cancelar pedidos</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeAlterarPedidoAposFinalizado)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode alterar pedido após finalizado</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeAlterarResponsavelCidade)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode alterar o responsável pela cidade</label>
+							</div>
+
+							<div class="row">
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeVenderCondRestrita)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode vender em condição restrita</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeAlterarNomeRede)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode alterar nome de redes</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeRegAtendimentoPedFechado)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode registrar atendimento após pedido fechado</label>
+							</div>
+
+							<div class="row">
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeExcluirTelCliente)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode excluir telefone cliente</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeGerarDocumentos)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode gerar documentos</label>
+
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeFinalziarPedidoComPendencia)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode finalizar pedido com pendência</label>
+							</div>
+
+							<div class="row">
+								<div class="col-sm-05 btn-group--colors" data-toggle="buttons">
+									<label class="btn bg-light-blue check">@Html.CheckBoxFor(x => Model.PodeAlterarStatusPedido)</label>
+								</div>
+								<label class="control-label col-sm-35">Pode alterar status pedido</label>
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	var tela;
+
+	$(document).ready(function () {
+
+		if (!tela) {
+			jsCarregarCampos();
+		}
+		var me = tela;
+
+	});
+
+	function jsCarregarCampos() {
+
+		tela = {
+			Descricao: $('#Descricao')
+		}
+	}
+
+	function jsVoltar() {
+		window.location.assign("@Url.Action("List", "Perfil")");
+	}
+
+	function jsLimpar() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		me.Descricao.val('');
+
+		jsRemoverFocus(me.Descricao);
+
+	}
+
+	function jsSalvar() {
+
+		jsLoading(true);
+
+		if (!jsValidaCampos()) {
+			jsLoading(false);
+			return false;
+		}
+		document.getElementById('formNovo').submit();
+	}
+
+	function jsValidaCampos() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		if (me.Descricao.val() == "") {
+			OpenAlert("Atenção!", "Informe a descrição do perfil!", "danger");
+			me.Descricao.focus();
+			return false;
+		}
+
+		return true;
+	}
+
+</script>

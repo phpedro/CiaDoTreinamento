@@ -1,0 +1,249 @@
+﻿<div id="divModalClienteRota" class="modalAlerta animate-zoom" style="display: none">
+	<div class="contentModal">
+		<!--MODAL HEADER-->
+		<div class="modal-header">
+			<h5>DETALHE PEDIDO ROTA</h5>
+		</div>
+		<!--MODAL CONTENT-->
+		<div class="modal-content" style="max-height:400px; overflow-y:auto">
+			<!--PRODUTOS-->
+			<div class="panel">
+				<header class="panel-heading" style="background: #32C787;">
+					<h4>Produtos Pedido</h4>
+				</header>
+				<div class="panel-body">
+					<table class="table table-striped table-bordered table-hover">
+						<thead class="thead-default">
+							<tr>
+								<th>Produto</th>
+								<th>Quantidade</th>
+								<th>Carga Horária</th>
+							</tr>
+						</thead>
+						<tbody id="tbProdutos"></tbody>
+					</table>
+				</div>
+			</div>
+			<br />
+			<!--DADOS DO CLIENTE-->
+			<div class="panel">
+				<header class="panel-heading" style="background: #32C787;">
+					<h4>Dados do Cliente</h4>
+				</header>
+				<div class="panel-body">
+					<div class="row">
+						<div class="form-group col-sm-4">
+							<label>Razão Social</label>
+							<input type="text" class="form-control" id="txtRazao" readonly />
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label>Nome Fantasia</label>
+							<input type="text" class="form-control" id="txtNomeFantasia" readonly />
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label>CNPJ</label>
+							<input type="text" class="form-control" id="txtCnpj" readonly />
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group col-sm-4">
+							<label>Endereço</label>
+							<input type="text" class="form-control" id="txtEndereco" readonly />
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label>Bairro</label>
+							<input type="text" class="form-control" id="txtBairro" readonly />
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label>Cidade</label>
+							<input type="text" class="form-control" id="txtCidade" readonly />
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-12">
+							<table class="table table-striped table-bordered table-hover">
+								<thead class="thead-default">
+									<tr>
+										<th>Telefone / Responsável</th>
+									</tr>
+								</thead>
+								<tbody id="tbTelefones"></tbody>
+							</table>
+						</div>
+					</div>
+					<br />
+					<div class="row">
+						<div class="col-sm-12">
+							<table class="table table-striped table-bordered table-hover">
+								<thead class="thead-default">
+									<tr>
+										<th>Email</th>
+									</tr>
+								</thead>
+								<tbody id="tbEmails"></tbody>
+							</table>
+						</div>
+					</div>
+					<br />
+					<div class="row">
+						<div class="col-sm-12">
+							<table class="table table-striped table-bordered table-hover">
+								<thead class="thead-default">
+									<tr>
+										<th>Funcionário</th>
+										<th>Descrição</th>
+										<th style="width: 120px;">Data</th>
+									</tr>
+								</thead>
+								<tbody id="tbAtendimentos"></tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--MODAL FOOTER-->
+		<div class="modal-footer">
+			<button class="btn btn-secondary cancelar" onclick="closeModal(this)">FECHAR</button>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	function openModalRoteirizacaoSimples(codigoPedido) {
+
+		var data = {
+			codigoPedido: codigoPedido
+		}
+
+		$.ajax({
+			type: "GET",
+			url: "/Roteirizacao/BuscarDadosClienteRota/",
+			data: data,
+			success: function (data) {
+				if (data.sucesso) {
+					
+					$('#txtRazao').val(data.retorno.cliente.razaoSocial);
+					$('#txtNomeFantasia').val(data.retorno.cliente.nomeFantasia);
+					$('#txtCnpj').val(data.retorno.cliente.cnpj);
+					$('#txtEndereco').val(data.retorno.cliente.endereco);
+					$('#txtBairro').val(data.retorno.cliente.bairro);
+					$('#txtCidade').val(data.retorno.cliente.cidade);
+
+					jsMontaTabelaTelefones(data.retorno.telefones);
+
+					jsMontaTabelaEmails(data.retorno.emails);
+
+					jsMontaTabelaAtendimentos(data.retorno.atendimentos);
+
+					jsMontaTabelaProdutos(data.retorno.listaItens);
+
+					jsLoading(false);
+					$('#divModalClienteRota').show();
+					return true;
+				} else {
+					jsLoading(false);
+					OpenAlert("Atenção!", data.mensagemErro, "danger");
+					return false;
+				}
+			}
+		});
+
+	}
+
+	function jsMontaTabelaTelefones(array) {
+
+		var tbTelefones = $('#tbTelefones');
+
+		tbTelefones.empty();
+
+		for (var i = 0; i < array.length; i++) {
+
+			var tr = document.createElement('tr');
+
+			var td = document.createElement('td');
+			td.innerHTML = array[i];
+			tr.append(td);
+
+			tbTelefones.append(tr);
+		}
+	}
+
+	function jsMontaTabelaEmails(array) {
+
+		var tbEmails = $('#tbEmails');
+
+		tbEmails.empty();
+
+		for (var i = 0; i < array.length; i++) {
+
+			var tr = document.createElement('tr');
+
+			var td = document.createElement('td');
+			td.innerHTML = array[i];
+			tr.append(td);
+
+			tbEmails.append(tr);
+		}
+	}
+
+	function jsMontaTabelaAtendimentos(array) {
+
+		var tbAtendimentos = $('#tbAtendimentos');
+
+		tbAtendimentos.empty();
+
+		for (var i = 0; i < array.length; i++) {
+
+			var tr = document.createElement('tr');
+
+			var td1 = document.createElement('td');
+			td1.innerHTML = array[i].funcionario.nome;
+			tr.append(td1);
+
+			var td2 = document.createElement('td');
+			td2.innerHTML = array[i].descricao;
+			tr.append(td2);
+
+			var td3 = document.createElement('td');
+			td3.innerHTML = array[i]._dataRegistroFormatada;
+			tr.append(td3);
+
+			tbAtendimentos.append(tr);
+		}
+	}
+
+	function jsMontaTabelaProdutos(array) {
+
+		var tbProdutos = $('#tbProdutos');
+
+		tbProdutos.empty();
+
+		for (i = 0; i < array.length; i++) {
+
+			var tr = document.createElement('tr');
+			var td1 = document.createElement('td');
+			var td2 = document.createElement('td');
+			var td3 = document.createElement('td');
+
+			td1.innerHTML = array[i].produto.descricao;
+			td2.innerHTML = array[i].quantidade;
+			td3.innerHTML = array[i].produto.cargaHoraria;
+
+			tr.append(td1);
+			tr.append(td2);
+			tr.append(td3);
+
+			tbProdutos.append(tr);
+		}
+
+	}
+
+</script>

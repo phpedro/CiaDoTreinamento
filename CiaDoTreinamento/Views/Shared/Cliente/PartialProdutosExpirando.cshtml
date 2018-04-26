@@ -1,0 +1,79 @@
+﻿@model CODE.Cliente
+
+<div class="panel" id="divPartialProdutosExpirandoResult">
+	<input type="hidden" id="paginaCarregadaProdutosExpirando" value="false" />
+	<header class="panel-heading">
+		<h4>PRODUTOS EXPIRANDO</h4>
+	</header>
+	<div class="panel-body">
+		<table id="tbResultadoProdutosExpirando" class="table table-hover table-striped table-bordered">
+			<thead class="thead-default">
+				<tr>
+					<th class="center">CÓDIGO PEDIDO</th>
+					<th class="center">DESCRIÇÃO</th>
+					<th class="center">DATA EXPIRAÇÃO</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+<script type="text/javascript">
+	function openPartialProdutosExpirando() {
+		if ($('#paginaCarregadaProdutosExpirando').val() == 'false') {
+			var data = {
+				codigoCliente: @(Model == null ? "-1" : Model.Codigo.ToString())
+			};
+			$.ajax({
+				type: "GET",
+				url: "/Cliente/GetProdutosExpirando/",
+				data: data,
+				async: true,
+				success: function (result) {
+					if (result) {
+						if (result != "") {
+							MontarTabelaProdutosExpirando(result);
+							$('#paginaCarregadaProdutosExpirando').val('true')
+						}
+					}
+				}
+			});
+		}
+	}
+
+    function MontarTabelaProdutosExpirando(arrayProdutos) {
+
+        var tabelaObjeto = document.getElementById('tbResultadoProdutosExpirando');
+        removeAllChilds(tabelaObjeto);
+
+        if (tabelaObjeto.tHead == null) {
+            var listaColunas = ["CÓDIGO PEDIDO", "DESCRIÇÃO", "DATA EXPIRAÇÃO"];
+            jsAdicionarCabecalhoTabela(tabelaObjeto, listaColunas, 'center');
+        }
+
+        var tbody = jsAdicionarCorpoTabela(tabelaObjeto);
+
+        for (i = 0; i < arrayProdutos.length; i++) {
+
+            var tr = document.createElement('tr');
+            var td1 = document.createElement('td');
+            var td2 = document.createElement('td');
+            var td3 = document.createElement('td');
+
+            td1.setAttribute("class", "center");
+            td2.setAttribute("class", "center");
+            td3.setAttribute("class", "center");
+
+            td1.innerHTML = arrayProdutos[i].codigoPedido;
+            td2.innerHTML = arrayProdutos[i].descricaoProduto;
+            td3.innerHTML = arrayProdutos[i].dataExpiracao;
+
+            var listaColunas = [td1, td2, td3];
+
+            jsAdicionarLinhaTabela(listaColunas, tr);
+
+            tbody.appendChild(tr);
+        }
+    }
+
+</script>

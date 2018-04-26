@@ -1,0 +1,161 @@
+﻿<div class="panel">
+	<input type="hidden" id="hfListaParcelas" name="hfListaParcelas" value="@ViewBag.listaParcelas" />
+	<header class="panel-heading">
+		<h4>PARCELAS</h4>
+		<div class="top-nav">
+			<button id="btnSalvar" class="btn btn-primary" onclick="return jsAdicionar();"><span aria-hidden="true" class="zmdi zmdi-plus"></span> &nbsp; ADICIONAR</button>
+		</div>
+	</header>
+	<div class="panel-body">
+		<div class="row">
+			<div class="form-group form-group--float col-sm-4">
+				<input type="text" id="txtNumeroDias" class="form-control noBlank" onkeypress="return jsSomenteNumero(arguments[0] || window.event);" />
+				<label class="required">Número de dias</label>
+				<i class="form-group__bar"></i>
+			</div>
+		</div>
+		<br />
+		<div class="col-sm-12">
+			<table id="tbParcelas" class="table table-striped table-bordered" style="font-size: 10pt;"></table>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	var telaParcelas;
+	var arrayParcelas = [];
+	var indiceParcela = 0;
+
+
+	$(document).ready(function () {
+
+		if (!telaParcelas) {
+			jsCarregarCamposParcela();
+		}
+		var me = telaParcelas;
+
+		if (me.hfListaParcelas.val() != "") {
+			arrayParcelas = JSON.parse(me.hfListaParcelas.val());
+		}
+
+		if (!arrayParcelas) {
+			arrayParcelas = [];
+		}
+
+		atualizarTableParcelas(arrayParcelas);
+
+	});
+
+	function jsCarregarCamposParcela() {
+
+		telaParcelas = {
+			hfListaParcelas: $('#hfListaParcelas'),
+			txtNumeroDias: $('#txtNumeroDias'),
+			tbParcelas: $('#tbParcelas')
+		}
+	}
+
+	function jsAdicionar() {
+
+		if (!telaParcelas) {
+			jsCarregarCamposParcela();
+		}
+		var me = telaParcelas;
+
+		if (me.txtNumeroDias.val() == "") {
+			OpenAlert("Atenção!", "Informe o número de dias da parcela!", "warning");
+			return false;
+		}
+
+		var parcelaCorrente = {
+			sequencia: indiceParcela + 1,
+			numeroDias: me.txtNumeroDias.val()
+		}
+
+		indiceParcela += 1;
+
+		arrayParcelas.push(parcelaCorrente);
+
+		me.txtNumeroDias.val('');
+		me.txtNumeroDias.trigger('change');
+		jsRemoverFocus(me.txtNumeroDias);
+
+		atualizarTableParcelas(arrayParcelas);
+
+		return false;
+	}
+
+	//MONTAR TABELA COM PARCELAS
+	function atualizarTableParcelas(listaParcelas) {
+
+		if (listaParcelas) {
+			if (!telaParcelas) {
+				jsCarregarCamposParcela();
+			}
+			var me = telaParcelas;
+
+			me.hfListaParcelas.val(JSON.stringify(listaParcelas));
+
+			var tabelaObjeto = document.getElementById('tbParcelas');
+			removeAllChilds(tabelaObjeto);
+
+			if (tabelaObjeto.tHead == null) {
+				var listaColunas = ["SEQUÊNCIA", "NÚMERO DE DIAS", "REMOVER"];
+				jsAdicionarCabecalhoTabela(tabelaObjeto, listaColunas);
+			}
+
+			for (var i = 0; i < listaParcelas.length; i++) {
+
+				var tbody = jsAdicionarCorpoTabela(tabelaObjeto);
+
+				var tr = document.createElement('tr');
+				var td1 = document.createElement('td');
+				var td2 = document.createElement('td');
+				var td3 = document.createElement('td');
+
+				td1.setAttribute("class", "center");
+				td2.setAttribute("class", "center");
+				td3.setAttribute("class", "center");
+
+				td1.innerHTML = listaParcelas[i].sequencia;
+				td2.innerHTML = listaParcelas[i].numeroDias;
+				td3.innerHTML = '<a id="btnRemoverTelefone" style="cursor:pointer;" onclick="jsRemoverParcela(' + listaParcelas[i].sequencia + ')"><span class="zmdi zmdi-delete"></span></a>';
+
+				var listaColunas = [td1, td2, td3];
+
+				jsAdicionarLinhaTabela(listaColunas, tr);
+
+				tbody.appendChild(tr);
+			}
+		}
+	}
+
+	function jsLimparTabelaParcelas() {
+
+		if (!telaParcelas) {
+			jsCarregarCamposParcela();
+		}
+		var me = telaParcelas;
+
+		me.txtNumeroDias.val('');
+		me.txtNumeroDias.trigger('change');
+		jsRemoverFocus(me.txtNumeroDias);
+
+		arrayParcelas = [];
+
+		atualizarTableParcelas(arrayParcelas);
+	}
+
+	function jsRemoverParcela(seq) {
+
+		for (var i = 0; i < arrayParcelas.length; i++) {
+			if (arrayParcelas[i].sequencia == seq) {
+				arrayParcelas.splice(i, 1);
+				atualizarTableParcelas(arrayParcelas);
+				break;
+			}
+		}
+	}
+
+</script>

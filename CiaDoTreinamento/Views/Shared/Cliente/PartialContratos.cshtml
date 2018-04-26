@@ -1,0 +1,27 @@
+﻿@model CODE.Cliente
+
+<div class="panel" id="divPartialContratosResult">
+	<input type="hidden" id="paginaCarregadaContratos" value="false" />
+	<header class="panel-heading">
+		<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseContratos" aria-expanded="false">LISTA CONTRATOS</h4>
+		<div class="top-nav">
+			<a id="btnNovoContrato" class="btn btn-primary" onclick="return jsNovoContrato(@Html.Raw(Model.Codigo));"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; NOVO CONTRATO</a>
+		</div>
+	</header>
+	<div id="divCollapseContratos" class="panel-collapse collapse show">
+		<div class="panel-body">
+			<table id="tbResultadoContratos" class="table table-hover table-striped table-bordered">
+				<thead class="thead-default">
+					<tr>
+						<th class="center">CÓDIGO</th>
+						<th class="center">DATA CRIAÇÃO</th>
+						<th class="center">VENDEDOR</th>
+						<th class="center">STATUS</th>
+						<th class="center">VALOR</th>
+						<th class="center">AÇÕES</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</div>
+</div>

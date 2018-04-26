@@ -1,0 +1,150 @@
+﻿@model CODE.Micro
+
+@{
+	string mensagemErro;
+
+	//GET FUNCIONÁRIOS
+	List<CODE.Funcionario> Funcionarios = CODE.FuncionarioBLL.getAllFuncionarios(out mensagemErro);
+	List<SelectListItem> listaFuncionarios = new List<SelectListItem>();
+	foreach (CODE.Funcionario funcionario in Funcionarios)
+	{
+		listaFuncionarios.Add(new SelectListItem()
+		{
+			Text = funcionario.Nome,
+			Value = funcionario.Codigo.ToString(),
+			Selected = (Model == null ? false : (Model.FuncionarioResponsavel.Codigo == funcionario.Codigo))
+		});
+	}
+
+	//GET MESOS
+	CODE.MesoBLL MesoBLL = new CODE.MesoBLL();
+	List<CODE.Meso> Mesos = MesoBLL.getMesos(null, null, out mensagemErro);
+	List<SelectListItem> listaMesos = new List<SelectListItem>();
+	foreach (CODE.Meso item in Mesos)
+	{
+		listaMesos.Add(new SelectListItem()
+		{
+			Text = item.Descricao,
+			Value = item.Codigo.ToString(),
+			Selected = (Model == null ? false : (Model.Meso.Codigo == item.Codigo))
+
+		});
+	}
+}
+
+<section id="main-content">
+	<section class="content">
+		<div class="panel">
+			<header class="panel-heading">
+				<h4>@Html.Raw(Model == null ? "NOVA MICRO" : "EDITAR MICRO")</h4>
+				<div class="top-nav">
+					<button id="btnVoltar" class="btn btn-primary" onclick="return jsVoltar();"><span aria-hidden="true" class="zmdi zmdi-arrow-left"></span> &nbsp; VOLTAR</button>
+					@if (Model == null)
+					{
+						<button id="btnLimpar" class="btn btn-primary" onclick="return jsLimpar();"><span aria-hidden="true" class="zmdi zmdi-close"></span> &nbsp; LIMPAR</button>
+					}
+					<button id="btnSalvar" class="btn btn-primary" onclick="return jsSalvar();"><span aria-hidden="true" class="zmdi zmdi-floppy"></span> &nbsp; SALVAR</button>
+				</div>
+			</header>
+			<div class="panel-body">
+				@using (Html.BeginForm("Salvar", "Micro", FormMethod.Post, new { @name = "formNovo", @id = "formNovo" }))
+				{
+					@Html.HiddenFor(x => Model.Codigo, new { @class = "form-control" })
+					<div class="row">
+						<div class="form-group form-group--float col-sm-4">
+							@Html.TextBoxFor(x => Model.Descricao, new { @class = "form-control noBlank" })
+							<label class="required">Descrição</label>
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label class="required">Funcionário Responsável</label>
+							@Html.DropDownListFor(x => Model.FuncionarioResponsavel.Codigo, listaFuncionarios, "Selecione o Funcionário...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-4">
+							<label class="required">Meso</label>
+							@Html.DropDownListFor(x => Model.Meso.Codigo, listaMesos, "Selecione a meso...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	</section>
+</section>
+
+<script type="text/javascript">
+
+	var tela;
+
+	function jsCarregarCampos() {
+
+		tela = {
+			Codigo: $('#Codigo'),
+			Descricao: $('#Descricao'),
+			FuncionarioResponsavel_Codigo: $('#FuncionarioResponsavel_Codigo'),
+			Meso_Codigo: $('#Meso_Codigo')
+		}
+	}
+
+	function jsVoltar() {
+		jsLimpar();
+		window.location.assign("@Url.Action("List", "Micro")");
+	}
+
+	function jsLimpar() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		me.Codigo.val('');
+		me.Descricao.val('');
+		me.FuncionarioResponsavel_Codigo.val('');
+		me.FuncionarioResponsavel_Codigo.trigger('change');
+		me.Meso_Codigo.val('');
+		me.Meso_Codigo.trigger('change');
+
+		jsRemoverFocus(me.Descricao);
+
+		jsLoading(false);
+
+		return false;
+	}
+
+	function jsSalvar() {
+
+		jsLoading(true);
+
+		if (!jsValidaCampos()) {
+			jsLoading(false);
+			return false;
+		}
+
+		document.getElementById('formNovo').submit();
+
+	}
+
+	function jsValidaCampos() {
+
+		if (!tela) { jsCarregarCampos() }
+		var me = tela;
+
+		if (me.Descricao.val() == "") {
+			OpenAlert("Atenção!", "Informe a descrição da micro!", "danger");
+			me.Descricao.focus();
+			return false;
+		} else if (me.FuncionarioResponsavel_Codigo.val() == "") {
+			OpenAlert("Atenção!", "Informe funcionário responsável pela micro!", "danger");
+			me.FuncionarioResponsavel_Codigo.focus();
+			return false;
+		} else if (me.Meso_Codigo.val() == "") {
+			OpenAlert("Atenção!", "Informe a meso em que a micro pertence!", "danger");
+			me.Meso_Codigo.focus();
+			return false;
+		}
+
+		return true;
+
+	}
+
+</script>
