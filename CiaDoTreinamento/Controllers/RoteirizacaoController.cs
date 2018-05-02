@@ -541,12 +541,12 @@ namespace CiaDoTreinamento.Controllers
 		}
 
 		[HttpGet]
-		public JsonResult BuscarPedidosAgrupadosPorCidade(string codigoEstado, int? codigoCidade, int? codigoMeso, int? codigoMicro)
+		public JsonResult BuscarPedidosAgrupadosPorCidade(string codigoEstado, int? codigoCidade, int? codigoMeso, int? codigoMicro, int? codigoProduto)
 		{
 			string mensagemErro;
 			RoteirizacaoBLL BLL = new RoteirizacaoBLL();
 
-			var listaPedidos = BLL.BuscarPedidosRoteirizacao(null, null, null, codigoCidade, codigoEstado, null, null, codigoMeso, codigoMicro, null, null, out mensagemErro);
+			var listaPedidos = BLL.BuscarPedidosRoteirizacao(null, null, null, codigoCidade, codigoEstado, null, null, codigoMeso, codigoMicro, null, codigoProduto, out mensagemErro);
 
 			if (!String.IsNullOrEmpty(mensagemErro))
 			{

@@ -53,6 +53,25 @@ namespace CODE
 			}
 		}
 
+		public List<CabecalhoPedido> BuscarPedidosNegadosPeloAdmVendas(int? codigoAgenteVendas, int? codigoInstrutor, string razaoSocial, int? codigoCidade, string codigoEstado,
+																DateTime? dataInicioFechamentoPedido, DateTime? dataFimFechamentoPedido, int? codigoMeso, int? codigoMicro,
+																int? codigoPedido, int? codigoProduto, out string mensagemErro)
+		{
+			mensagemErro = "";
+			try
+			{
+				return CabecalhoPedidoDAL.BuscarPedidosNegadosPeloAdmVendas(codigoAgenteVendas, codigoInstrutor, razaoSocial, codigoCidade, codigoEstado,
+																			dataInicioFechamentoPedido, dataFimFechamentoPedido, codigoMeso, codigoMicro,
+																			codigoPedido, codigoProduto, out mensagemErro);
+			}
+			catch (Exception ex)
+			{
+				mensagemErro = ex.Message;
+				Uteis.GravarLogErro(ex.TargetSite.Name, ex.Message);
+				return null;
+			}
+		}
+
 		//INSERT
 		public bool insertCabecalhoPedido(CabecalhoPedido cabecalho, out string mensagemErro)
 		{

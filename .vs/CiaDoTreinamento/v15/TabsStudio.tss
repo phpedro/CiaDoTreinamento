@@ -2,13 +2,7 @@
 <ArrayOfArrayOfArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <ArrayOfArrayOfString>
     <ArrayOfString>
-      <string>D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Controllers\HomeController.cs</string>
-    </ArrayOfString>
-    <ArrayOfString>
-      <string>D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\Shared\Geral\PartialMenu.cshtml</string>
-    </ArrayOfString>
-    <ArrayOfString>
-      <string>D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\Shared\_Layout.cshtml</string>
+      <string>CiaDoTreinamento</string>
     </ArrayOfString>
   </ArrayOfArrayOfString>
 </ArrayOfArrayOfArrayOfString>

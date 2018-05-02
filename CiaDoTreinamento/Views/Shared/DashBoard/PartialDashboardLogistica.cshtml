@@ -27,6 +27,19 @@
 			Value = micro.Codigo.ToString()
 		});
 	}
+
+	//GET PRODUTOS
+	CODE.ProdutoBLL produtoBLL = new CODE.ProdutoBLL();
+	List<CODE.Produto.ProdutoTela> produtos = produtoBLL.GetProdutosTela(out mensagemErro, true);
+	List<SelectListItem> listaProdutos = new List<SelectListItem>();
+	foreach (CODE.Produto.ProdutoTela prod in produtos)
+	{
+		listaProdutos.Add(new SelectListItem()
+		{
+			Text = prod.Descricao,
+			Value = prod.Codigo.ToString()
+		});
+	}
 }
 
 <section id="main-content">
@@ -62,6 +75,13 @@
 						<div class="form-group col-sm-6">
 							<label>Micro</label>
 							@Html.DropDownList("ddlMicroFiltro", listaMicros, "Selecione a Micro...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-6">
+							<label>Produtos</label>
+							@Html.DropDownList("ddlProdutosFiltro", listaProdutos, "Selecione o Produto...", new { @class = "select2" })
 							<i class="form-group__bar"></i>
 						</div>
 					</div>
@@ -162,7 +182,8 @@
 				codigoEstado: $('#ddlEstadosFiltro').val(),
 				codigoCidade: $('#ddlCidadesFiltro').val(),
 				codigoMeso: $('#ddlMesoFiltro').val(),
-				codigoMicro: $('#ddlMicroFiltro').val()
+				codigoMicro: $('#ddlMicroFiltro').val(),
+				codigoProduto: $('#ddlProdutosFiltro').val()
 			}
 
 			$.ajax({
