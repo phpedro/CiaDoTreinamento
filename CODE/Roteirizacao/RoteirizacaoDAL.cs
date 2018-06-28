@@ -148,12 +148,12 @@ namespace CODE
 
 			if (dataInicioFechamentoPedido.HasValue)
 			{
-				sql.AppendLine("	AND CP.DATA_FECHAMENTO >= '" + Convert.ToDateTime(dataInicioFechamentoPedido).ToString("yyyy-MM-dd") + "'");
+				sql.AppendLine("	AND DATE(CP.DATA_FECHAMENTO) >= '" + Convert.ToDateTime(dataInicioFechamentoPedido).ToString("yyyy-MM-dd") + "'");
 			}
 
 			if (dataFimFechamentoPedido.HasValue)
 			{
-				sql.AppendLine("	AND CP.DATA_FECHAMENTO <= '" + Convert.ToDateTime(dataFimFechamentoPedido).ToString("yyyy-MM-dd") + "'");
+				sql.AppendLine("	AND DATE(CP.DATA_FECHAMENTO) <= '" + Convert.ToDateTime(dataFimFechamentoPedido).ToString("yyyy-MM-dd") + "'");
 			}
 
 			if (codigoMeso.HasValue && codigoMeso > 0)
@@ -325,7 +325,8 @@ namespace CODE
 		}
 
 		public static List<CabecalhoPedido> BuscarPedidosPendenteRota(int? codigoAgenteVendas, string razaoSocial, int? codigoCidade, string codigoEstado,
-																DateTime? dataInicioFechamentoPedido, DateTime? dataFimFechamentoPedido, out string mensagemErro)
+																DateTime? dataInicioFechamentoPedido, DateTime? dataFimFechamentoPedido, int? codigoMeso, int? codigoMicro,
+																int? codigoProduto, out string mensagemErro)
 		{
 
 			List<CabecalhoPedido> listaPedidos = new List<CabecalhoPedido>();
@@ -336,6 +337,7 @@ namespace CODE
 			sql.AppendLine("FROM CABECALHOS_PEDIDOS AS CP");
 			sql.AppendLine("	INNER JOIN CLIENTES AS CL ON CP.CODIGO_CLIENTE = CL.CODIGO");
 			sql.AppendLine("	INNER JOIN CIDADES AS CI ON CL.CODIGO_CIDADE = CI.CODIGO");
+			sql.AppendLine("	INNER JOIN ITENS_PEDIDOS IP ON CP.CODIGO = IP.CODIGO_PEDIDO");
 			sql.AppendLine("WHERE CP.CODIGO_STATUS = 17");
 
 			if (codigoAgenteVendas.HasValue && codigoAgenteVendas > 0)
@@ -360,12 +362,27 @@ namespace CODE
 
 			if (dataInicioFechamentoPedido.HasValue)
 			{
-				sql.AppendLine("	AND CP.DATA_FECHAMENTO >= '" + Convert.ToDateTime(dataInicioFechamentoPedido).ToString("yyyy-MM-dd") + "'");
+				sql.AppendLine("	AND DATE(CP.DATA_FECHAMENTO) >= '" + Convert.ToDateTime(dataInicioFechamentoPedido).ToString("yyyy-MM-dd") + "'");
 			}
 
 			if (dataFimFechamentoPedido.HasValue)
 			{
-				sql.AppendLine("	AND CP.DATA_FECHAMENTO <= '" + Convert.ToDateTime(dataFimFechamentoPedido).ToString("yyyy-MM-dd") + "'");
+				sql.AppendLine("	AND DATE(CP.DATA_FECHAMENTO) <= '" + Convert.ToDateTime(dataFimFechamentoPedido).ToString("yyyy-MM-dd") + "'");
+			}
+
+			if (codigoMeso.HasValue && codigoMeso > 0)
+			{
+				sql.AppendLine("	AND CI.CODIGO_MESO = '" + codigoMeso + "'");
+			}
+
+			if (codigoMicro.HasValue && codigoMicro > 0)
+			{
+				sql.AppendLine("	AND CI.CODIGO_MICRO = '" + codigoMicro + "'");
+			}
+
+			if (codigoProduto.HasValue && codigoProduto > 0)
+			{
+				sql.AppendLine("	AND IP.CODIGO_PRODUTO = '" + codigoProduto + "'");
 			}
 
 			sql.AppendLine("ORDER BY CI.ESTADO ASC");
@@ -516,19 +533,20 @@ namespace CODE
 
 		}
 
-		public static List<CabecalhoPedido> BuscarPedidosRoteirizacao(string codigoEstado, int? cidade, int? meso, int? micro, int? produto, out string mensagemErro)
+		public static List<CabecalhoPedido> BuscarPedidosRoteirizacao(string codigoEstado, int? cidade, int? meso, int? micro, int? produto, int? codigoRede, out string mensagemErro)
 		{
 
 			List<CabecalhoPedido> listaPedidos = new List<CabecalhoPedido>();
 			StringBuilder sql = new StringBuilder();
 			mensagemErro = "";
 
-			sql.AppendLine("SELECT DISTINCT CP.*");
+			sql.AppendLine("SELECT CP.*, CASE WHEN SUM(PR.TEM_VISTORIA) > 0 THEN 1 ELSE 0 END TEM_VISTORIA");
 			sql.AppendLine("FROM CABECALHOS_PEDIDOS AS CP");
 			sql.AppendLine("	INNER JOIN CLIENTES AS CL ON CP.CODIGO_CLIENTE = CL.CODIGO");
 			sql.AppendLine("	INNER JOIN CIDADES AS CI ON CL.CODIGO_CIDADE = CI.CODIGO");
 			sql.AppendLine("	INNER JOIN ITENS_PEDIDOS AS IP ON IP.CODIGO_PEDIDO = CP.CODIGO");
-			sql.AppendLine("WHERE (CP.CODIGO_STATUS = 8 OR CP.CODIGO_STATUS = 15) AND CP.ENVIAR_POR_CORREIO = 0");
+			sql.AppendLine("	INNER JOIN PRODUTOS AS PR ON IP.CODIGO_PRODUTO = PR.CODIGO");
+			sql.AppendLine("WHERE (CP.CODIGO_STATUS = 8 OR CP.CODIGO_STATUS = 15 OR CP.CODIGO_STATUS = 17) AND CP.ENVIAR_POR_CORREIO = 0");
 
 			if (!String.IsNullOrEmpty(codigoEstado))
 			{
@@ -555,6 +573,12 @@ namespace CODE
 				sql.AppendLine("	AND IP.CODIGO_PRODUTO = '" + produto + "'");
 			}
 
+			if (codigoRede.HasValue && codigoRede > 0)
+			{
+				sql.AppendLine("	AND CL.CODIGO_REDE = '" + codigoRede + "'");
+			}
+
+			sql.AppendLine("GROUP BY CP.CODIGO");
 			sql.AppendLine("ORDER BY CI.ESTADO ASC");
 
 			Command cmd = new Command();
@@ -598,12 +622,154 @@ namespace CODE
 						DataFinalTreinamento = (linha["DATA_FIM_TREINAMENTO"].ToString() == "" ? Convert.ToDateTime(null) : Convert.ToDateTime(linha["DATA_FIM_TREINAMENTO"].ToString())),
 						InfoTreinamento = linha["INFO_DATA_TREINAMENTO"].ToString(),
 						DetalheRetornoPedido = linha["DETALHAMENTO_RETORNO_PEDIDO"].ToString(),
-						CobrarBoletos = (linha["COBRAR_BOLETOS"].ToString() == "0" ? false : true)
+						CobrarBoletos = (linha["COBRAR_BOLETOS"].ToString() == "0" ? false : true),
+						temVistoria = (linha["TEM_VISTORIA"].ToString() == "0" ? false : true),
 					});
 				}
 			}
 
 			return listaPedidos;
+
+		}
+
+		public static List<Roteirizacao.ProdutosCategoria> BuscarPedidosProdutosCategoria(string codigoEstado, int? cidade, int? meso, int? micro, int? produto, int? codigoRede, out string mensagemErro)
+		{
+
+			List<Roteirizacao.ProdutosCategoria> lista = new List<Roteirizacao.ProdutosCategoria>();
+			StringBuilder sql = new StringBuilder();
+			mensagemErro = "";
+
+			sql.AppendLine("SELECT CR.CODIGO, CR.DESCRICAO, COUNT(*) QUANTIDADE");
+			sql.AppendLine("FROM CABECALHOS_PEDIDOS CP");
+			sql.AppendLine("	INNER JOIN CLIENTES AS CL ON CP.CODIGO_CLIENTE = CL.CODIGO");
+			sql.AppendLine("	INNER JOIN CIDADES AS CI ON CL.CODIGO_CIDADE = CI.CODIGO");
+			sql.AppendLine("	INNER JOIN ITENS_PEDIDOS AS IP ON IP.CODIGO_PEDIDO = CP.CODIGO");
+			sql.AppendLine("	INNER JOIN PRODUTOS AS PR ON IP.CODIGO_PRODUTO = PR.CODIGO");
+			sql.AppendLine("	INNER JOIN CATEGORIA_PRODUTO CR ON PR.CATEGORIA_PRODUTO = CR.CODIGO");
+			sql.AppendLine("WHERE (CP.CODIGO_STATUS = 8 OR CP.CODIGO_STATUS = 15 OR CP.CODIGO_STATUS = 17) AND CP.ENVIAR_POR_CORREIO = 0");
+
+			if (!String.IsNullOrEmpty(codigoEstado))
+			{
+				sql.AppendLine("	AND CI.ESTADO = '" + codigoEstado + "'");
+			}
+
+			if (cidade.HasValue && cidade > 0)
+			{
+				sql.AppendLine("	AND CI.CODIGO = '" + cidade + "'");
+			}
+
+			if (meso.HasValue && meso > 0)
+			{
+				sql.AppendLine("	AND CI.CODIGO_MESO = '" + meso + "'");
+			}
+
+			if (micro.HasValue && micro > 0)
+			{
+				sql.AppendLine("	AND CI.CODIGO_MICRO = '" + micro + "'");
+			}
+
+			if (produto.HasValue && produto > 0)
+			{
+				sql.AppendLine("	AND IP.CODIGO_PRODUTO = '" + produto + "'");
+			}
+
+			if (codigoRede.HasValue && codigoRede > 0)
+			{
+				sql.AppendLine("	AND CL.CODIGO_REDE = '" + codigoRede + "'");
+			}
+
+			sql.AppendLine("GROUP BY CR.CODIGO");
+			sql.AppendLine("ORDER BY QUANTIDADE DESC");
+
+			Command cmd = new Command();
+			cmd.CommandText = sql.ToString();
+
+			DataTable retorno = cmd.GetData();
+
+			if (retorno.Rows.Count > 0)
+			{
+				foreach (DataRow linha in retorno.Rows)
+				{
+					lista.Add(new Roteirizacao.ProdutosCategoria()
+					{
+						categoria = linha["DESCRICAO"].ToString(),
+						quantidade = Convert.ToInt32(linha["QUANTIDADE"].ToString())
+					});
+				}
+			}
+
+			return lista;
+
+		}
+
+		public static List<Roteirizacao.ProdutosCategoria> BuscarPedidosProdutos(string codigoEstado, int? cidade, int? meso, int? micro, int? produto, int? codigoRede, out string mensagemErro)
+		{
+
+			List<Roteirizacao.ProdutosCategoria> lista = new List<Roteirizacao.ProdutosCategoria>();
+			StringBuilder sql = new StringBuilder();
+			mensagemErro = "";
+
+			sql.AppendLine("SELECT PR.CODIGO, PR.DESCRICAO, COUNT(*) QUANTIDADE, CR.DESCRICAO CATEGORIA");
+			sql.AppendLine("FROM CABECALHOS_PEDIDOS CP");
+			sql.AppendLine("	INNER JOIN CLIENTES AS CL ON CP.CODIGO_CLIENTE = CL.CODIGO");
+			sql.AppendLine("	INNER JOIN CIDADES AS CI ON CL.CODIGO_CIDADE = CI.CODIGO");
+			sql.AppendLine("	INNER JOIN ITENS_PEDIDOS AS IP ON IP.CODIGO_PEDIDO = CP.CODIGO");
+			sql.AppendLine("	INNER JOIN PRODUTOS AS PR ON IP.CODIGO_PRODUTO = PR.CODIGO");
+			sql.AppendLine("	INNER JOIN CATEGORIA_PRODUTO CR ON PR.CATEGORIA_PRODUTO = CR.CODIGO");
+			sql.AppendLine("WHERE (CP.CODIGO_STATUS = 8 OR CP.CODIGO_STATUS = 15 OR CP.CODIGO_STATUS = 17) AND CP.ENVIAR_POR_CORREIO = 0");
+
+			if (!String.IsNullOrEmpty(codigoEstado))
+			{
+				sql.AppendLine("	AND CI.ESTADO = '" + codigoEstado + "'");
+			}
+
+			if (cidade.HasValue && cidade > 0)
+			{
+				sql.AppendLine("	AND CI.CODIGO = '" + cidade + "'");
+			}
+
+			if (meso.HasValue && meso > 0)
+			{
+				sql.AppendLine("	AND CI.CODIGO_MESO = '" + meso + "'");
+			}
+
+			if (micro.HasValue && micro > 0)
+			{
+				sql.AppendLine("	AND CI.CODIGO_MICRO = '" + micro + "'");
+			}
+
+			if (produto.HasValue && produto > 0)
+			{
+				sql.AppendLine("	AND IP.CODIGO_PRODUTO = '" + produto + "'");
+			}
+
+			if (codigoRede.HasValue && codigoRede > 0)
+			{
+				sql.AppendLine("	AND CL.CODIGO_REDE = '" + codigoRede + "'");
+			}
+
+			sql.AppendLine("GROUP BY PR.CODIGO");
+			sql.AppendLine("ORDER BY QUANTIDADE DESC");
+
+			Command cmd = new Command();
+			cmd.CommandText = sql.ToString();
+
+			DataTable retorno = cmd.GetData();
+
+			if (retorno.Rows.Count > 0)
+			{
+				foreach (DataRow linha in retorno.Rows)
+				{
+					lista.Add(new Roteirizacao.ProdutosCategoria()
+					{
+						categoria = linha["CATEGORIA"].ToString(),
+						produto = linha["DESCRICAO"].ToString(),
+						quantidade = Convert.ToInt32(linha["QUANTIDADE"].ToString())
+					});
+				}
+			}
+
+			return lista;
 
 		}
 

@@ -146,21 +146,38 @@
 						<!--RESULTADO-->
 						<div id="divResult" class="panel" style="padding-top: 10px; display: none">
 							<header class="panel-heading">
-								<h4>Resultado</h4>
+								<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseResultado" aria-expanded="true">Resultado</h4>
 							</header>
-							<div class="panel-body">
-								<div class="table-responsive">
-									<table id="tbCidades" class="table table-striped table-hover">
-										<thead class="thead-default">
-											<tr>
-												<th>Cidade - UF</th>
-												<th class="center">Qtde Pedidos</th>
-												<th class="center">Valor Total</th>
-												<th></th>
-											</tr>
-										</thead>
-										<tbody id="tbCidades"></tbody>
-									</table>
+							<div id="divCollapseResultado" class="panel-collapse collapse show">
+								<div class="panel-body">
+									<div class="table-responsive">
+										<table id="tbCidades" class="table table-striped table-hover">
+											<thead class="thead-default">
+												<tr>
+													<th>Cidade - UF</th>
+													<th class="center">Qtde Pedidos</th>
+													<th class="center">Valor Total</th>
+													<th></th>
+												</tr>
+											</thead>
+											<tbody id="tbCidades"></tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!--CIDADES SELECIONADAS-->
+						<div id="divCidadesSelecionadas" class="panel" style="padding-top: 10px;">
+							<header class="panel-heading">
+								<h4 class="accordion-toggle" data-toggle="collapse" href="#divCollapseCidadesSelecionadas" aria-expanded="true">Distâncias entre cidades</h4>
+								<div class="top-nav">
+									<button id="btnPersonalizarRota" class="btn btn-primary" onclick="jsHabilitarSortable();"><span aria-hidden="true" class="zmdi zmdi-truck"></span> &nbsp; PERSONALIZAR ROTA</button>
+									<button id="btnConfirmarOrdem" class="btn btn-primary" onclick="jsConfirmarSortable();" style="display: none;"><span aria-hidden="true" class="zmdi zmdi-check"></span> &nbsp; CONFIRMAR ORDEM</button>
+								</div>
+							</header>
+							<div id="divCollapseCidadesSelecionadas" class="panel-collapse collapse show">
+								<div class="panel-body">
+									<ul id="sortable" class="sortable"></ul>
 								</div>
 							</div>
 						</div>
@@ -201,11 +218,14 @@
 							<thead class="thead-default">
 								<tr>
 									<th>Código Pedido</th>
+									<th>Nome Rede</th>
 									<th>Razão Social / Nome</th>
 									<th>CNPJ / CPF</th>
 									<th>Cidade - UF</th>
 									<th>Data Inicio Treinamento</th>
 									<th>Data Fim Treinamento</th>
+									<th>Data Inicio Coleta</th>
+									<th>Data Fim Coleta</th>
 									<th>Valor Total</th>
 									<th class="th70px"></th>
 								</tr>
@@ -228,12 +248,15 @@
 							<thead class="thead-default">
 								<tr>
 									<th></th>
+									<th></th>
 									<th>Código Pedido</th>
 									<th>Razão Social / Nome</th>
 									<th>CNPJ / CPF</th>
 									<th>Cidade - UF</th>
 									<th>Data Inicio Treinamento</th>
 									<th>Data Fim Treinamento</th>
+									<th>Data Inicio Coleta</th>
+									<th>Data Fim Coleta</th>
 									<th>Valor Total</th>
 									<th></th>
 								</tr>
@@ -250,8 +273,8 @@
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCu1NVvUi33FURh7lRtc91DacG7FtLrvk8&callback=initMap"></script>
 <script type="text/javascript">
 
-	var pontoInicio = "Uberlândia - MG, 38400-000";
-	var pontoFinal = "Uberlândia - MG, 38400-000";
+	var pontoInicio = "Uberlândia - MG";
+	var pontoFinal = "Uberlândia - MG";
 
 	$('#txtPointStart').val(pontoInicio);
 	$('#txtPointEnd').val(pontoFinal);
@@ -337,6 +360,7 @@
 				distances = response.routes[0].legs;
 				jsMontaTabelaPedidos();
 				jsMontaContentDistance();
+				jsMontaGridCidadesSelecionadas();
 			} else {
 				window.alert('Não foi possível construir a rota. ' + status);
 			}
@@ -368,6 +392,7 @@
 				ordemCidadesRota = response.routes[0].waypoint_order;
 				distances = response.routes[0].legs;
 				jsMontaContentDistance();
+				jsMontaGridCidadesSelecionadas();
 			} else {
 				window.alert('Não foi possível construir a rota. ' + status);
 			}
@@ -423,11 +448,17 @@
 
 			if (!control)
 			{
+				console.log(ac);
+
 				var tr = document.createElement('tr');
 
 				var td1 = document.createElement('td');
 				td1.innerHTML = ac.codigo;
 				tr.append(td1);
+
+				var tdRede = document.createElement('td');
+				tdRede.innerHTML = ac.cliente.redePosto.descricao;
+				tr.append(tdRede);
 
 				var td2 = document.createElement('td');
 				td2.innerHTML = ac.cliente.razaoSocial;
@@ -443,7 +474,8 @@
 
 				var td4 = document.createElement('td');
 				if (ac.dataInicioTreinamento == "0001-01-01T00:00:00") {
-					td4.innerHTML = '<input type="text" id="dtpDataInicioTreinamento_' + ac.codigo + '" class="form-control date-picker" value="' + moment(new Date()).format("DD/MM/YYYY hh:mm") + '" />';
+					//td4.innerHTML = '<input type="text" id="dtpDataInicioTreinamento_' + ac.codigo + '" class="form-control date-picker" value="' + moment(new Date()).format("DD/MM/YYYY hh:mm") + '" />';
+					td4.innerHTML = '<input type="text" id="dtpDataInicioTreinamento_' + ac.codigo + '" class="form-control date-picker" value="" />';
 				} else {
 					td4.innerHTML = '<input type="text" id="dtpDataInicioTreinamento_' + ac.codigo + '" class="form-control date-picker" value="' + moment(new Date(ac.dataInicioTreinamento)).format("DD/MM/YYYY hh:mm") + '" />';
 				}
@@ -451,21 +483,42 @@
 
 				var td5 = document.createElement('td');
 				if (ac.dataFinalTreinamento == "0001-01-01T00:00:00") {
-					td5.innerHTML = '<input type="text" id="dtpDataFimTreinamento_' + ac.codigo + '" class="form-control date-picker" value="' + moment(new Date()).format("DD/MM/YYYY hh:mm") + '" />';
+					//td5.innerHTML = '<input type="text" id="dtpDataFimTreinamento_' + ac.codigo + '" class="form-control date-picker" value="' + moment(new Date()).format("DD/MM/YYYY hh:mm") + '" />';
+					td5.innerHTML = '<input type="text" id="dtpDataFimTreinamento_' + ac.codigo + '" class="form-control date-picker" value="" />';
 				} else {
 					td5.innerHTML = '<input type="text" id="dtpDataFimTreinamento_' + ac.codigo + '" class="form-control date-picker" value="' + moment(new Date(ac.dataFinalTreinamento)).format("DD/MM/YYYY hh:mm") + '" />';
 				}
 				tr.append(td5);
 
+				/*---*/
 				var td6 = document.createElement('td');
-				td6.innerHTML = ac.valorTotalFormatado;
+				if (ac.dataInicioTreinamento == "0001-01-01T00:00:00") {
+					//td6.innerHTML = '<input type="text" id="dtpDataInicioColeta_' + ac.codigo + '" class="form-control date-picker" value="' + moment(new Date()).format("DD/MM/YYYY hh:mm") + '" />';
+					td6.innerHTML = '<input type="text" id="dtpDataInicioColeta_' + ac.codigo + '" class="form-control date-picker" value="" />';
+				} else {
+					td6.innerHTML = '<input type="text" id="dtpDataInicioColeta_' + ac.codigo + '" class="form-control date-picker" value="' + moment(new Date(ac.dataInicioColeta)).format("DD/MM/YYYY hh:mm") + '" />';
+				}
 				tr.append(td6);
 
 				var td7 = document.createElement('td');
-				td7.innerHTML = "<a onclick='jsConfirmarPedido(" + ac.codigo + "," + i + ")'><span class='zmdi zmdi-check'></span></a> &nbsp; " +
+				if (ac.dataFinalTreinamento == "0001-01-01T00:00:00") {
+					//td7.innerHTML = '<input type="text" id="dtpDataFimColeta_' + ac.codigo + '" class="form-control date-picker" value="' + moment(new Date()).format("DD/MM/YYYY hh:mm") + '" />';
+					td7.innerHTML = '<input type="text" id="dtpDataFimColeta_' + ac.codigo + '" class="form-control date-picker" value="" />';
+				} else {
+					td7.innerHTML = '<input type="text" id="dtpDataFimColeta_' + ac.codigo + '" class="form-control date-picker" value="' + moment(new Date(ac.dataFinalColeta)).format("DD/MM/YYYY hh:mm") + '" />';
+				}
+				tr.append(td7);
+				/*---*/
+
+				var td8 = document.createElement('td');
+				td8.innerHTML = ac.valorTotalFormatado;
+				tr.append(td8);
+
+				var td9 = document.createElement('td');
+				td9.innerHTML = "<a onclick='jsConfirmarPedido(" + ac.codigo + "," + i + ")'><span class='zmdi zmdi-check'></span></a> &nbsp; " +
 					"<a onclick='jsInfoPedido(" + ac.codigo + ")'><span class='zmdi zmdi-info'></span></a> &nbsp; " +
 					"<a onclick='jsRemoverPedido(" + i + ")'><span class='zmdi zmdi-delete'></span></a>  &nbsp; ";
-				tr.append(td7);
+				tr.append(td9);
 
 				tbPedidos.append(tr);
 			}
@@ -720,7 +773,9 @@
 			codigoRota: $('#txtCodigoRota').val(),
 			codigoPedido: pedido.codigo,
 			dataInicio: $('#dtpDataInicioTreinamento_' + codigoPedido).val(),
-			dataFim: $('#dtpDataFimTreinamento_' + codigoPedido).val()
+			dataFim: $('#dtpDataFimTreinamento_' + codigoPedido).val(),
+			dataInicioColeta: $('#dtpDataInicioColeta_' + codigoPedido).val(),
+			dataFimColeta: $('#dtpDataFimColeta_' + codigoPedido).val(),
 		};
 
 		$.ajax({
@@ -796,6 +851,9 @@
 		var tbPedidosRota = $('#tbPedidosRota');
 		tbPedidosRota.empty();
 
+		//ORDERNAR POR DATA DE TREINAMENTO
+
+
 		for (var i = 0; i < arrayPedidosDaRota.length; i++)
 		{
 			var ac = arrayPedidosDaRota[i];
@@ -824,6 +882,14 @@
 			}
 			tr.append(td1);
 
+			var tdInfo = document.createElement('td');
+			tdInfo.innerHTML = "<span class='zmdi zmdi-info'></span>";
+			tdInfo.dataset.id = ac.cabecalhoPedido.codigo;
+			tdInfo.onclick = function () {
+				jsInfoPedido($(this).data('id'));
+			}
+			tr.append(tdInfo);
+
 			var td2 = document.createElement('td');
 			td2.innerHTML = ac.cabecalhoPedido.codigo;
 			tr.append(td2);
@@ -847,22 +913,30 @@
 			var td7 = document.createElement('td');
 			td7.innerHTML = ac.dataFimFormatada;
 			tr.append(td7);
-
+			
 			var td8 = document.createElement('td');
-			td8.innerHTML = ac.cabecalhoPedido.valorTotalFormatado;
+			td8.innerHTML = ac.dataInicioColetaFormatada;
 			tr.append(td8);
 
 			var td9 = document.createElement('td');
+			td9.innerHTML = ac.dataFimColetaFormatada;
+			tr.append(td9);
+
+			var td10 = document.createElement('td');
+			td10.innerHTML = ac.cabecalhoPedido.valorTotalFormatado;
+			tr.append(td10);
+
+			var td11 = document.createElement('td');
 			if (ac.aprovado) {
-				td9.innerHTML = "Confirmado";
+				td11.innerHTML = "Confirmado";
 			} else {
-				td9.innerHTML = '<select class="select2 chk_' + ac.cabecalhoPedido.codigo + '" onchange="jsConfirmarPedidoRota(this, ' + i + ')">' +
+				td11.innerHTML = '<select class="select2 chk_' + ac.cabecalhoPedido.codigo + '" onchange="jsConfirmarPedidoRota(this, ' + i + ')">' +
 					'<option value="S">confirmado</option>' +
 					'<option value="N" selected>Não confirmado</option>' +
 					'</select > ';
 			}
 			
-			tr.append(td9);
+			tr.append(td11);
 
 			tbPedidosRota.append(tr);
 		}
@@ -877,7 +951,7 @@
 		var pedido = arrayPedidosDaRota[indice];
 
 		if ($(obj).val() == "S") {
-			openModalConfirmarPedidoRota(pedido.cabecalhoPedido.cliente.codigo, pedido.cabecalhoPedido.codigo, pedido.cabecalhoPedido.cliente.cidade.codigo, $('#ddlInstrutorRota').val(), new Date(pedido.dataInicio), new Date(pedido.dataFim), $('#txtCodigoRota').val());
+			openModalConfirmarPedidoRota(pedido.cabecalhoPedido.cliente.codigo, pedido.cabecalhoPedido.codigo, pedido.cabecalhoPedido.cliente.cidade.codigo, $('#ddlInstrutorRota').val(), new Date(pedido.dataInicio), new Date(pedido.dataFim), new Date(pedido.dataInicioColeta), new Date(pedido.dataFimColeta), $('#txtCodigoRota').val());
 			$('.chk_' + pedido.cabecalhoPedido.codigo).each(function () {
 				$(this).val('N');
 			});
@@ -892,12 +966,30 @@
 
 			var myLatLng = { lat: parseFloat(ac.cidade.latitude), lng: parseFloat(ac.cidade.longitude) };
 
-			var marker = new google.maps.Marker({
-				map: map,
-				position: myLatLng,
-				label: "" + ac.qtdePedidos,
-				icon: '/images/Markers/marker.png'
-			});
+			var marker;
+
+			if (ac.qtdePedidosVistoria > 0) {
+				marker = new google.maps.Marker({
+					map: map,
+					position: myLatLng,
+					label: "" + ac.qtdePedidos,
+					icon: '/images/Markers/bandeiraAzul.png'
+				});
+			} else if (ac.qtdePedidosPendentes > 0) { 
+				marker = new google.maps.Marker({
+					map: map,
+					position: myLatLng,
+					label: "" + ac.qtdePedidos,
+					icon: '/images/Markers/bandeira.png'
+				});
+			} else { 
+				marker = new google.maps.Marker({
+					map: map,
+					position: myLatLng,
+					label: "" + ac.qtdePedidos,
+					icon: '/images/Markers/bandeiraVerde.png'
+				});
+			}
 
 			// Allow each marker to have an info window
 			google.maps.event.addListener(marker, 'click', (function (marker, i) {
@@ -913,9 +1005,100 @@
 
 	function jsBoxDetails(id) {
 
-		var str = "<div class='info-content'><h5>" + arrayCidades[id].cidade.descricao + "<h5><h6>Quantidade: " + arrayCidades[id].qtdePedidos + "</h6></div>";
+		var str = "<div class='info-content'><h5>" + arrayCidades[id].cidade.descricao + "<h5><h6>Pedido(s): " + arrayCidades[id].qtdePedidos + "</h6>";
+
+		if (arrayCidades[id].qtdePedidosPendentes > 0) {
+			str += "<h6>Pendente(s): " + arrayCidades[id].qtdePedidosPendentes + "</h6>";
+		}
+
+		if (arrayCidades[id].qtdePedidosVistoria > 0) {
+			str += "<h6>Vistoria(s): " + arrayCidades[id].qtdePedidosVistoria + "</h6>";
+		}
+
+		str += "</div>";
 
 		return str;
+	}
+
+	function jsMontaGridCidadesSelecionadas()
+	{ 
+		var sortable = $('#sortable');
+		sortable.empty();
+
+		var totalRota = 0;
+
+		for (var i = 0; i < distances.length; i++) {
+
+			if (distances[i].start_address != distances[i].end_address)
+			{
+
+				var li = document.createElement('li');
+				li.className = 'ui-state-default';
+				li.dataset.value = distances[i].start_address;
+				li.innerHTML = distances[i].start_address + " / " + distances[i].distance.text;
+				sortable.append(li);
+
+				totalRota += parseFloat(distances[i].distance.text.substring(0, distances[i].distance.text.length - 3).replace(',', '.'))
+			}
+		}
+	}
+
+	/* --------------------------- ROTA PERSONALIZADA --------------------------- */
+
+	function jsHabilitarSortable()
+	{ 
+		$('#btnPersonalizarRota').hide();
+		$('#btnConfirmarOrdem').show();
+		$('#sortable').sortable();
+		$("#sortable").disableSelection();
+	}
+
+	function jsConfirmarSortable()
+	{
+		$('#btnPersonalizarRota').show();
+		$('#btnConfirmarOrdem').hide();
+		$('#sortable').sortable('destroy');
+
+		var points = [];
+
+		$('#sortable li').each(function () {
+			points.push($(this).data('value'));
+		});
+
+		calculateAndDisplayRoute3(directionsService, directionsDisplay, points);
+
+	}
+
+	function calculateAndDisplayRoute3(directionsService, directionsDisplay, points) {
+
+		waypts = [];
+
+		for (var i = 0; i < points.length; i++) {
+			waypts.push({
+				location: points[i],
+				stopover: true
+			});
+		}
+
+		directionsDisplay.setMap(map);
+
+		directionsService.route({
+			origin: pontoInicio,
+			destination: pontoFinal,
+			waypoints: waypts,
+			optimizeWaypoints: false,
+			travelMode: 'DRIVING'
+		}, function (response, status) {
+			if (status === 'OK') {
+				directionsDisplay.setDirections(response);
+				ordemCidadesRota = response.routes[0].waypoint_order;
+				distances = response.routes[0].legs;
+				jsMontaContentDistance();
+				jsMontaGridCidadesSelecionadas();
+			} else {
+				window.alert('Não foi possível construir a rota. ' + status);
+			}
+		});
 	}
 
 </script>

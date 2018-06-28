@@ -20,9 +20,9 @@ namespace CODE
 				StringBuilder sql = new StringBuilder();
 
 				sql.AppendLine("INSERT INTO ITENS_ROTA");
-				sql.AppendLine("	(CODIGO_ROTA, CODIGO_PEDIDO, CODIGO_PARCEIRO_SALA, CODIGO_PARCEIRO_HOTEL, DATA_INICIO, DATA_FIM, OBSERVACAO, CONFIRMADO)");
+				sql.AppendLine("	(CODIGO_ROTA, CODIGO_PEDIDO, CODIGO_PARCEIRO_SALA, CODIGO_PARCEIRO_HOTEL, DATA_INICIO_TREINAMENTO, DATA_FIM_TREINAMENTO, OBSERVACAO, CONFIRMADO, DATA_INICIO_COLETA, DATA_FIM_COLETA)");
 				sql.AppendLine("	VALUES");
-				sql.AppendLine("	('" + itemRota.Rota.Codigo + "', '" + itemRota.CabecalhoPedido.Codigo + "', '" + (itemRota.ParceiroSala == null ? 0 : itemRota.ParceiroSala.Codigo) + "', '"+ (itemRota.ParceiroHotel == null ? 0 : itemRota.ParceiroHotel.Codigo) + "', '" + itemRota.DataInicio.ToString("yyyy-MM-dd HH:mm:ss") + "','" + itemRota.DataFim.ToString("yyyy-MM-dd HH:mm:ss") + "', '" + itemRota.Observacao + "', 0) ");
+				sql.AppendLine("	('" + itemRota.Rota.Codigo + "', '" + itemRota.CabecalhoPedido.Codigo + "', '" + (itemRota.ParceiroSala == null ? 0 : itemRota.ParceiroSala.Codigo) + "', '"+ (itemRota.ParceiroHotel == null ? 0 : itemRota.ParceiroHotel.Codigo) + "', '" + itemRota.DataInicio.ToString("yyyy-MM-dd HH:mm:ss") + "','" + itemRota.DataFim.ToString("yyyy-MM-dd HH:mm:ss") + "', '" + itemRota.Observacao + "', 0, '" + itemRota.DataInicioColeta.ToString("yyyy-MM-dd HH:mm:ss") + "','" + itemRota.DataFimColeta.ToString("yyyy-MM-dd HH:mm:ss") + "') ");
 
 				cmd.CommandText = sql.ToString();
 
@@ -64,8 +64,10 @@ namespace CODE
 				sql.AppendLine("	SET");
 				sql.AppendLine("	CODIGO_PARCEIRO_SALA = '" + (itemRota.ParceiroSala == null ? 0 : itemRota.ParceiroSala.Codigo) + "',");
 				sql.AppendLine("	CODIGO_PARCEIRO_HOTEL = '" + (itemRota.ParceiroHotel == null ? 0 : itemRota.ParceiroHotel.Codigo) + "',");
-				sql.AppendLine("	DATA_INICIO = '" + itemRota.DataInicio.ToString("yyyy-MM-dd HH:mm:ss") + "',");
-				sql.AppendLine("	DATA_FIM = '" + itemRota.DataFim.ToString("yyyy-MM-dd HH:mm:ss") + "',");
+				sql.AppendLine("	DATA_INICIO_TREINAMENTO = '" + itemRota.DataInicio.ToString("yyyy-MM-dd HH:mm:ss") + "',");
+				sql.AppendLine("	DATA_FIM_TREINAMENTO = '" + itemRota.DataFim.ToString("yyyy-MM-dd HH:mm:ss") + "',");
+				sql.AppendLine("	DATA_INICIO_COLETA = '" + itemRota.DataInicioColeta.ToString("yyyy-MM-dd HH:mm:ss") + "',");
+				sql.AppendLine("	DATA_FIM_COLETA = '" + itemRota.DataFimColeta.ToString("yyyy-MM-dd HH:mm:ss") + "',");
 				sql.AppendLine("	OBSERVACAO = '" + itemRota.Observacao + "',");
 				sql.AppendLine("	CONFIRMADO = '" + (itemRota.Aprovado ? 1 : 0) + "'");
 				sql.AppendLine("	WHERE CODIGO_ROTA = " + itemRota.Rota.Codigo);
@@ -196,8 +198,10 @@ namespace CODE
 						CabecalhoPedido = cabecalhoPedidoBLL.GetPedidoByCodigo(Convert.ToInt32(linha["CODIGO_PEDIDO"]), out mensagemErro),
 						ParceiroSala = new Parceiro() { Codigo = Convert.ToInt32(linha["CODIGO_PARCEIRO_SALA"]) },
 						ParceiroHotel = new Parceiro() { Codigo = Convert.ToInt32(linha["CODIGO_PARCEIRO_HOTEL"]) },
-						DataInicio = Convert.ToDateTime(linha["DATA_INICIO"]),
-						DataFim = Convert.ToDateTime(linha["DATA_FIM"]),
+						DataInicio = Convert.ToDateTime(linha["DATA_INICIO_TREINAMENTO"]),
+						DataFim = Convert.ToDateTime(linha["DATA_FIM_TREINAMENTO"]),
+						DataInicioColeta = Convert.ToDateTime(linha["DATA_INICIO_COLETA"]),
+						DataFimColeta = Convert.ToDateTime(linha["DATA_FIM_COLETA"]),
 						Observacao = linha["OBSERVACAO"].ToString(),
 						Aprovado = (linha["CONFIRMADO"].ToString() == "0" ? false : true)
 					});

@@ -79,6 +79,8 @@ namespace CODE
 			}
 		}
 
+		public bool temVistoria { get; set; }
+
 		#endregion
 
 		#region Contrutores

@@ -208,6 +208,13 @@
 										</tr>
 									}
 								</tbody>
+								<tfoot class="tfoot-default">
+									<tr>
+										<td colspan="6"></td>
+										<td class="center">@String.Format("{0:C}", Model.Sum(x => x.ValorTotal))</td>
+										<td colspan="2"></td>
+									</tr>
+								</tfoot>
 							</table>
 						</div>
 					</div>

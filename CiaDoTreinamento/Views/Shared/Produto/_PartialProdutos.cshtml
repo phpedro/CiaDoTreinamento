@@ -1,0 +1,165 @@
+﻿@model CODE.CabecalhoPedido
+
+@{
+	string mensagemErro;
+
+	//GET PRODUTOS
+	CODE.ProdutoBLL produtoBLL = new CODE.ProdutoBLL();
+	List<CODE.Produto.ProdutoTela> listaProdutos = produtoBLL.GetProdutosTela(out mensagemErro, true);
+
+	List<CODE.Produto.ProdutoTela> listaProdutosTreinamento = listaProdutos.Where(x => x.CategoriaProduto == "Treinamentos").ToList();
+	List<CODE.Produto.ProdutoTela> listaProdutosDocumento = listaProdutos.Where(x => x.CategoriaProduto == "Documentos").ToList();
+	List<CODE.Produto.ProdutoTela> listaProdutosLaudo = listaProdutos.Where(x => x.CategoriaProduto == "Laudos").ToList();
+	List<CODE.Produto.ProdutoTela> listaProdutos2Via = listaProdutos.Where(x => x.CategoriaProduto == "2ª Via").ToList();
+	List<CODE.Produto.ProdutoTela> listaProdutosOutros = listaProdutos.Where(x => x.CategoriaProduto == "Outros").ToList();
+
+	//GET PRODUTOS VENDIDOS
+	int codigoPedido = ViewBag.codigoPedido;
+	List<CODE.ItemPedido> listaItensVendidos = new List<CODE.ItemPedido>();
+	if (codigoPedido != 0)
+	{
+		CODE.ItemPedidoBLL itemPedidoBLL = new CODE.ItemPedidoBLL();
+		listaItensVendidos = itemPedidoBLL.getItemPedido(null, codigoPedido, out mensagemErro);
+	}
+}
+
+<div class="panel">
+	<header class="panel-heading">
+		<h4 class="accordion-toggle" data-toggle="collapse" href="#divProdutosCollapse" aria-expanded="false">PRODUTOS</h4>
+	</header>
+	<div id="divProdutosCollapse" class="panel-collapse collapse show">
+		<div class="panel-body">
+			<div>
+				<ul id="tabs">
+					<li><a name="tab-treinamento">TREINAMENTOS</a></li>
+					<li><a name="tab-documentos">DOCUMENTOS</a></li>
+					<li><a name="tab-laudo">LAUDOS</a></li>
+					<li><a name="tab-2Via">2ª VIA</a></li>
+					<li><a name="tab-outros">OUTROS</a></li>
+				</ul>
+				<div id="content_tabs">
+					<!--TREINAMENTOS-->
+					<div id="tab-treinamento" class="divProdsTab">
+						<div class="row">
+							<!--SEARCH GRID-->
+							<div class="form-group form-group--float col-sm-12">
+								<input type="text" value="" class="form-control" onkeyup="jsFiltrarTreinamentos(this)" />
+								<label>Procurar</label>
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+						<div id="contentTreinamentos">
+							@foreach (CODE.Produto.ProdutoTela item in listaProdutosTreinamento)
+							{
+								var isVendido = listaItensVendidos.Where(x => x.Produto.Codigo == item.Codigo).FirstOrDefault();
+
+								<div id="contentProd_@item.Codigo" class="contentProd" data-value="@item.Descricao">
+									<div>
+										<img src="@Url.Action("DownloadImagem", "CabecalhoPedido", new { id = item.Codigo })" />
+										<h5 class="col-sm-12">@item.Descricao</h5>
+									</div>
+									<div class="row">
+										<!--VALOR UNITÁRIO-->
+										<div class="form-group form-group--float col-sm-12">
+											<input type="text" value="@item._valorPorPessoaFormatado" class="form-control" readonly />
+											<label>Valor Unitário</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<!--QUANTIDADE-->
+										<div class="form-group form-group--float col-sm-12">
+											<input type="number" value="@(isVendido != null ? Convert.ToInt16(isVendido.Quantidade) : 0)" min="0" max="500" class="form-control" />
+											<label>Quantidade</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<!--ACRÉSCIMO-->
+										<div class="form-group form-group--float col-sm-12">
+											<input type="text" value="@(isVendido != null ? (isVendido.valorFinal - item.ValorPorPessoa) : 0)" class="form-control" />
+											<label>Acréscimo</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<!--TOTAL-->
+										<div class="form-group form-group--float col-sm-12">
+											<input type="text" value="@(isVendido != null ? String.Format("{0:C}", (isVendido.valorFinal * isVendido.Quantidade)) : "0")" class="form-control" readonly />
+											<label>Total</label>
+											<i class="form-group__bar"></i>
+										</div>
+										<!--BOTÕES-->
+										<div class="col-sm-12">
+											<button class="btn btn-outline-danger" title="Cancelar Venda" style="display: @(isVendido != null ? "":"none")">Remover</button>
+											<button class="btn btn-outline-success" title="Mais Detalhes">Detalhes</button>
+											<button class="btn btn-outline-info" title="Argumentação de vendas" onclick="jsAbreArgumentacaoVenda(@item.Codigo)" style="display: @(isVendido != null ? "none":"")"><span class="fas fa-chalkboard-teacher"></span></button>
+										</div>
+									</div>
+								</div>
+							}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	$(document).ready(function () {
+		$("#content_tabs").find("[id^='tab']").hide(); // Hide all content
+		$("#tabs li:first").attr("id", "current"); // Activate the first tab
+		$("#content_tabs #tab-treinamento").fadeIn(); // Show first tab's content
+
+		$('#tabs a').click(function (e) {
+			e.preventDefault();
+			if ($(this).closest("li").attr("id") == "current") { //detection for current tab
+				return;
+			}
+			else {
+				$("#content_tabs").find("[id^='tab']").hide(); // Hide all content
+				$("#tabs li").attr("id", ""); //Reset id's
+				$(this).parent().attr("id", "current"); // Activate this
+				$('#' + $(this).attr('name')).fadeIn(); // Show content for the current tab
+			}
+		});
+	});
+
+	function jsAbreArgumentacaoVenda(codigoProduto)
+	{ 
+		var url = "/Produto/BuscarArgumentacoesVenda";
+
+		var data = {
+			codigoProduto: codigoProduto
+		}
+
+		$.get(url, data, (result) => { 
+
+			if (result.sucesso) {
+				swal('Argumentação de venda', result.argumento, 'info')
+			} else { 
+				OpenAlert("Atenção!", "Não foi possível buscar os argumentos de venda!", "danger");
+			}
+		});
+	}
+
+	function jsFiltrarTreinamentos(obj)
+	{ 
+		var valorFiltro = $(obj).val();
+
+		if (valorFiltro.length <= 0) {
+			$('#contentTreinamentos>div').each(function () {
+				$(this).show();
+			});
+		} else { 
+			$('#contentTreinamentos>div').each(function () {
+
+				var valor = $(this).data('value');
+				var re = new RegExp("\.*" + valorFiltro.toUpperCase() + "\.*");
+
+				if (valor.toUpperCase().match(re)) {
+					$(this).show();
+				} else { 
+					$(this).hide();
+				}
+			});
+		}
+	}
+
+</script>

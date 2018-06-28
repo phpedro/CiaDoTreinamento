@@ -78,14 +78,16 @@ namespace CiaDoTreinamento.Controllers
 		}
 
 		public IActionResult RelatorioPendenteRota(int? ddlAgenteVendasFiltro, string ddlEstadosFiltro, int? ddlCidadesFiltro,
-												string txtaRazaoNomeClienteFiltro, DateTime? dtpDataInicioFechamentoPedido, DateTime? dtpDataFinalFechamentoPedido)
+												string txtaRazaoNomeClienteFiltro, DateTime? dtpDataInicioFechamentoPedido, DateTime? dtpDataFinalFechamentoPedido,
+												int? ddlMesoFiltro, int? ddlMicroFiltro, int? ddlProdutosFiltro)
 		{
 
 			RoteirizacaoBLL BLL = new RoteirizacaoBLL();
 			string mensagemErro;
 
 			List<CabecalhoPedido> listaPedidos = BLL.BuscarPedidosPendenteRota(ddlAgenteVendasFiltro, txtaRazaoNomeClienteFiltro, ddlCidadesFiltro,
-																			ddlEstadosFiltro, dtpDataInicioFechamentoPedido, dtpDataFinalFechamentoPedido, out mensagemErro);
+																			ddlEstadosFiltro, dtpDataInicioFechamentoPedido, dtpDataFinalFechamentoPedido,
+																			ddlMesoFiltro, ddlMicroFiltro, ddlProdutosFiltro, out mensagemErro);
 
 			if (!string.IsNullOrEmpty(mensagemErro))
 			{
@@ -141,11 +143,11 @@ namespace CiaDoTreinamento.Controllers
 			return View(new List<Rota>());
 		}
 
-		public IActionResult ConsutarRotasInstrutor(int? ddlInstrutorFiltro)
+		public IActionResult ConsutarRotasInstrutor(int? txtCodigoRotaFiltro, int? ddlInstrutorFiltro, int? ddlCidadesFiltro, DateTime? dataInicioFiltro, DateTime? dataFinalFiltro)
 		{
 			string mensagemErro;
 
-			List<Rota> listaRotas = RotaBLL.selectRotasByInstrutor(ddlInstrutorFiltro, out mensagemErro);
+			List<Rota> listaRotas = RotaBLL.selectRotasByInstrutor(txtCodigoRotaFiltro, ddlInstrutorFiltro, ddlCidadesFiltro, dataInicioFiltro, dataFinalFiltro, out mensagemErro);
 
 			if (!String.IsNullOrEmpty(mensagemErro))
 			{
@@ -200,13 +202,33 @@ namespace CiaDoTreinamento.Controllers
 				return Json(new { sucesso = false, mensagemErro = mensagemErro });
 			}
 
-			//Grava Notificação
 			CabecalhoPedido cabecalhoPedido = cabecalhoPedidoBLL.GetPedidoByCodigo(codigoPedido, out mensagemErro);
-			Notificacoes notificacao = new Notificacoes();
-			notificacao.FuncionarioCriador = new Funcionario() { Codigo = codigoUsuario };
-			notificacao.FuncionarioDestino = new Funcionario() { Codigo = cabecalhoPedido.FuncionarioVendedor.Codigo };
-			notificacao.Mensagem = "Pedido " + cabecalhoPedido.Codigo + " incluído na rota!";
-			notificacoesBLL.insertNotificacao(notificacao, out mensagemErro);
+
+			//Grava Notificação
+			//Notificacoes notificacao = new Notificacoes();
+			//notificacao.FuncionarioCriador = new Funcionario() { Codigo = codigoUsuario };
+			//notificacao.FuncionarioDestino = new Funcionario() { Codigo = cabecalhoPedido.FuncionarioVendedor.Codigo };
+			//notificacao.Mensagem = "Pedido " + cabecalhoPedido.Codigo + " incluído na rota!";
+			//notificacoesBLL.insertNotificacao(notificacao, out mensagemErro);
+
+			//EM CASO DE PEDIDO PENDENTE (17 / 18) ENVIAR EMAIL PARA O AGENTE RESPONSÁVEL
+			if (codigoStatus == 17 || codigoStatus == 18)
+			{
+				var usuario = new Funcionario(Convert.ToInt32(HttpContext.Request.Cookies["CODIGO_USUARIO"]));
+
+				string templateEmail = System.IO.File.ReadAllText("./wwwRoot/Templates/TemplateEmailPendencia.html");
+
+				templateEmail = templateEmail.Replace("@colaborador", cabecalhoPedido.FuncionarioVendedor.Nome)
+												.Replace("@codigoPedido", cabecalhoPedido.Codigo.ToString())
+												.Replace("@motivo", detalheRetornoPedido);
+
+				var emails = "rota@ciadotreinamento.com.br, equipesupervisao@ciadotreinamento.com.br," + cabecalhoPedido.FuncionarioVendedor.Email;
+
+				//ENVIAR EMAIL PARA O CLIENTE
+				string Assunto = "A/C " + cabecalhoPedido.FuncionarioVendedor.Nome + " / Cia do Treinamento.";
+
+				string retornoEmail = Uteis.SendMailRoteirizacao(usuario.Login, emails, Assunto, templateEmail, usuario.Email);
+			}
 
 			return Json(new { sucesso = true });
 		}
@@ -231,11 +253,11 @@ namespace CiaDoTreinamento.Controllers
 
 				//Grava Notificação
 				CabecalhoPedido cabecalhoPedido = cabecalhoPedidoBLL.GetPedidoByCodigo(pedido.codigoPedido, out mensagemErro);
-				Notificacoes notificacao = new Notificacoes();
-				notificacao.FuncionarioCriador = new Funcionario() { Codigo = codigoUsuario };
-				notificacao.FuncionarioDestino = new Funcionario() { Codigo = cabecalhoPedido.FuncionarioVendedor.Codigo };
-				notificacao.Mensagem = "Pedido " + cabecalhoPedido.Codigo + " incluído na rota!";
-				notificacoesBLL.insertNotificacao(notificacao, out mensagemErro);
+				//Notificacoes notificacao = new Notificacoes();
+				//notificacao.FuncionarioCriador = new Funcionario() { Codigo = codigoUsuario };
+				//notificacao.FuncionarioDestino = new Funcionario() { Codigo = cabecalhoPedido.FuncionarioVendedor.Codigo };
+				//notificacao.Mensagem = "Pedido " + cabecalhoPedido.Codigo + " incluído na rota!";
+				//notificacoesBLL.insertNotificacao(notificacao, out mensagemErro);
 
 			}
 
@@ -265,11 +287,11 @@ namespace CiaDoTreinamento.Controllers
 
 				//Grava Notificação
 				CabecalhoPedido cabecalhoPedido = cabecalhoPedidoBLL.GetPedidoByCodigo(pedido, out mensagemErro);
-				Notificacoes notificacao = new Notificacoes();
-				notificacao.FuncionarioCriador = new Funcionario() { Codigo = codigoUsuario };
-				notificacao.FuncionarioDestino = new Funcionario() { Codigo = cabecalhoPedido.FuncionarioVendedor.Codigo };
-				notificacao.Mensagem = "Status do pedido " + cabecalhoPedido.Codigo + " atualizado para " + status.Descricao + "!";
-				notificacoesBLL.insertNotificacao(notificacao, out mensagemErro);
+				//Notificacoes notificacao = new Notificacoes();
+				//notificacao.FuncionarioCriador = new Funcionario() { Codigo = codigoUsuario };
+				//notificacao.FuncionarioDestino = new Funcionario() { Codigo = cabecalhoPedido.FuncionarioVendedor.Codigo };
+				//notificacao.Mensagem = "Status do pedido " + cabecalhoPedido.Codigo + " atualizado para " + status.Descricao + "!";
+				//notificacoesBLL.insertNotificacao(notificacao, out mensagemErro);
 			}
 
 			TempData["mensagemSucesso"] = "Pedidos atualizados com sucesso!";
@@ -324,7 +346,8 @@ namespace CiaDoTreinamento.Controllers
 		}
 
 		[HttpPost]
-		public JsonResult ConfirmarItemRota(int codigoRota, int codigoPedido, int codigoInstrutor, DateTime dataInicioTreinamento, DateTime dataFimTreinamento, int? codigoSala, int? codigoHotel, 
+		public JsonResult ConfirmarItemRota(int codigoRota, int codigoPedido, int codigoInstrutor, DateTime dataInicioTreinamento, DateTime dataFimTreinamento,
+												DateTime dataInicioColeta, DateTime dataFimColeta,  int? codigoSala, int? codigoHotel, 
 												string observacao, string ObservacaoInstrutor, string nomeCliente, string horarioAtendimento, string[] listaEmails)
 		{
 			string mensagemErro;
@@ -359,12 +382,12 @@ namespace CiaDoTreinamento.Controllers
 				}
 
 				//Grava Notificação
-				NotificacoesBLL notificacoesBLL = new NotificacoesBLL();
-				Notificacoes notificacao = new Notificacoes();
-				notificacao.FuncionarioCriador = usuario;
-				notificacao.FuncionarioDestino = new Funcionario() { Codigo = cab.FuncionarioVendedor.Codigo };
-				notificacao.Mensagem = "Pedido " + cab.Codigo + " incluído na rota!";
-				notificacoesBLL.insertNotificacao(notificacao, out mensagemErro);
+				//NotificacoesBLL notificacoesBLL = new NotificacoesBLL();
+				//Notificacoes notificacao = new Notificacoes();
+				//notificacao.FuncionarioCriador = usuario;
+				//notificacao.FuncionarioDestino = new Funcionario() { Codigo = cab.FuncionarioVendedor.Codigo };
+				//notificacao.Mensagem = "Pedido " + cab.Codigo + " incluído na rota!";
+				//notificacoesBLL.insertNotificacao(notificacao, out mensagemErro);
 
 				//ATUALIZA ITEM ROTA
 				ItemRota itemRota = ItemRotaBLL.selectItensRota(codigoRota, out mensagemErro).Where(x => x.CabecalhoPedido.Codigo == codigoPedido).FirstOrDefault();
@@ -396,8 +419,17 @@ namespace CiaDoTreinamento.Controllers
 			//MONTAR LISTA COM HORÁRIOS
 			string listHorarios = "<ul>";
 
-			foreach (string item in horarioAtendimento.Split('#'))
+			foreach (string item in horarioAtendimento.Split(new string[] { "###" }, StringSplitOptions.None))
 			{
+				//if (Convert.ToDateTime(item.Substring(0, 10)).Date >= dataInicioTreinamento.Date && Convert.ToDateTime(item.Substring(0, 10)).Date <= dataFimTreinamento.Date)
+				//{
+				//	listHorarios += "<li>" + item + " (Treinamento) " + "</li>";
+				//}
+				//else
+				//{
+				//	listHorarios += "<li>" + item + " (Coleta de dados) " + "</li>";
+				//}
+
 				listHorarios += "<li>" + item + "</li>";
 			}
 
@@ -413,6 +445,27 @@ namespace CiaDoTreinamento.Controllers
 											.Replace("@dataAtendimento", listHorarios)
 											.Replace("@observacao", "<strong>2º Obs.:</strong> " + observacao)
 											.Replace("@localAtendimento", (cab.ParceiraSalaTreinamento == null || cab.ParceiraSalaTreinamento.Codigo == 0 ? "Posto" : cab.ParceiraSalaTreinamento.Descricao + " - " + cab.ParceiraSalaTreinamento.Endereco + "," + cab.ParceiraSalaTreinamento.Cidade.Descricao + "-" + cab.ParceiraSalaTreinamento.Cidade.Estado));
+
+			if (listaItens.Where(x => x.Produto.CategoriaProduto.Codigo == 1).Count() > 0)
+			{
+				templateEmail = templateEmail.Replace("@infoAdicionais", @"<strong>Informações Adicionais:</strong>
+															<br />
+															<ul>
+																<li>A Cia do Treinamento se resguarda do direto de não realizar os treinamentos, caso o número mínimo de participantes por turma não seja atingida.</li>
+																<br />				
+																<li>A Cia do Treinamento se resguarda do direito de somente encaminhar o certificado dos alunos que comparecerem integralmente aos treinamentos.</li>
+																<br />
+																<li>Não será permitido ao inscrito, troca de horário no decorrer do treinamento.</li>
+																<br />
+																<li>Caso o inscrito não compareça ao Treinamento o valor da inscrição não será devolvido. Deverá ser feito uma nova inscrição e um novo pagamento.</li>
+															</ul>");
+
+			}
+			else
+			{
+				templateEmail = templateEmail.Replace("@infoAdicionais","");
+			}
+
 
 
 			//INCLUIR RELATO
@@ -577,18 +630,18 @@ namespace CiaDoTreinamento.Controllers
 		}
 
 		[HttpGet]
-		public JsonResult BuscarCidadesRota(string estado, int? cidade, int? meso, int? micro, int? produto)
+		public JsonResult BuscarCidadesRota(string estado, int? cidade, int? meso, int? micro, int? produto, int? codigoRede)
 		{
 			try
 			{
 				RoteirizacaoBLL BLL = new RoteirizacaoBLL();
 				string mensagemErro;
 
-				List<CabecalhoPedido> listaPedidos = BLL.BuscarPedidosRoteirizacao(estado, cidade, meso, micro, produto, out mensagemErro);
+				List<CabecalhoPedido> listaPedidos = BLL.BuscarPedidosRoteirizacao(estado, cidade, meso, micro, produto, codigoRede, out mensagemErro);
 
 				List<CidadesRotaViewModel> vw = (from item in listaPedidos
 												 group item by item.Cliente.Cidade.Codigo into Group
-												 select new CidadesRotaViewModel() { cidade = Group.First().Cliente.Cidade, listaPedidos = Group.ToList(), qtdePedidos = Group.Count(), valorTotal = Group.Sum(x => x.ValorTotal) }).ToList(); ;
+												 select new CidadesRotaViewModel() { cidade = Group.First().Cliente.Cidade, listaPedidos = Group.ToList(), qtdePedidos = Group.Count(), qtdePedidosVistoria = Group.Where(x => x.temVistoria == true).Count(), valorTotal = Group.Sum(x => x.ValorTotal) }).ToList(); ;
 
 				return Json(new { sucesso = true, listaCidades = vw });
 			}
@@ -651,8 +704,20 @@ namespace CiaDoTreinamento.Controllers
 			rota.DataFim = DateTime.Now;
 			rota.Observacao = observacao;
 
+			
+
 			if (rota.Codigo.HasValue && rota.Codigo > 0)
 			{
+
+				var listaItensRota = ItemRotaBLL.selectItensRota((int)rota.Codigo, out mensagemErro);
+
+				if (listaItensRota != null && listaItensRota.Count > 0)
+				{
+					rota.DataInicio = listaItensRota.Min(x => x.DataInicio);
+
+					rota.DataFim = listaItensRota.Max(x => x.DataFim);
+				}
+
 				RotaBLL.updateRota(rota, out mensagemErro);
 			}
 			else
@@ -671,7 +736,7 @@ namespace CiaDoTreinamento.Controllers
 		}
 
 		[HttpPost]
-		public JsonResult InserirNovoItemRota(int codigoRota, int codigoPedido, DateTime dataInicio, DateTime dataFim)
+		public JsonResult InserirNovoItemRota(int codigoRota, int codigoPedido, DateTime dataInicio, DateTime dataFim, DateTime dataInicioColeta, DateTime dataFimColeta)
 		{
 			string mensagemErro;
 
@@ -680,6 +745,8 @@ namespace CiaDoTreinamento.Controllers
 			itemRota.CabecalhoPedido = new CabecalhoPedido() { Codigo = codigoPedido };
 			itemRota.DataInicio = dataInicio;
 			itemRota.DataFim = dataFim;
+			itemRota.DataInicioColeta = dataInicioColeta;
+			itemRota.DataFimColeta = dataFimColeta;
 			itemRota.Aprovado = false;
 
 			ItemRotaBLL.insertItemRota(itemRota, out mensagemErro);
@@ -710,6 +777,258 @@ namespace CiaDoTreinamento.Controllers
 				return Json(new { sucesso = false, mensagemErro = mensagemErro });
 			}
 		}
+
+		[HttpGet]
+		public JsonResult BuscarPedidosProdutosCategoria(string codigoEstado, int? codigoCidade, int? codigoMeso, int? codigoMicro, int? codigoProduto, int? codigoRede)
+		{
+			string mensagemErro;
+			RoteirizacaoBLL BLL = new RoteirizacaoBLL();
+
+			var lista = BLL.BuscarPedidosProdutosCategoria(codigoEstado, codigoCidade, codigoMeso, codigoMicro, codigoProduto, codigoRede, out mensagemErro);
+
+			if (!String.IsNullOrEmpty(mensagemErro))
+			{
+				return Json(new { sucesso = false, mensagemErro = mensagemErro });
+			}
+
+			return Json(new { sucesso = true, lista = lista.ToArray() });
+		}
+
+		[HttpGet]
+		public JsonResult BuscarPedidosProdutos(string codigoEstado, int? codigoCidade, int? codigoMeso, int? codigoMicro, int? codigoProduto, int? codigoRede)
+		{
+			string mensagemErro;
+			RoteirizacaoBLL BLL = new RoteirizacaoBLL();
+
+			var lista = BLL.BuscarPedidosProdutos(codigoEstado, codigoCidade, codigoMeso, codigoMicro, codigoProduto, codigoRede, out mensagemErro);
+			
+			if (!String.IsNullOrEmpty(mensagemErro))
+			{
+				return Json(new { sucesso = false, mensagemErro = mensagemErro });
+			}
+
+			List<ProdutosCategoriaViewModel> vm = (from item in lista
+												   group item by item.categoria into Group
+												   select new ProdutosCategoriaViewModel() { Categoria = Group.First().categoria, listaProdutos = Group.ToList() }).ToList(); ;
+
+			return Json(new { sucesso = true, lista = vm.OrderByDescending(x => x.qtdeProdutos).ToList() });
+		}
+
+		[HttpGet]
+		public JsonResult CalcularDiasPedidoRota(DateTime? dataInicioTreinamento, DateTime? dataFimTreinamento, DateTime? dataInicioColeta, DateTime? dataFimColeta)
+		{
+			var listaRetorno = String.Empty;
+
+			//PARA TREINAMENTO
+			if (dataInicioTreinamento.HasValue && dataInicioTreinamento != DateTime.MinValue 
+				&& dataFimTreinamento.HasValue && dataFimTreinamento != DateTime.MinValue
+				&& Convert.ToDateTime(dataInicioTreinamento).ToString("dd/MM/yyyy") != "01/01/2001"
+				&& Convert.ToDateTime(dataFimTreinamento).ToString("dd/MM/yyyy") != "01/01/2001")
+			{
+				var isStart = true;
+				
+				var dataInicio = Convert.ToDateTime(dataInicioTreinamento);
+				var dataFim = Convert.ToDateTime(dataFimTreinamento);
+				var horaInicio = dataInicio.ToString("HH:mm");
+				var horaFim = dataFim.ToString("HH:mm");
+
+				while (dataInicio.Date <= dataFim.Date)
+				{
+					if (dataInicio.DayOfWeek == DayOfWeek.Sunday)
+					{
+						dataInicio.AddDays(1);
+					}
+					else
+					{
+						if (isStart)
+						{
+							horaInicio = dataInicio.ToString("HH:mm");
+							isStart = false;
+						}
+						else
+						{
+							horaInicio = "08:00";
+						}
+
+						if (dataInicio.Date == dataFim.Date)
+						{
+							horaFim = dataFim.ToString("HH:mm");
+						}
+						else
+						{
+							horaFim = "18:00";
+						}
+
+						listaRetorno += String.Format("{0} {1}Hrs - {2}Hrs ({3}) ### ", dataInicio.ToString("dd/MM/yyyy"), horaInicio, horaFim, "Treinamento");
+
+						dataInicio = dataInicio.AddDays(1);
+					}
+				}
+			}
+
+			//PARA COLETA DE DADOS
+			if (dataInicioColeta.HasValue && dataInicioColeta != DateTime.MinValue 
+				&& dataFimColeta.HasValue && dataFimColeta != DateTime.MinValue
+				&& Convert.ToDateTime(dataInicioColeta).ToString("dd/MM/yyyy") != "01/01/2001"
+				&& Convert.ToDateTime(dataFimColeta).ToString("dd/MM/yyyy") != "01/01/2001")
+			{
+				var isStart = true;
+				var dataInicio = Convert.ToDateTime(dataInicioColeta);
+				var dataFim = Convert.ToDateTime(dataFimColeta);
+				var horaInicio = dataInicio.ToString("HH:mm");
+				var horaFim = dataFim.ToString("HH:mm");
+
+				while (dataInicio.Date <= dataFim.Date)
+				{
+					if (dataInicio.DayOfWeek == DayOfWeek.Sunday)
+					{
+						dataInicio.AddDays(1);
+					}
+					else
+					{
+						if (isStart)
+						{
+							horaInicio = dataInicio.ToString("HH:mm");
+							isStart = false;
+						}
+						else
+						{
+							horaInicio = "08:00";
+						}
+
+						if (dataInicio.Date == dataFim.Date)
+						{
+							horaFim = dataFim.ToString("HH:mm");
+						}
+						else
+						{
+							horaFim = "18:00";
+						}
+
+						listaRetorno += String.Format("{0} {1}Hrs - {2}Hrs ({3}) ### ", dataInicio.ToString("dd/MM/yyyy"), horaInicio, horaFim, "Coleta de dados");
+
+						dataInicio = dataInicio.AddDays(1);
+					}
+				}
+			}
+
+			if (listaRetorno.Length > 0)
+			{
+				listaRetorno = listaRetorno.Substring(0, listaRetorno.Length - 5);
+			}
+
+			return Json(new { sucesso = true, resultado = listaRetorno });
+		}
+
+		//[HttpGet]
+		//public JsonResult CalcularDiasPedidoRota(DateTime? dataInicioTreinamento, DateTime? dataFimTreinamento, DateTime? dataInicioColeta, DateTime? dataFimColeta)
+		//{
+
+		//	var dataInicio = DateTime.Now;
+		//	var dataFim = DateTime.Now;
+		//	var listaRetorno = String.Empty;
+
+		//	var isStart = true;
+
+		//	//IDENTIFICAR DATA INICIO
+		//	if (dataInicioTreinamento.HasValue && dataInicioColeta.HasValue)
+		//	{
+		//		dataInicio = Convert.ToDateTime(dataInicioTreinamento <= dataInicioColeta ? dataInicioTreinamento : dataInicioColeta);
+		//	}
+		//	else if (dataInicioTreinamento.HasValue)
+		//	{
+		//		dataInicio = Convert.ToDateTime(dataInicioTreinamento);
+		//	}
+		//	else if (dataInicioColeta.HasValue)
+		//	{
+		//		dataInicio = Convert.ToDateTime(dataInicioColeta);
+		//	}
+		//	else
+		//	{
+		//		return Json(new { sucesso = false, mensagemErro = "Nenhuma data de inicio selecionada!" });
+		//	}
+
+
+		//	//IDENTIFICAR DATA FIM
+		//	if (dataFimTreinamento.HasValue && dataFimColeta.HasValue)
+		//	{
+		//		dataFim = Convert.ToDateTime(dataFimTreinamento >= dataFimColeta ? dataFimTreinamento : dataFimColeta);
+		//	}
+		//	else if (dataFimTreinamento.HasValue)
+		//	{
+		//		dataFim = Convert.ToDateTime(dataFimTreinamento);
+		//	}
+		//	else if (dataFimColeta.HasValue)
+		//	{
+		//		dataFim = Convert.ToDateTime(dataFimColeta);
+		//	}
+		//	else
+		//	{
+		//		return Json(new { sucesso = false, mensagemErro = "Nenhuma data de fim selecionada!" });
+		//	}
+
+		//	while (dataInicio.Date <= dataFim.Date)
+		//	{
+		//		//IGNORAR DOMINGOS
+		//		if (dataInicio.DayOfWeek != DayOfWeek.Sunday)
+		//		{
+		//			var horaInicio = "08:00";
+		//			var horaFim = "18:00";
+		//			var tipoServico = "";
+
+		//			if (isStart)
+		//			{
+		//				horaInicio = dataInicio.ToString("HH:mm");
+		//				isStart = false;
+		//			}
+
+		//			if (dataInicio.ToShortDateString() == dataFim.ToShortDateString())
+		//			{
+		//				horaFim = dataFim.ToString("HH:mm");
+		//			}
+
+		//			//IDENTIFICAR O TIPO DE SERVIÇO
+		//			if (dataInicioTreinamento.HasValue && dataInicioColeta.HasValue)
+		//			{
+		//				var diffTreinamento = dataInicio.Subtract(Convert.ToDateTime(dataInicioTreinamento));
+		//				var diffColeta = dataInicio.Subtract(Convert.ToDateTime(dataInicioColeta));
+
+		//				if (diffTreinamento < TimeSpan.Zero)
+		//				{
+		//					tipoServico = "Coleta de dados";
+		//				}
+		//				else if (diffColeta < TimeSpan.Zero)
+		//				{
+		//					tipoServico = "Treinamento";
+		//				}
+		//				else
+		//				{
+		//					tipoServico = (diffTreinamento < diffColeta ? "Treinamento" : "Coleta de dados");
+		//				}
+
+		//			}
+		//			else if (dataInicioTreinamento.HasValue)
+		//			{
+		//				tipoServico = "Treinamento";
+		//			}
+		//			else if (dataInicioColeta.HasValue)
+		//			{
+		//				tipoServico = "Coleta de dados";
+		//			}
+
+		//			listaRetorno += String.Format("{0} {1}Hrs - {2}Hrs ({3}) ### ", dataInicio.ToString("dd/MM/yyyy"), horaInicio, horaFim, tipoServico);
+		//		}
+
+		//		dataInicio = dataInicio.AddDays(1);
+		//	}
+
+		//	if (listaRetorno.Length > 0)
+		//	{
+		//		listaRetorno = listaRetorno.Substring(0, listaRetorno.Length - 5);
+		//	}
+
+		//	return Json(new { sucesso = true, resultado = listaRetorno });
+		//}
 
 		#endregion
 	}

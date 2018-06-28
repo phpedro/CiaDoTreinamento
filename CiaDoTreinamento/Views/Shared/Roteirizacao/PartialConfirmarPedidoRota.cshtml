@@ -17,10 +17,13 @@
 							@Html.DropDownList("ddlHotelRota", new List<SelectListItem>(), "Selecione o hotel...", new { @class = "select2" })
 							<i class="form-group__bar"></i>
 						</div>
-						<div class="form-group col-sm-4">
-							<label>Sala para treinamento</label>
+						<div class="form-group col-sm-3">
+							<label>Sala para treinamento &nbsp;<a onclick="jsOpenParceiros();" title="Novo Parceiro"><span class="zmdi zmdi-plus"></span></a></label>
 							@Html.DropDownList("ddlSalaRota", new List<SelectListItem>(), "Selecione a sala...", new { @class = "select2" })
 							<i class="form-group__bar"></i>
+						</div>
+						<div class="col-sm-1" style="text-align: center; padding: 17px;">
+							<a onclick="jsReloadParceirosSala();" title="Reload Parceiros"><span class="zmdi zmdi-hc-2x zmdi-rotate-right"></span></a>
 						</div>
 						<div class="form-group col-sm-4">
 							<label>Observação(Cliente)</label>
@@ -73,9 +76,13 @@
 	var _codigoInstrutor;
 	var _dataInicioTreinamento;
 	var _dataFimTreinamento;
+	var _dataInicioColeta;
+	var _dataFimColeta;
 	var _codigoRota;
+	var _dataInicioTreinamentoAux;
+	var _dataFimTreinamentoAux;
 
-	function openModalConfirmarPedidoRota(codigoCliente, codigoPedido, codigoCidade, codigoInstrutor, dataInicioTreinamento, dataFimTreinamento, codigoRota) {
+	function openModalConfirmarPedidoRota(codigoCliente, codigoPedido, codigoCidade, codigoInstrutor, dataInicioTreinamento, dataFimTreinamento, dataInicioColeta, dataFimColeta, codigoRota) {
 
 		_codigoCliente = codigoCliente;
 		_codigoPedido = codigoPedido;
@@ -83,48 +90,94 @@
 		_codigoInstrutor = codigoInstrutor;
 		_dataInicioTreinamento = dataInicioTreinamento;
 		_dataFimTreinamento = dataFimTreinamento;
+		_dataInicioColeta = dataInicioColeta;
+		_dataFimColeta = dataFimColeta;
 		_codigoRota = codigoRota;
+		
+		_dataInicioTreinamentoAux = new Date(dataInicioTreinamento);
+		_dataFimTreinamentoAux = new Date(dataFimTreinamento);
+
+		//IDENTIFICAR INTERVALO DE VISITA DO TÉCNICO
+		//if (dataInicioTreinamento.getFullYear() != 1 && dataInicioTreinamento < dataInicioColeta) {
+		//	_dataInicioTreinamento = dataInicioTreinamento;
+		//} else {
+		//	_dataInicioTreinamento = dataInicioColeta;
+		//}
+
+		//if (dataFimTreinamento > dataFimColeta) {
+		//	_dataFimTreinamento = dataFimTreinamento;
+		//} else {
+		//	_dataFimTreinamento = dataFimColeta;
+		//}
 		
 		//CALCULAR O HORÁRIO DE ATENDIMENTO
 		var listaHorarios = "";
-		var setouInicioData = false;
+		//var setouInicioData = false;
 
-		while (_dataInicioTreinamento <= _dataFimTreinamento)
-		{
-			if (_dataInicioTreinamento == _dataFimTreinamento)
-			{
-				if (!setouInicioData)
-				{
-					listaHorarios += jsPadLeft0(_dataInicioTreinamento.getUTCDate()) + "/" + jsPadLeft0(_dataInicioTreinamento.getMonth() + 1) + "/" + _dataInicioTreinamento.getFullYear() + " " + jsPadLeft0(_dataInicioTreinamento.getHours()) + ":" + jsPadLeft0(_dataInicioTreinamento.getMinutes()) + "Hrs - " + _dataFimTreinamento.getHours() + ":" + _dataFimTreinamento.getMinutes() + "Hrs ";
-					setouInicioData = true;
-				}
-				else
-				{
-					listaHorarios += "#" + jsPadLeft0(_dataInicioTreinamento.getUTCDate()) + "/" + jsPadLeft0(_dataInicioTreinamento.getMonth() + 1) + "/" + _dataInicioTreinamento.getFullYear() + " 08:00Hrs - " + jsPadLeft0(_dataFimTreinamento.getHours()) + ":" + jsPadLeft0(_dataFimTreinamento.getMinutes()) + "Hrs ";
-				}
+		//while (_dataInicioTreinamento <= _dataFimTreinamento)
+		//{
+		//	if (_dataInicioTreinamento == _dataFimTreinamento)
+		//	{
+		//		if (!setouInicioData)
+		//		{
+		//			listaHorarios += jsPadLeft0(_dataInicioTreinamento.getUTCDate()) + "/" + jsPadLeft0(_dataInicioTreinamento.getMonth() + 1) + "/" + _dataInicioTreinamento.getFullYear() + " " + jsPadLeft0(_dataInicioTreinamento.getHours()) + ":" + jsPadLeft0(_dataInicioTreinamento.getMinutes()) + "Hrs - " + _dataFimTreinamento.getHours() + ":" + _dataFimTreinamento.getMinutes() + "Hrs ";
+		//			setouInicioData = true;
+		//		}
+		//		else
+		//		{
+		//			listaHorarios += "#" + jsPadLeft0(_dataInicioTreinamento.getUTCDate()) + "/" + jsPadLeft0(_dataInicioTreinamento.getMonth() + 1) + "/" + _dataInicioTreinamento.getFullYear() + " 08:00Hrs - " + jsPadLeft0(_dataFimTreinamento.getHours()) + ":" + jsPadLeft0(_dataFimTreinamento.getMinutes()) + "Hrs ";
+		//		}
 				
-			}
-			else
-			{ 
-				if (!setouInicioData) {
-					listaHorarios += jsPadLeft0(_dataInicioTreinamento.getUTCDate()) + "/" + jsPadLeft0(_dataInicioTreinamento.getMonth() + 1) + "/" + _dataInicioTreinamento.getFullYear() + " " + jsPadLeft0(_dataInicioTreinamento.getHours()) + ":" + jsPadLeft0(_dataInicioTreinamento.getMinutes()) + "Hrs - 18:00Hrs ";
-					setouInicioData = true;
+		//	}
+		//	else
+		//	{ 
+		//		if (!setouInicioData) {
+		//			listaHorarios += jsPadLeft0(_dataInicioTreinamento.getUTCDate()) + "/" + jsPadLeft0(_dataInicioTreinamento.getMonth() + 1) + "/" + _dataInicioTreinamento.getFullYear() + " " + jsPadLeft0(_dataInicioTreinamento.getHours()) + ":" + jsPadLeft0(_dataInicioTreinamento.getMinutes()) + "Hrs - 18:00Hrs ";
+		//			setouInicioData = true;
+		//		}
+		//		else {
+		//			listaHorarios += "#" + jsPadLeft0(_dataInicioTreinamento.getUTCDate()) + "/" + jsPadLeft0(_dataInicioTreinamento.getMonth() + 1) + "/" + _dataInicioTreinamento.getFullYear() + " 08:00Hrs - " + jsPadLeft0(_dataFimTreinamento.getHours()) + ":" + jsPadLeft0(_dataFimTreinamento.getMinutes()) + "Hrs";
+		//		}
+		//	}
+
+		//	_dataInicioTreinamento.setDate(_dataInicioTreinamento.getDate() + 1);
+		//}
+
+		var data = {
+			dataInicioTreinamento: jsFormataData(dataInicioTreinamento),
+			dataFimTreinamento: jsFormataData(dataFimTreinamento),
+			dataInicioColeta: jsFormataData(dataInicioColeta),
+			dataFimColeta: jsFormataData(dataFimColeta)
+		};
+
+		$.ajax({
+			type: "GET",
+			url: "/Roteirizacao/CalcularDiasPedidoRota/",
+			data: data,
+			success: function (result) {
+
+				if (result.sucesso) {
+
+					listaHorarios = result.resultado;
+
+					$('#horarioAtendimento').val(listaHorarios);
+
+					jsBuscarParceirosHoteis(codigoCidade);
+					jsBuscarParceirosSala(codigoCidade);
+					jsMontaListaEmails();
+
+					$('#divModalConfirmarPedidoRota').show();
+				} else { 
+					OpenAlert("Atenção!", result.mensagemErro, "danger");
 				}
-				else {
-					listaHorarios += "#" + jsPadLeft0(_dataInicioTreinamento.getUTCDate()) + "/" + jsPadLeft0(_dataInicioTreinamento.getMonth() + 1) + "/" + _dataInicioTreinamento.getFullYear() + " 08:00Hrs - " + jsPadLeft0(_dataFimTreinamento.getHours()) + ":" + jsPadLeft0(_dataFimTreinamento.getMinutes()) + "Hrs";
-				}
 			}
+		});
+	}
 
-			_dataInicioTreinamento.setDate(_dataInicioTreinamento.getDate() + 1);
-		}
+	function jsFormataData(data) { 
 
-		$('#horarioAtendimento').val(listaHorarios);
-
-		jsBuscarParceirosHoteis(codigoCidade);
-		jsBuscarParceirosSala(codigoCidade);
-		jsMontaListaEmails();
-
-		$('#divModalConfirmarPedidoRota').show();
+		//return data.getUTCDate() + "/" + (data.getMonth() + 1) + "/" + data.getFullYear() + " " + data.getHours() + ":" + data.getMinutes() + ":" + data.getSeconds();
+		return data.getFullYear() + "-" + (data.getMonth() + 1) + "/" + data.getUTCDate() + " " + data.getHours() + ":" + data.getMinutes() + ":" + data.getSeconds();
 	}
 
 	function jsBuscarParceirosSala(codigoCidade) {
@@ -194,8 +247,10 @@
 			codigoRota: _codigoRota,
 			codigoPedido: _codigoPedido,
 			codigoInstrutor: _codigoInstrutor,
-			dataInicioTreinamento: _dataInicioTreinamento,
-			dataFimTreinamento: _dataFimTreinamento,
+			dataInicioTreinamento: _dataInicioTreinamentoAux.getUTCDate() + "/" + (_dataInicioTreinamentoAux.getMonth() + 1) + "/" + _dataInicioTreinamentoAux.getFullYear(),
+			dataFimTreinamento: _dataFimTreinamentoAux.getUTCDate() + "/" + (_dataFimTreinamentoAux.getMonth() + 1) + "/" + _dataFimTreinamentoAux.getFullYear(),
+			dataInicioColeta: new Date(_dataInicioColeta).getUTCDate() + "/" + (new Date(_dataInicioColeta).getMonth() + 1) + "/" + new Date(_dataInicioColeta).getFullYear(),
+			dataFimColeta: new Date(_dataFimColeta).getUTCDate() + "/" + (new Date(_dataFimColeta).getMonth() + 1) + "/" + new Date(_dataFimColeta).getFullYear(),
 			codigoSala: $('#ddlSalaRota').val(),
 			codigoHotel: $('#ddlHotelRota').val(),
 			observacao: $('#txtObservacaoItemRota').val(),
@@ -254,6 +309,15 @@
 				}
 			}
 		});
+	}
+
+	function jsReloadParceirosSala() {
+		jsBuscarParceirosSala(_codigoCidade);
+	}
+
+	function jsOpenParceiros()
+	{
+		window.open('@Url.Action("Edit", "Parceiro")', '_blank')
 	}
 
 </script>

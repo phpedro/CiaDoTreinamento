@@ -10,11 +10,12 @@
     <dependencies>
       <group targetFramework=".NETCoreApp2.0">
         <dependency id="MySql.Data.Core" version="7.0.4-IR-191" exclude="Build,Analyzers" />
+        <dependency id="iTextSharp.LGPLv2.Core" version="1.4.0" exclude="Build,Analyzers" />
         <dependency id="Newtonsoft.Json" version="10.0.3" exclude="Build,Analyzers" />
       </group>
     </dependencies>
   </metadata>
   <files>
-    <file src="D:\CIA\Repositorio\CiaDoTreinamento\CODE\bin\Release\netcoreapp2.0\CODE.dll" target="lib\netcoreapp2.0\CODE.dll" />
+    <file src="D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CODE\bin\Release\netcoreapp2.0\CODE.dll" target="lib\netcoreapp2.0\CODE.dll" />
   </files>
 </package>

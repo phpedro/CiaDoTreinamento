@@ -11,7 +11,6 @@ namespace CODE
     {
 		private static string MapPath = "/CiaTreinamentoNovo";
 
-
 		/// <summary>
 		/// Calcula o Hash MD5 de uma string
 		/// </summary>
@@ -122,7 +121,7 @@ namespace CODE
 					user = emailSmtp;
 
 					if (emailSmtp == "marcospaulo@ciadotreinamento.com.br")
-					{
+					{	
 						password = "neto0589";
 					}
 					else
@@ -235,12 +234,12 @@ namespace CODE
 		public static bool GravarLogErro(string title, string mensagem)
 		{
 
-			using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"/LogErros.txt"))
-			{
-				file.WriteLine(title + " - " + mensagem + " - " + DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
+			//using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Sites\CiaTreinamentoNovo\LogErros.txt"))
+			//{
+			//	file.WriteLine(title + " - " + mensagem + " - " + DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
 
-				SendMailLogSistema(title, mensagem);
-			}
+			//	SendMailLogSistema(title, mensagem);
+			//}
 
 			return true;
 		}

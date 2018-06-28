@@ -560,7 +560,6 @@ function preencheDDLCidades(codigoEstado, $el, codigoCidade) {
 	if (codigoEstado != "") {
 		jsLoading(true);
 
-		var url = "/Cliente/GetCidade/";
 		var data = {
 			Estado: codigoEstado
 		};

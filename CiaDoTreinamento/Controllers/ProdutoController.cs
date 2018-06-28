@@ -208,5 +208,34 @@ namespace CiaDoTreinamento.Controllers
 		}
 
 		#endregion
+
+		#region Servicos
+
+		[HttpGet]
+		public JsonResult BuscarArgumentacoesVenda(int codigoProduto)
+		{
+			string mensagemErro;
+
+			ProdutoBLL produtoBLL = new ProdutoBLL();
+
+			Produto produto = produtoBLL.GetProdutoById(codigoProduto, out mensagemErro);
+
+			if (produto != null)
+			{
+				if (String.IsNullOrEmpty(produto.ArgumentacaoVenda.Trim()))
+				{
+					produto.ArgumentacaoVenda = "O produto não possui argumentos de venda cadastrado!";
+				}
+
+				return Json(new { sucesso = true, argumento = produto.ArgumentacaoVenda });
+			}
+			else
+			{
+				return Json(new { sucesso = false, mensagemErro = mensagemErro });
+			}
+		}
+
+		#endregion
+
 	}
 }

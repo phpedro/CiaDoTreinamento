@@ -7441,11 +7441,11 @@
       "hideWarningsAndErrors": true
     },
     "restore": {
-      "projectUniqueName": "D:\\CIA\\Repositorio\\CiaDoTreinamento\\CODE\\CODE.csproj",
+      "projectUniqueName": "D:\\Projetos externos\\CIA\\Repositorio\\CiaDoTreinamento\\CODE\\CODE.csproj",
       "projectName": "CODE",
-      "projectPath": "D:\\CIA\\Repositorio\\CiaDoTreinamento\\CODE\\CODE.csproj",
+      "projectPath": "D:\\Projetos externos\\CIA\\Repositorio\\CiaDoTreinamento\\CODE\\CODE.csproj",
       "packagesPath": "C:\\Users\\luksc\\.nuget\\packages\\",
-      "outputPath": "D:\\CIA\\Repositorio\\CiaDoTreinamento\\CODE\\obj\\",
+      "outputPath": "D:\\Projetos externos\\CIA\\Repositorio\\CiaDoTreinamento\\CODE\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"

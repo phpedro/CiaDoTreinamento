@@ -30,9 +30,9 @@ namespace CODE
 			return RotaDAL.selectRotas(codigo, out mensagemErro);
 		}
 
-		public static List<Rota> selectRotasByInstrutor(int? codigoInstrutor, out string mensagemErro)
+		public static List<Rota> selectRotasByInstrutor(int? codigoRota, int? codigoInstrutor, int? codigoCidade, DateTime? dataInicio, DateTime? dataFinal, out string mensagemErro)
 		{
-			return RotaDAL.selectRotasByInstrutor(codigoInstrutor, out mensagemErro);
+			return RotaDAL.selectRotasByInstrutor(codigoRota, codigoInstrutor, codigoCidade, dataInicio, dataFinal, out mensagemErro);
 		}
 
 		public static List<Rota> selectAllRotas(out string mensagemErro)

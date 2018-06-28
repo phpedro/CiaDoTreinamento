@@ -212,9 +212,10 @@ namespace CODE
 			StringBuilder sql = new StringBuilder();
 			List<Cliente> listaClientes = new List<Cliente>();
 
-			sql.Append("SELECT CL.*, CI_1.DESCRICAO AS CIDADE_CI1, CI_1.ESTADO AS ESTADO_CI1, CI_1.LATITUDE, CI_1.LONGITUDE, CI_2.DESCRICAO AS CIDADE_CI2, CI_2.ESTADO AS ESTADO_CI2 FROM CLIENTES AS CL");
+			sql.Append("SELECT CL.*, CI_1.DESCRICAO AS CIDADE_CI1, CI_1.ESTADO AS ESTADO_CI1, CI_1.LATITUDE, CI_1.LONGITUDE, CI_2.DESCRICAO AS CIDADE_CI2, CI_2.ESTADO AS ESTADO_CI2, RE.DESCRICAO REDE FROM CLIENTES AS CL");
 			sql.Append("	LEFT JOIN CIDADES AS CI_1 ON CL.CODIGO_CIDADE = CI_1.CODIGO");
 			sql.Append("	LEFT JOIN CIDADES AS CI_2 ON CL.CODIGO_CIDADE = CI_2.CODIGO");
+			sql.Append("	LEFT JOIN REDE AS RE ON CL.CODIGO_REDE = RE.CODIGO");
 			sql.Append("	WHERE CL.CODIGO = " + Codigo);
 
 			Command cmd = new Command();
@@ -238,7 +239,7 @@ namespace CODE
 						Nome = linha["NOME_CLIENTE"].ToString(),
 						RG = linha["RG_CLIENTE"].ToString(),
 						BandeiraPosto = new BandeiraPosto() { Codigo = Convert.ToInt32(linha["BANDEIRA_POSTO"].ToString()) },
-						RedePosto = new RedePosto() { Codigo = Convert.ToInt32(linha["CODIGO_REDE"].ToString()) },
+						RedePosto = new RedePosto() { Codigo = Convert.ToInt32(linha["CODIGO_REDE"].ToString()), Descricao = linha["REDE"].ToString() },
 						CodigoStatus = Convert.ToInt32(linha["CODIGO_STATUS"].ToString()),
 						EmailPrincipal = new EmailCliente() { Codigo = (linha["EMAIL_PRINCIPAL"].ToString() == "" ? -1 : Convert.ToInt32(linha["EMAIL_PRINCIPAL"].ToString())) },
 						Ativo = Convert.ToBoolean(linha["ATIVO"].ToString()),

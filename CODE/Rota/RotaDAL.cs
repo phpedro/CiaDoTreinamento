@@ -66,7 +66,7 @@ namespace CODE
 				sql.AppendLine("	DATA_INICIO = '" + rota.DataInicio.ToString("yyyy-MM-dd") + "',");
 				sql.AppendLine("	DATA_FIM = '" + rota.DataFim.ToString("yyyy-MM-dd") + "',");
 				sql.AppendLine("	OBSERVACAO = '" + rota.Observacao + "'");
-				sql.AppendLine("	WHERE CODIGO = " + rota.Codigo);
+				sql.AppendLine("	WHERE CODIGO_ROTA = " + rota.Codigo);
 
 				cmd.CommandText = sql.ToString();
 
@@ -163,17 +163,42 @@ namespace CODE
 			return lista;
 		}
 
-		public static List<Rota> selectRotasByInstrutor(int? codigoInstrutor, out string mensagemErro)
+		public static List<Rota> selectRotasByInstrutor(int? codigoRota, int? codigoInstrutor, int? codigoCidade, DateTime? dataInicio, DateTime? dataFinal, out string mensagemErro)
 		{
 			List<Rota> lista = new List<Rota>();
 			StringBuilder sql = new StringBuilder();
 			mensagemErro = "";
 
-			sql.AppendLine("SELECT * FROM ROTA");
+			sql.AppendLine("SELECT DISTINCT R.CODIGO_ROTA, R.CODIGO_INSTRUTOR, R.DATA_INICIO, R.DATA_FIM, R.OBSERVACAO");
+			sql.AppendLine("FROM ROTA R");
+			sql.AppendLine("	INNER JOIN ITENS_ROTA I ON I.CODIGO_ROTA = R.CODIGO_ROTA");
+			sql.AppendLine("	INNER JOIN CABECALHOS_PEDIDOS CP ON I.CODIGO_PEDIDO = CP.CODIGO");
+			sql.AppendLine("	INNER JOIN CLIENTES CL ON CP.CODIGO_CLIENTE = CL.CODIGO");
+			sql.AppendLine("WHERE 1 = 1");
+
+			if (codigoRota.HasValue && codigoRota > 0)
+			{
+				sql.AppendLine("AND R.CODIGO_ROTA = " + codigoRota);
+			}
 
 			if (codigoInstrutor.HasValue && codigoInstrutor > 0)
 			{
-				sql.AppendLine("WHERE CODIGO_INSTRUTOR = " + codigoInstrutor);
+				sql.AppendLine("AND R.CODIGO_INSTRUTOR = " + codigoInstrutor);
+			}
+
+			if (codigoCidade.HasValue && codigoCidade > 0)
+			{
+				sql.AppendLine("AND CL.CODIGO_CIDADE = " + codigoCidade);
+			}
+
+			if (dataInicio.HasValue)
+			{
+				sql.AppendLine("	AND DATE(R.DATA_INICIO) >= '" + Convert.ToDateTime(dataInicio).ToString("yyyy-MM-dd") + "'");
+			}
+
+			if (dataFinal.HasValue)
+			{
+				sql.AppendLine("	AND DATE(R.DATA_INICIO) <= '" + Convert.ToDateTime(dataFinal).ToString("yyyy-MM-dd") + "'");
 			}
 
 			Command cmd = new Command();

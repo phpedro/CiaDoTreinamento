@@ -34,7 +34,7 @@ namespace CiaDoTreinamento.Controllers
 			}
 			else
 			{
-				return View();
+				return View(new Cliente());
 			}
 		}
 

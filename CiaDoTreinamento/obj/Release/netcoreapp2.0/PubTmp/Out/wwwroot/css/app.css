@@ -13622,4 +13622,10 @@ span.flatpickr-weekday {
   display: block;
 }
 
+.tfoot-default tr td {
+	background-color: #848484;
+	color: #fff;
+	font-weight: bold;
+}
+
 /*# sourceMappingURL=app.css.map */

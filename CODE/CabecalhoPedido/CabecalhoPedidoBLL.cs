@@ -119,6 +119,71 @@ namespace CODE
 			}
 		}
 
+		public bool updateCabecalhoPedidoTodo(int codigoPedido, out string mensagemErro)
+		{
+			try
+			{
+				ItemPedidoBLL itemPedidoBLL = new ItemPedidoBLL();
+
+				//BUSCAR PEDIDO
+				CabecalhoPedido cab = this.GetPedidoByCodigo(codigoPedido, out mensagemErro);
+				if (!String.IsNullOrEmpty(mensagemErro))
+				{
+					return false;
+				}
+
+				//BUSCAR OS ITENS DO PEDIDO
+				List<ItemPedido> itens = itemPedidoBLL.getItemPedido(null, codigoPedido, out mensagemErro);
+				if (!String.IsNullOrEmpty(mensagemErro))
+				{
+					return false;
+				}
+
+				//CALCULAR VALOR TOTAL PEDIDO
+				decimal valorTotalProduto = 0;
+				decimal valorTotalVendido = 0;
+
+				foreach (ItemPedido item in itens)
+				{
+					if (cab.CobrarISS)
+					{
+						valorTotalProduto += (item.Quantidade * item.Produto.ValorPorPessoa) + item.ValorEncargos;
+						valorTotalVendido += (item.Quantidade * item.valorFinal) + item.ValorEncargos;
+					}
+					else
+					{
+						valorTotalProduto += (item.Quantidade * item.Produto.ValorPorPessoa);
+						valorTotalVendido += (item.Quantidade * item.valorFinal);
+					}
+				}
+
+				cab.ValorTotal = valorTotalVendido;
+
+				if (valorTotalProduto > valorTotalVendido)
+				{
+					cab.ValorDesconto = valorTotalProduto - valorTotalVendido;
+					cab.PercentualDesconto = 100 - ((valorTotalVendido / valorTotalProduto) * 100);
+				} else {
+					cab.ValorDesconto = 0;
+					cab.PercentualDesconto = 0;
+				}
+
+				if (!this.updateCabecalhoPedido(cab, out mensagemErro))
+				{
+					return false;
+				}
+
+			}
+			catch (Exception ex)
+			{
+				mensagemErro = ex.Message;
+				return false;
+			}
+
+			return true;
+			
+		}
+
 		
 	}
 }

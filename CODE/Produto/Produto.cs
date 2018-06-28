@@ -131,6 +131,14 @@ namespace CODE
 			public bool Ativo { get; set; }
 
 			public string CategoriaProduto { get; set; }
+
+			public string _valorPorPessoaFormatado
+			{
+				get
+				{
+					return String.Format("{0:C}", this.ValorPorPessoa);
+				}
+			}
 		}
 
 		public class Produto2ViaTela

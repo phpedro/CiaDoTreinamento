@@ -17,6 +17,45 @@
 			Value = func.Codigo.ToString()
 		});
 	}
+
+	//GET MESOS
+	CODE.MesoBLL mesoBLL = new CODE.MesoBLL();
+	List<CODE.Meso> mesos = mesoBLL.getMesos(null, null, out mensagemErro);
+	List<SelectListItem> listaMesos = new List<SelectListItem>();
+	foreach (CODE.Meso meso in mesos)
+	{
+		listaMesos.Add(new SelectListItem()
+		{
+			Text = meso.Descricao,
+			Value = meso.Codigo.ToString()
+		});
+	}
+
+	//GET MICROS
+	CODE.MicroBLL microBLL = new CODE.MicroBLL();
+	List<CODE.Micro> micros = microBLL.getMicros(null, null, out mensagemErro);
+	List<SelectListItem> listaMicros = new List<SelectListItem>();
+	foreach (CODE.Micro micro in micros)
+	{
+		listaMicros.Add(new SelectListItem()
+		{
+			Text = micro.Descricao,
+			Value = micro.Codigo.ToString()
+		});
+	}
+
+	//GET PRODUTOS
+	CODE.ProdutoBLL produtoBLL = new CODE.ProdutoBLL();
+	List<CODE.Produto.ProdutoTela> produtos = produtoBLL.GetProdutosTela(out mensagemErro, true);
+	List<SelectListItem> listaProdutos = new List<SelectListItem>();
+	foreach (CODE.Produto.ProdutoTela prod in produtos)
+	{
+		listaProdutos.Add(new SelectListItem()
+		{
+			Text = prod.Descricao,
+			Value = prod.Codigo.ToString()
+		});
+	}
 }
 
 <section id="main-content">
@@ -75,6 +114,23 @@
 										<i class="form-group__bar"></i>
 									</div>
 								</div>
+							</div>
+							<div class="form-group col-sm-3">
+								<label>Meso</label>
+								@Html.DropDownList("ddlMesoFiltro", listaMesos, "Selecione a Meso...", new { @class = "select2" })
+								<i class="form-group__bar"></i>
+							</div>
+							<div class="form-group col-sm-3">
+								<label>Micro</label>
+								@Html.DropDownList("ddlMicroFiltro", listaMicros, "Selecione a Micro...", new { @class = "select2" })
+								<i class="form-group__bar"></i>
+							</div>
+						</div>
+						<div class="row">
+							<div class="form-group col-sm-3">
+								<label>Produtos</label>
+								@Html.DropDownList("ddlProdutosFiltro", listaProdutos, "Selecione o Produto...", new { @class = "select2" })
+								<i class="form-group__bar"></i>
 							</div>
 						</div>
 					</form>

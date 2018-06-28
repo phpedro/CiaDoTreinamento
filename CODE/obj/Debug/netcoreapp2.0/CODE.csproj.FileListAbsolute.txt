@@ -9,3 +9,14 @@ D:\CIA\Repositorio\CiaDoTreinamento\CODE\obj\Debug\netcoreapp2.0\CODE.pdb
 D:\CIA\Repositorio\CiaDoTreinamento\CODE\bin\Debug\netcoreapp2.0\Microsoft.AspNetCore.Mvc.ViewFeatures.dll
 D:\CIA\Repositorio\CiaDoTreinamento\CODE\bin\Debug\netcoreapp2.0\Microsoft.AspNetCore.Mvc.ViewFeatures.xml
 D:\CIA\Repositorio\CiaDoTreinamento\CODE\obj\Debug\netcoreapp2.0\CODE.csprojResolveAssemblyReference.cache
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CODE\bin\Debug\netcoreapp2.0\CODE.deps.json
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CODE\bin\Debug\netcoreapp2.0\CODE.dll
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CODE\bin\Debug\netcoreapp2.0\CODE.pdb
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CODE\bin\Debug\netcoreapp2.0\Microsoft.AspNetCore.Mvc.ViewFeatures.dll
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CODE\bin\Debug\netcoreapp2.0\Microsoft.AspNetCore.Mvc.ViewFeatures.xml
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CODE\obj\Debug\netcoreapp2.0\CODE.csprojResolveAssemblyReference.cache
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CODE\obj\Debug\netcoreapp2.0\CODE.csproj.CoreCompileInputs.cache
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CODE\obj\Debug\netcoreapp2.0\CODE.AssemblyInfoInputs.cache
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CODE\obj\Debug\netcoreapp2.0\CODE.AssemblyInfo.cs
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CODE\obj\Debug\netcoreapp2.0\CODE.dll
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CODE\obj\Debug\netcoreapp2.0\CODE.pdb

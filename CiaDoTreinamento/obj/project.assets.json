@@ -14134,11 +14134,11 @@
       "hideWarningsAndErrors": true
     },
     "restore": {
-      "projectUniqueName": "D:\\CIA\\Repositorio\\CiaDoTreinamento\\CiaDoTreinamento\\CiaDoTreinamento.csproj",
+      "projectUniqueName": "D:\\Projetos externos\\CIA\\Repositorio\\CiaDoTreinamento\\CiaDoTreinamento\\CiaDoTreinamento.csproj",
       "projectName": "CiaDoTreinamento",
-      "projectPath": "D:\\CIA\\Repositorio\\CiaDoTreinamento\\CiaDoTreinamento\\CiaDoTreinamento.csproj",
+      "projectPath": "D:\\Projetos externos\\CIA\\Repositorio\\CiaDoTreinamento\\CiaDoTreinamento\\CiaDoTreinamento.csproj",
       "packagesPath": "C:\\Users\\luksc\\.nuget\\packages\\",
-      "outputPath": "D:\\CIA\\Repositorio\\CiaDoTreinamento\\CiaDoTreinamento\\obj\\",
+      "outputPath": "D:\\Projetos externos\\CIA\\Repositorio\\CiaDoTreinamento\\CiaDoTreinamento\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
@@ -14157,8 +14157,8 @@
       "frameworks": {
         "netcoreapp2.0": {
           "projectReferences": {
-            "D:\\CIA\\Repositorio\\CiaDoTreinamento\\CODE\\CODE.csproj": {
-              "projectPath": "D:\\CIA\\Repositorio\\CiaDoTreinamento\\CODE\\CODE.csproj"
+            "D:\\Projetos externos\\CIA\\Repositorio\\CiaDoTreinamento\\CODE\\CODE.csproj": {
+              "projectPath": "D:\\Projetos externos\\CIA\\Repositorio\\CiaDoTreinamento\\CODE\\CODE.csproj"
             }
           }
         }

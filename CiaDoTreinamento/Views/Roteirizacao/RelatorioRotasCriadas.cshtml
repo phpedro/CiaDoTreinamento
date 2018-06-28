@@ -3,6 +3,9 @@
 @{
 	string mensagemErro;
 
+	//GET ESTADOS
+	List<SelectListItem> listaEstados = CODE.Uteis.RetornarEstadosComboCompleto();
+
 	//GET INSTRUTORES
 	List<CODE.Funcionario> agentesInstrutores = CODE.FuncionarioBLL.getFuncionarioByPerfil(10, out mensagemErro);
 	List<SelectListItem> listaInstrutores = new List<SelectListItem>();
@@ -28,10 +31,49 @@
 			</header>
 			<div class="panel-body">
 				<form action="@Url.Action("ConsutarRotasInstrutor","Roteirizacao")" method="get" id="formSearch">
-					<div class="form-group col-sm-3">
-						<label>Instrutor</label>
-						@Html.DropDownList("ddlInstrutorFiltro", listaInstrutores, "Selecione o Instrutor...", new { @class = "select2" })
-						<i class="form-group__bar"></i>
+					<div class="row">
+						<div class="form-group col-sm-3">
+							<label>Código Rota</label>
+							<input type="text" class="form-control" id="txtCodigoRotaFiltro" name="txtCodigoRotaFiltro" onkeypress="return jsSomenteNumero(arguments[0] || window.event);" />
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-3">
+							<label>Instrutor</label>
+							@Html.DropDownList("ddlInstrutorFiltro", listaInstrutores, "Selecione o Instrutor...", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-3">
+							<label>Estado</label>
+							@Html.DropDownList("ddlEstadosFiltro", listaEstados, "Selecione o Estado...", new { @class = "select2", @onchange = "return preencheDDLCidades(this.value, $('#ddlCidadesFiltro'));" })
+							<i class="form-group__bar"></i>
+						</div>
+						<div class="form-group col-sm-3">
+							<label>Cidade</label>
+							@Html.DropDownList("ddlCidadesFiltro", new List<SelectListItem>(), "Todas as Cidades", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-3">
+							<label>Data Inicio (Inicio Rota)</label>
+							<div class="input-group">
+								<span class="input-group-addon"><i class="zmdi zmdi-calendar"></i></span>
+								<div class="form-group">
+									<input type="text" id="dataInicioFiltro" name="dataInicioFiltro" class="form-control date-picker" />
+									<i class="form-group__bar"></i>
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-3">
+							<label>Data Final (Inicio Rota)</label>
+							<div class="input-group">
+								<span class="input-group-addon"><i class="zmdi zmdi-calendar"></i></span>
+								<div class="form-group">
+									<input type="text" id="dataFinalFiltro" name="dataFinalFiltro" class="form-control date-picker" />
+									<i class="form-group__bar"></i>
+								</div>
+							</div>
+						</div>
 					</div>
 				</form>
 			</div>
@@ -86,7 +128,7 @@
 	}
 
 	function jsEditar(codigoRede) {
-		window.location.assign("@Url.Action("NovaRotaManual", "Roteirizacao")?codigoRota=" + codigoRede);
+		window.location.assign("@Url.Action("NovaRota2", "Roteirizacao")/" + codigoRede);
 	}
 
 </script>

@@ -46,7 +46,6 @@ namespace CODE
 			}
 		}
 
-
 		//UPDATE
 		public static bool updateNotificacao(int codigo, out string mensagemErro)
 		{
@@ -86,6 +85,7 @@ namespace CODE
 			}
 		}
 
+		//CONSULTAS
 		public static List<Notificacoes> getNotificacoes(int? codigoUsuario, out string mensagemErro)
 		{
 			List<Notificacoes> listaNotificacoes = new List<Notificacoes>();

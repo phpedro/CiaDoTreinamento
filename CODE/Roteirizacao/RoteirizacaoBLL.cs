@@ -82,14 +82,16 @@ namespace CODE
 		}
 
 		public List<CabecalhoPedido> BuscarPedidosPendenteRota(int? codigoAgenteVendas, string razaoSocial, int? codigoCidade, string codigoEstado,
-																DateTime? dataInicioFechamentoPedido, DateTime? dataFimFechamentoPedido, out string mensagemErro)
+																DateTime? dataInicioFechamentoPedido, DateTime? dataFimFechamentoPedido, int? codigoMeso, int? codigoMicro,
+																int? codigoProduto, out string mensagemErro)
 		{
 			mensagemErro = "";
 
 			try
 			{
 				return RoteirizacaoDAL.BuscarPedidosPendenteRota(codigoAgenteVendas, razaoSocial, codigoCidade, codigoEstado,
-																	dataInicioFechamentoPedido, dataFimFechamentoPedido, out mensagemErro);
+																	dataInicioFechamentoPedido, dataFimFechamentoPedido, codigoMeso, codigoMicro,
+																	codigoProduto, out mensagemErro);
 			}
 			catch (Exception ex)
 			{
@@ -117,13 +119,45 @@ namespace CODE
 			}
 		}
 
-		public List<CabecalhoPedido> BuscarPedidosRoteirizacao(string codigoEstado, int? cidade, int? meso, int? micro, int? produto, out string mensagemErro)
+		public List<CabecalhoPedido> BuscarPedidosRoteirizacao(string codigoEstado, int? cidade, int? meso, int? micro, int? produto, int? codigoRede, out string mensagemErro)
 		{
 			mensagemErro = "";
 
 			try
 			{
-				return RoteirizacaoDAL.BuscarPedidosRoteirizacao(codigoEstado, cidade, meso, micro, produto, out mensagemErro);
+				return RoteirizacaoDAL.BuscarPedidosRoteirizacao(codigoEstado, cidade, meso, micro, produto, codigoRede, out mensagemErro);
+			}
+			catch (Exception ex)
+			{
+				mensagemErro = "Não foi possível buscar os pedidos para roteirização. Contate o suporte!";
+				Uteis.GravarLogErro(ex.TargetSite.Name, ex.Message);
+				return null;
+			}
+		}
+
+		public List<Roteirizacao.ProdutosCategoria> BuscarPedidosProdutosCategoria(string codigoEstado, int? cidade, int? meso, int? micro, int? produto, int? codigoRede, out string mensagemErro)
+		{
+			mensagemErro = "";
+
+			try
+			{
+				return RoteirizacaoDAL.BuscarPedidosProdutosCategoria(codigoEstado, cidade, meso, micro, produto, codigoRede, out mensagemErro);
+			}
+			catch (Exception ex)
+			{
+				mensagemErro = "Não foi possível buscar os pedidos para roteirização. Contate o suporte!";
+				Uteis.GravarLogErro(ex.TargetSite.Name, ex.Message);
+				return null;
+			}
+		}
+
+		public List<Roteirizacao.ProdutosCategoria> BuscarPedidosProdutos(string codigoEstado, int? cidade, int? meso, int? micro, int? produto, int? codigoRede, out string mensagemErro)
+		{
+			mensagemErro = "";
+
+			try
+			{
+				return RoteirizacaoDAL.BuscarPedidosProdutos(codigoEstado, cidade, meso, micro, produto, codigoRede, out mensagemErro);
 			}
 			catch (Exception ex)
 			{

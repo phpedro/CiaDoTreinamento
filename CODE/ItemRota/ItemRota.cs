@@ -20,6 +20,10 @@ namespace CODE
 
 		public DateTime DataFim { get; set; }
 
+		public DateTime DataInicioColeta { get; set; }
+
+		public DateTime DataFimColeta { get; set; }
+
 		public string Observacao { get; set; }
 
 		public bool Aprovado { get; set; }
@@ -28,7 +32,14 @@ namespace CODE
 		{
 			get
 			{
-				return this.DataInicio.ToString("dd/MM/yyyy HH:mm:ss");
+				if (this.DataInicio != DateTime.MinValue)
+				{
+					return Convert.ToDateTime(this.DataInicio).ToString("dd/MM/yyyy HH:mm:ss");
+				}
+				else
+				{
+					return "";
+				}
 			}
 		}
 
@@ -36,7 +47,44 @@ namespace CODE
 		{
 			get
 			{
-				return this.DataFim.ToString("dd/MM/yyyy HH:mm:ss");
+				if (this.DataFim != DateTime.MinValue)
+				{
+					return Convert.ToDateTime(this.DataFim).ToString("dd/MM/yyyy HH:mm:ss");
+				}
+				else
+				{
+					return "";
+				}
+			}
+		}
+
+		public string DataInicioColetaFormatada
+		{
+			get
+			{
+				if (this.DataInicioColeta != DateTime.MinValue)
+				{
+					return Convert.ToDateTime(this.DataInicioColeta).ToString("dd/MM/yyyy HH:mm:ss");
+				}
+				else
+				{
+					return "";
+				}
+			}
+		}
+
+		public string DataFimColetaFormatada
+		{
+			get
+			{
+				if (this.DataFimColeta != DateTime.MinValue)
+				{
+					return Convert.ToDateTime(this.DataFimColeta).ToString("dd/MM/yyyy HH:mm:ss");
+				}
+				else
+				{
+					return "";
+				}
 			}
 		}
 

@@ -43,12 +43,19 @@
 		for (var i = 0; i < arrayNotificacoes.length; i++) {
 			
 			var notify = '<a onclick=notificationClick("' + arrayNotificacoes[i].codigo+'","' + arrayNotificacoes[i].urlRedirect +'") class="listview__item">' +
-				'<img src= "/images/Avatar/' + arrayNotificacoes[i].funcionarioCriador.codigo + '.jpg" class="listview__img" alt= "" >' +
-				'<div class="listview__content">' +
-				'<div class="listview__heading">' + arrayNotificacoes[i].funcionarioCriador.nome + '</div>' +
-				'<p>' + arrayNotificacoes[i].mensagem + '</p>' +
-				'</div>' +
-				'</a >';
+							'<img src= "/images/Avatar/' + arrayNotificacoes[i].funcionarioCriador.codigo + '.jpg" class="listview__img" alt= "" >' +
+							'<div class="listview__content">' +
+								'<div class="listview__heading">' + arrayNotificacoes[i].funcionarioCriador.nome + '</div>' +
+								'<p>' + arrayNotificacoes[i].mensagem + '</p>' +
+							'</div>' +
+							'<div>' +
+								'<a onclick=confirmarCienciaNotificacao("' + arrayNotificacoes[i].codigo + '")>' +
+									'<span class"zmdi zmdi-eye"></span>' +
+								'</a>' +
+							'</div>' +
+						'</a >';
+
+			console.log(notify);
 
 			$("#notificacoes").append(notify);
 		}
@@ -59,26 +66,31 @@
 
 	}
 
+	function confirmarCienciaNotificacao(codigo) { 
+
+		alert(codigo);
+	}
+
 	function notificationClick(codigo, url) {
 
-		var data = {
-			codigoNotificacao: codigo
-		}
+		//var data = {
+		//	codigoNotificacao: codigo
+		//}
 
-		$.ajax({
-			type: "POST",
-			url: "/Notificacoes/updateNotificacao/",
-			data: data,
-			success: function (result) {
-				if (result) {
-					if (result.sucesso) {
-						window.location = url;
-					} else {
-						jsAbrePartial("Atenção!", result.mensagem, "warning");
-					}
-				}
-			}
-		});
+		//$.ajax({
+		//	type: "POST",
+		//	url: "/Notificacoes/updateNotificacao/",
+		//	data: data,
+		//	success: function (result) {
+		//		if (result) {
+		//			if (result.sucesso) {
+		//				window.location = url;
+		//			} else {
+		//				jsAbrePartial("Atenção!", result.mensagem, "warning");
+		//			}
+		//		}
+		//	}
+		//});
 		
 	}
 </script>

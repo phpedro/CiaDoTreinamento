@@ -11,3 +11,16 @@ D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\C
 D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\CiaDoTreinamento.AssemblyInfo.cs
 D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\CiaDoTreinamento.dll
 D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\CiaDoTreinamento.pdb
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Release\netcoreapp2.0\CiaDoTreinamento.deps.json
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Release\netcoreapp2.0\CiaDoTreinamento.runtimeconfig.json
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Release\netcoreapp2.0\CiaDoTreinamento.runtimeconfig.dev.json
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Release\netcoreapp2.0\CiaDoTreinamento.dll
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Release\netcoreapp2.0\CiaDoTreinamento.pdb
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Release\netcoreapp2.0\CODE.dll
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Release\netcoreapp2.0\CODE.pdb
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\CiaDoTreinamento.csprojResolveAssemblyReference.cache
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\CiaDoTreinamento.csproj.CoreCompileInputs.cache
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\CiaDoTreinamento.AssemblyInfoInputs.cache
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\CiaDoTreinamento.AssemblyInfo.cs
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\CiaDoTreinamento.dll
+D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Release\netcoreapp2.0\CiaDoTreinamento.pdb

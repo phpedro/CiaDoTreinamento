@@ -5,14 +5,33 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using CODE;
 using CiaDoTreinamento.Models;
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
 
 namespace CiaDoTreinamento.Controllers
 {
 	public class CabecalhoPedidoController : Controller
 	{
+		#region Atributos e propriedades
+
+		private readonly IHostingEnvironment _hostingEnvironment;
+
+		#endregion
+
+		#region Construtores
+
+		public CabecalhoPedidoController(IHostingEnvironment hostingEnvironment)
+		{
+			_hostingEnvironment = hostingEnvironment;
+		}
+
+		#endregion
+
+		#region Events
+
 		[HttpGet]
-        public IActionResult NovoPedido(int? codigoCliente, int? codigoPedido)
-        {
+		public IActionResult NovoPedido(int? codigoCliente, int? codigoPedido)
+		{
 			if (HttpContext.Request.Cookies["USUARIO"] == null)
 			{
 				return RedirectToAction("Login", "Login", new { urlRetorno = HttpContext.Request.Path });
@@ -44,9 +63,50 @@ namespace CiaDoTreinamento.Controllers
 
 				return View(cabecalho);
 			}
-			
-        }
-		
+
+		}
+
+		[HttpGet]
+		public IActionResult NovoPedido2(int? codigoCliente, int? codigoPedido)
+		{
+			if (HttpContext.Request.Cookies["USUARIO"] == null)
+			{
+				return RedirectToAction("Login", "Login", new { urlRetorno = HttpContext.Request.Path });
+			}
+
+			string mensagemErro;
+			CabecalhoPedidoBLL cabecalhoPedidoBLL = new CabecalhoPedidoBLL();
+			ClienteBLL clienteBLL = new ClienteBLL();
+
+			if (codigoPedido.HasValue && codigoPedido != 0)
+			{
+				CabecalhoPedido cabecalho = cabecalhoPedidoBLL.GetPedidoByCodigo((int)codigoPedido, out mensagemErro);
+				cabecalho.Cliente = clienteBLL.GetClientes((int)cabecalho.Cliente.Codigo, out mensagemErro).First();
+
+				return View(cabecalho);
+			}
+			else
+			{
+				CabecalhoPedido cabecalho = new CabecalhoPedido((int)codigoCliente, Convert.ToInt32(HttpContext.Request.Cookies["CODIGO_USUARIO"].ToString()));
+
+				if (!cabecalhoPedidoBLL.insertCabecalhoPedido(cabecalho, out mensagemErro))
+				{
+					TempData["mensagemErro"] = mensagemErro;
+
+					return RedirectToAction("Index", "Home");
+				}
+
+				cabecalho.Cliente = clienteBLL.GetClientes((int)cabecalho.Cliente.Codigo, out mensagemErro).First();
+
+				return View(cabecalho);
+			}
+
+		}
+
+		#endregion
+
+		#region Services
+
 		[HttpGet]
 		public JsonResult BuscarAlunosItemPedido(int codigoPedido, int codigoProduto)
 		{
@@ -357,7 +417,7 @@ namespace CiaDoTreinamento.Controllers
 			{
 				itemPedido.Confirmado = true;
 
-				if(!BLL.updateItemPedido(itemPedido, out mensagemErro))
+				if (!BLL.updateItemPedido(itemPedido, out mensagemErro))
 				{
 					return Json(new { sucesso = false, mensagemErro = mensagemErro });
 				}
@@ -374,7 +434,7 @@ namespace CiaDoTreinamento.Controllers
 		public JsonResult ValidaPermissaoUsuario(string usuario, string senha)
 		{
 			string mensagemErro;
-			
+
 			Funcionario funcionario = FuncionarioBLL.getFuncionario(usuario, out mensagemErro);
 
 			if (String.IsNullOrEmpty(mensagemErro))
@@ -389,7 +449,7 @@ namespace CiaDoTreinamento.Controllers
 				}
 			}
 
-			return Json(new { sucesso = false, mensagemErro = mensagemErro});
+			return Json(new { sucesso = false, mensagemErro = mensagemErro });
 		}
 
 		[HttpPost]
@@ -403,7 +463,7 @@ namespace CiaDoTreinamento.Controllers
 
 				CabecalhoPedido cabecalho = BLL.GetPedidoByCodigo(codigoPedido, out mensagemErro);
 
-				return Json(new { sucesso = true, ValorTotal = cabecalho.ValorTotal.ToString().Replace(".",",") });
+				return Json(new { sucesso = true, ValorTotal = cabecalho.ValorTotal.ToString().Replace(".", ",") });
 			}
 
 			return Json(new { sucesso = false, mensagemErro = mensagemErro });
@@ -434,7 +494,7 @@ namespace CiaDoTreinamento.Controllers
 					item.Subtotal = item.Quantidade * item.valorFinal;
 
 					itemPedidoBLL.updateItemPedido(item, out mensagemErro);
-						
+
 				}
 
 				this.UpdateCobrarEncargos(codigoPedido, cobrarEncargos);
@@ -489,6 +549,23 @@ namespace CiaDoTreinamento.Controllers
 				return Json(new { sucesso = false, mensagemErro = mensagemErro });
 			}
 		}
+
+		[HttpGet]
+		public FileResult DownloadImagem(int id)
+		{
+			var nomeImagem = id + ".png";
+
+			string webRootPath = _hostingEnvironment.WebRootPath;
+
+			if (!String.IsNullOrEmpty(nomeImagem) && System.IO.File.Exists(webRootPath + "/ImagensProdutos/" + nomeImagem))
+			{
+				return base.File(Path.Combine(webRootPath, "/ImagensProdutos/" + nomeImagem), "image/png");
+			}
+
+			return File(Path.Combine(webRootPath, "/images/sem_imagem.jpg"), "image/jpg");
+		}
+
+		#endregion
 
 	}
 }

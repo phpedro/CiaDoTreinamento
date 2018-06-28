@@ -40,6 +40,20 @@
 			Value = prod.Codigo.ToString()
 		});
 	}
+
+	//GET REDES
+	CODE.RedePostoBLL redePostoBLL = new CODE.RedePostoBLL();
+	List<CODE.RedePosto> Redes = redePostoBLL.getRedes(null, "", out mensagemErro);
+	List<SelectListItem> listaRedes = new List<SelectListItem>();
+	foreach (CODE.RedePosto rede in Redes)
+	{
+		listaRedes.Add(new SelectListItem()
+		{
+			Text = rede.Descricao,
+			Value = rede.Codigo.ToString(),
+			Selected = rede.Codigo == ViewBag.RedeFiltro
+		});
+	}
 }
 
 <section id="main-content">
@@ -84,24 +98,123 @@
 							@Html.DropDownList("ddlProdutosFiltro", listaProdutos, "Selecione o Produto...", new { @class = "select2" })
 							<i class="form-group__bar"></i>
 						</div>
+						<div class="form-group col-sm-6">
+							<label>Redes</label>
+							@Html.DropDownList("ddlRedesFiltro", listaRedes, "Todas as Redes", new { @class = "select2" })
+							<i class="form-group__bar"></i>
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>
 		<br />
 		<!--MAPA-->
-		<div id="map" style="min-height:550px;"></div>
+		<div class="row">
+			<div class="col-sm-4">
+				<div id="piechart" style="width: 100%; height: auto;"></div>
+				<div id="tablesProd" class="tablesProd" data-id="0">
+					<div class="titleTableProd">
+						<a onclick="jsMoveLeft();"><span class="zmdi zmdi-chevron-left zmdi-hc-3x"></span></a>
+						<span id="titleProd"></span>
+						<a onclick="jsMoveRight()"><span class="zmdi zmdi-chevron-right zmdi-hc-3x"></span></a>
+					</div>
+					<div id="bodyTableProd" class="bodyTableProd"></div>
+				</div>
+			</div>
+			<div class="col-sm-8">
+				<div id="map" style="min-height:550px;"></div>
+			</div>
+		</div>
+		
 	</section>
 </section>
 
 <!-- Maps API Javascript -->
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCu1NVvUi33FURh7lRtc91DacG7FtLrvk8&callback=initMap"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script type="text/javascript">
 
 	var map;
 	var geocoder;
 	var points = [];
 	var markers = [];
+	var numberTables = 0;
+
+	google.charts.load('current', { 'packages': ['corechart'] });
+	google.charts.setOnLoadCallback(drawChart);
+
+	setTimeout(() => { location.reload(); }, 300000);
+
+	function drawChart() {
+
+		var data = {
+			codigoEstado: $('#ddlEstadosFiltro').val(),
+			codigoCidade: $('#ddlCidadesFiltro').val(),
+			codigoMeso: $('#ddlMesoFiltro').val(),
+			codigoMicro: $('#ddlMicroFiltro').val(),
+			codigoProduto: $('#ddlProdutosFiltro').val(),
+			codigoRede: $('#ddlRedesFiltro').val()
+		}
+
+		$.ajax({
+			type: "GET",
+			url: "/Roteirizacao/BuscarPedidosProdutosCategoria/",
+			data: data,
+			async: true,
+			success: function (result) {
+				
+				if (result.sucesso) {
+
+					var array = [["Categoria","Quantidade"]];
+
+					for (var i = 0; i < result.lista.length; i++) 
+					{ 
+						var ac = result.lista[i];
+						var arrayAux = [];
+
+						arrayAux.push(ac.categoria);
+						arrayAux.push(ac.quantidade);
+
+						array.push(arrayAux);
+					}
+
+					var data = google.visualization.arrayToDataTable(array);
+
+					var options = {
+						title: "Categorias"
+					};
+
+					var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+					chart.draw(data, options);
+
+				} else {
+					OpenAlert("Atenção!", "Não foi encontrado nenhum produto encontrado!", "warning");
+					return false;
+				}
+			}
+		});
+
+		$.ajax({
+			type: "GET",
+			url: "/Roteirizacao/BuscarPedidosProdutos/",
+			data: data,
+			async: true,
+			success: function (result) {
+
+				if (result.sucesso) {
+
+					jsMontaTabelaProdutos(result.lista);
+
+				} else {
+					OpenAlert("Atenção!", "Não foi encontrado nenhum produto encontrado!", "warning");
+					return false;
+				}
+			}
+		});
+
+		
+	}
 
 	function initMap() {
 
@@ -124,19 +237,19 @@
 
 		for (var i = 0; i < points.length; i++) {
 
-			if (points[i].latitude == null || points[i].latitude == "" || points[i].latitude == "0") {
-				var result = await getGeoCode(points[i]);
+			if (points[i].cidade.latitude == null || points[i].cidade.latitude == "" || points[i].cidade.latitude == "0") {
+
+				var result = await getGeoCode(points[i].cidade);
 
 				if (result != null) {
 					//map.setCenter(result[0].geometry.location);
 					var marker = new google.maps.Marker({
 						map: map,
 						position: result[0].geometry.location,
-						label: "" + points[i].qtde
-						//icon: '/images/Markers/marker.png'
+						label: "" + points[i].qtdePedidos
 					});
 
-					markers.push();
+					markers.push(marker);
 
 					// Allow each marker to have an info window
 					google.maps.event.addListener(marker, 'click', (function (marker, i) {
@@ -149,13 +262,32 @@
 
 			} else { 
 
-				var myLatLng = { lat: parseFloat(points[i].latitude), lng: parseFloat(points[i].longitude) };
+				var myLatLng = { lat: parseFloat(points[i].cidade.latitude), lng: parseFloat(points[i].cidade.longitude) };
 
-				var marker = new google.maps.Marker({
-					map: map,
-					position: myLatLng,
-					label: "" + points[i].qtde
-				});
+				var marker;
+
+				if (points[i].qtdePedidosVistoria > 0) {
+					marker = new google.maps.Marker({
+						map: map,
+						position: myLatLng,
+						label: "" + points[i].qtdePedidos,
+						icon: '/images/Markers/bandeiraAzul.png'
+					});
+				} else if (points[i].qtdePedidosPendentes > 0) {
+					marker = new google.maps.Marker({
+						map: map,
+						position: myLatLng,
+						label: "" + points[i].qtdePedidos,
+						icon: '/images/Markers/bandeira.png'
+					});
+				} else {
+					marker = new google.maps.Marker({
+						map: map,
+						position: myLatLng,
+						label: "" + points[i].qtdePedidos,
+						icon: '/images/Markers/bandeiraVerde.png'
+					});
+				}
 
 				markers.push(marker);
 
@@ -170,7 +302,6 @@
 			}
 		}
 
-
 		jsLoading(false);
 	}
 
@@ -179,34 +310,24 @@
 		return new Promise(resolve => { 
 
 			var data = {
-				codigoEstado: $('#ddlEstadosFiltro').val(),
-				codigoCidade: $('#ddlCidadesFiltro').val(),
-				codigoMeso: $('#ddlMesoFiltro').val(),
-				codigoMicro: $('#ddlMicroFiltro').val(),
-				codigoProduto: $('#ddlProdutosFiltro').val()
+				estado: $('#ddlEstadosFiltro').val(),
+				cidade: $('#ddlCidadesFiltro').val(),
+				meso: $('#ddlMesoFiltro').val(),
+				micro: $('#ddlMicroFiltro').val(),
+				produto: $('#ddlProdutosFiltro').val(),
+				codigoRede: $('#ddlRedesFiltro').val()
 			}
 
 			$.ajax({
 				type: "GET",
-				url: "/Roteirizacao/BuscarPedidosAgrupadosPorCidade/",
+				url: "/Roteirizacao/BuscarCidadesRota/",
 				data: data,
 				async: true,
 				success: function (result) {
 					if (result.sucesso) {
-						
-						for (var i = 0; i < result.listaPedidos.length; i++) {
 
-							var obj = {
-								id: i,
-								location: result.listaPedidos[i].cidade,
-								latitude: result.listaPedidos[i].latitude,
-								longitude: result.listaPedidos[i].longitude,
-								description: result.listaPedidos[i].cidade,
-								qtde: result.listaPedidos[i]._quantidadePedidos
-							};
+						points = result.listaCidades;
 
-							points.push(obj);
-						}
 						resolve(points);
 					} else {
 						OpenAlert("Atenção!", "Não foi encontrado nenhum pedido para roteirizar!", "warning");
@@ -220,8 +341,8 @@
 	 function getGeoCode(obj) { 
 
 		 return new Promise(resolve => {
-			 setTimeout(function () { 
-				 geocoder.geocode({ 'address': obj.location }, function (results, status) {
+			 setTimeout(function () {
+				 geocoder.geocode({ 'address': obj.descricao + " - " + obj.estado }, function (results, status) {
 					 if (status == google.maps.GeocoderStatus.OK) {
 						 resolve(results);
 					 } else {
@@ -235,7 +356,17 @@
 
 	 function jsBoxDetails(id) { 
 
-		 var str = "<div class='info-content'><h5>" + points[id].description + "<h5><h6>Quantidade: " + points[id].qtde + "</h6></div>";
+		 var str = "<div class='info-content'><h5>" + points[id].cidade.descricao + "<h5><h6>Pedido(s): " + points[id].qtdePedidos + "</h6>";
+
+		 if (points[id].qtdePedidosPendentes > 0) {
+			 str += "<h6>Pendente(s): " + points[id].qtdePedidosPendentes + "</h6>";
+		 }
+
+		 if (points[id].qtdePedidosVistoria > 0) {
+			 str += "<h6>Vistoria(s): " + points[id].qtdePedidosVistoria + "</h6>";
+		 }
+
+		 str += "</div>";
 
 		 return str;
 	 }
@@ -249,6 +380,7 @@
 		 points = [];
 		 markers = [];
 
+		 drawChart();
 		 drawMarkers();
 	 }
 
@@ -256,6 +388,109 @@
 		 for (var i = 0; i < markers.length; i++) {
 			 markers[i].setMap(map);
 		 }
+	 }
+
+	 function jsMontaTabelaProdutos(arrayCategorias) { 
+
+		 var isFirst = true;
+		 var bodyTableProd = $('#bodyTableProd');
+		 bodyTableProd.empty();
+
+		 numberTables = arrayCategorias.length;
+
+		 for (var i = 0; i < arrayCategorias.length; i++)
+		 {
+			 var ac = arrayCategorias[i];
+
+			 //TABLE
+			 var table = document.createElement('table');
+			 table.className = 'table table-striped table-hover table-sm tableProd';
+			 table.id = "table_" + i;
+			 table.dataset.id = i;
+			 table.dataset.value = ac.categoria;
+
+			 //REGRA PARA VISIBILIDADE
+			 if (isFirst) {
+				 $('#titleProd').html(ac.categoria);
+				 $('#tablesProd').data('id', i);
+				 isFirst = false;
+			 } else {
+				 table.style = "display: none";
+			 }
+
+			 bodyTableProd.append(table);
+
+			 //HEADER
+			 var thead = document.createElement('thead');
+			 thead.className = 'thead-default';
+			 table.append(thead);
+
+			 var tr = document.createElement('tr');
+			 thead.append(tr);
+
+			 var thProduto = document.createElement('th');
+			 thProduto.innerHTML = 'Produto';
+			 tr.append(thProduto);
+
+			 var thQtde = document.createElement('th');
+			 thQtde.innerHTML = 'Quantidade';
+			 tr.append(thQtde);
+
+			 //BODY
+			 var tbody = document.createElement('tbody');
+			 table.append(tbody);
+
+			 for (var j = 0; j < ac.listaProdutos.length; j++)
+			 { 
+				 var trBody = document.createElement('tr');
+				 tbody.append(trBody);
+
+				 var tdProduto = document.createElement('th');
+				 tdProduto.innerHTML = ac.listaProdutos[j].produto;
+				 tbody.append(tdProduto);
+
+				 var tdQtde = document.createElement('th');
+				 tdQtde.innerHTML = ac.listaProdutos[j].quantidade;
+				 tbody.append(tdQtde);
+			 }
+
+		 }
+	 }
+
+	 function jsMoveRight()
+	 {
+		 var id = parseInt($('#tablesProd').data('id')) + 1;
+
+		 if (id >= numberTables) { 
+			 id = 0;
+		 }
+
+		 $('#tablesProd').data('id', id);
+
+		 $('.tableProd').hide();
+
+		 $('#table_' + id).show();
+
+		 $('#titleProd').html($('#table_' + id).data('value'));
+
+	 }
+
+	 function jsMoveLeft() {
+
+		 var id = parseInt($('#tablesProd').data('id')) - 1;
+
+		 if (id < 0) {
+			 id = numberTables - 1;
+		 }
+
+		 $('#tablesProd').data('id', id);
+
+		 $('.tableProd').hide();
+
+		 $('#table_' + id).show();
+
+		 $('#titleProd').html($('#table_' + id).data('value'));
+
 	 }
 
 

@@ -13,7 +13,19 @@ namespace CODE
 
 			try
 			{
-				return ItemPedidoDAL.insertItemPedido(item, out mensagemErro);
+				CabecalhoPedidoBLL cabecalhoPedidoBLL = new CabecalhoPedidoBLL();
+
+				if (!ItemPedidoDAL.insertItemPedido(item, out mensagemErro))
+				{
+					return false;
+				}
+
+				if (!cabecalhoPedidoBLL.updateCabecalhoPedidoTodo(item.CodigoPedido, out mensagemErro))
+				{
+					return false;
+				}
+
+				return true;
 			}
 			catch (Exception ex)
 			{
@@ -29,7 +41,20 @@ namespace CODE
 
 			try
 			{
-				return ItemPedidoDAL.updateItemPedido(item, out mensagemErro);
+				CabecalhoPedidoBLL cabecalhoPedidoBLL = new CabecalhoPedidoBLL();
+
+				if (!ItemPedidoDAL.updateItemPedido(item, out mensagemErro))
+				{
+					return false;
+				}
+
+				if (!cabecalhoPedidoBLL.updateCabecalhoPedidoTodo(item.CodigoPedido, out mensagemErro))
+				{
+					return false;
+				}
+
+				return true;
+
 			}
 			catch (Exception ex)
 			{

@@ -419,3 +419,43 @@ td .zmdi-assignment-check {
 	padding: 15px;
 	box-shadow: 1px 2px 4px rgba(0, 0, 0, .5);
 }
+
+.sortable {
+	padding: 0;
+}
+
+.sortable li {
+	padding: 10px;
+	box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.3);
+	list-style-type: none;
+	margin: 5px;
+	background: white;
+}
+
+.tablesProd {
+	margin-top: 5px;
+	background: white;
+}
+
+.tablesProd .titleTableProd {
+	text-align: center;
+	padding: 5px;
+	min-height: 40px;
+}
+
+.tablesProd .titleTableProd > span {
+	font-size: 25px;
+}
+
+.tablesProd .titleTableProd a:nth-child(1) {
+	float: left;
+}
+
+.tablesProd .titleTableProd a:nth-child(3) {
+	float: right;
+}
+
+.bodyTableProd {
+	max-height: 310px;
+	overflow: auto;
+}
