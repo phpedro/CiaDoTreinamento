@@ -126,7 +126,7 @@ namespace CODE
 					}
 					else
 					{
-						password = "treinamento2019";
+						password = "treinamento2020";
 					}
 				}
 

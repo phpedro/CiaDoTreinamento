@@ -71,7 +71,7 @@ namespace CiaDoTreinamento.Controllers
 		}
 
 		[HttpPost]
-		public JsonResult GravarOrcamento(int CodigoOrcamento, int CodigoCliente, int CodigoFuncionario, int CodigoCondicao, int CodigoStatus, int ValidadeOrcamento, string TelefoneContato, string itensJson)
+		public JsonResult GravarOrcamento(int CodigoOrcamento, int CodigoCliente, int CodigoFuncionario, int CodigoCondicao, int CodigoStatus, int ValidadeOrcamento, string TelefoneContato, List<string> Emails, string itensJson)
 		{
 			CabecalhoOrcamentoBLL cabecalhoOrcamentoBLL = new CabecalhoOrcamentoBLL();
 			ItemOrcamentoBLL itemOrcamentoBLL = new ItemOrcamentoBLL();

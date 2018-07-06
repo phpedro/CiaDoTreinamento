@@ -330,7 +330,7 @@ namespace CiaDoTreinamento.Controllers
 				//INSERIR O ITEM
 				if (itemPedidoBLL.insertItemPedido(itemPedido, out mensagemErro))
 				{
-					return Json(new { sucesso = true });
+					return Json(new { sucesso = true, item = itemPedido });
 				}
 				else
 				{
@@ -343,7 +343,7 @@ namespace CiaDoTreinamento.Controllers
 				//ATUALIZA O ITEM
 				if (itemPedidoBLL.updateItemPedido(itemPedido, out mensagemErro))
 				{
-					return Json(new { sucesso = true });
+					return Json(new { sucesso = true, item = itemPedido });
 				}
 				else
 				{

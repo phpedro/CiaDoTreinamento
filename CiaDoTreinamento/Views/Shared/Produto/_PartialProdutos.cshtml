@@ -61,33 +61,33 @@
 									<div class="row">
 										<!--VALOR UNITÁRIO-->
 										<div class="form-group form-group--float col-sm-12">
-											<input type="text" value="@item._valorPorPessoaFormatado" class="form-control" readonly />
+											<input id="valorTabela_@Html.Raw(item.Codigo)" type="text" value="@item._valorPorPessoaFormatado" class="form-control" readonly />
 											<label>Valor Unitário</label>
 											<i class="form-group__bar"></i>
 										</div>
 										<!--QUANTIDADE-->
 										<div class="form-group form-group--float col-sm-12">
-											<input type="number" value="@(isVendido != null ? Convert.ToInt16(isVendido.Quantidade) : 0)" min="0" max="500" class="form-control" />
+											<input id="qtde_@Html.Raw(item.Codigo)" data-id="@item.Codigo" type="number" value="@(isVendido != null ? Convert.ToInt16(isVendido.Quantidade) : 0)" min="0" max="500" class="form-control" onchange="jsAtualizaItemVendido(this);" />
 											<label>Quantidade</label>
 											<i class="form-group__bar"></i>
 										</div>
 										<!--ACRÉSCIMO-->
 										<div class="form-group form-group--float col-sm-12">
-											<input type="text" value="@(isVendido != null ? (isVendido.valorFinal - item.ValorPorPessoa) : 0)" class="form-control" />
+											<input id="acrescimo_@Html.Raw(item.Codigo)" data-id="@item.Codigo" type="text" value="@(isVendido != null ? (isVendido.valorFinal - item.ValorPorPessoa) : 0)" class="form-control" onkeypress="return jsSomenteNumeroVirgula(arguments[0] || window.event)" onchange="jsAtualizaItemVendido(this)" />
 											<label>Acréscimo</label>
 											<i class="form-group__bar"></i>
 										</div>
 										<!--TOTAL-->
 										<div class="form-group form-group--float col-sm-12">
-											<input type="text" value="@(isVendido != null ? String.Format("{0:C}", (isVendido.valorFinal * isVendido.Quantidade)) : "0")" class="form-control" readonly />
+											<input id="total_@Html.Raw(item.Codigo)" type="text" value="@(isVendido != null ? String.Format("{0:C}", isVendido.Subtotal) : "0")" class="form-control" readonly />
 											<label>Total</label>
 											<i class="form-group__bar"></i>
 										</div>
 										<!--BOTÕES-->
 										<div class="col-sm-12">
-											<button class="btn btn-outline-danger" title="Cancelar Venda" style="display: @(isVendido != null ? "":"none")">Remover</button>
-											<button class="btn btn-outline-success" title="Mais Detalhes">Detalhes</button>
-											<button class="btn btn-outline-info" title="Argumentação de vendas" onclick="jsAbreArgumentacaoVenda(@item.Codigo)" style="display: @(isVendido != null ? "none":"")"><span class="fas fa-chalkboard-teacher"></span></button>
+											<button id="btnRemoverItem_@Html.Raw(item.Codigo)" class="btn btn-outline-danger" title="Cancelar Venda" onclick="jsRemoverProduto(@item.Codigo)" style="display: @(isVendido != null ? "":"none")">Remover</button>
+											<button id="btnDetalhesItem_@Html.Raw(item.Codigo)" class="btn btn-outline-success" title="Mais Detalhes">Detalhes</button>
+											<button id="btnArgumentosItem_@Html.Raw(item.Codigo)" class="btn btn-outline-info" title="Argumentação de vendas" onclick="jsAbreArgumentacaoVenda(@item.Codigo)" style="display: @(isVendido != null ? "none":"")"><span class="fas fa-chalkboard-teacher"></span></button>
 										</div>
 									</div>
 								</div>
@@ -122,32 +122,32 @@
 	});
 
 	function jsAbreArgumentacaoVenda(codigoProduto)
-	{ 
+	{
 		var url = "/Produto/BuscarArgumentacoesVenda";
 
 		var data = {
 			codigoProduto: codigoProduto
 		}
 
-		$.get(url, data, (result) => { 
+		$.get(url, data, (result) => {
 
 			if (result.sucesso) {
 				swal('Argumentação de venda', result.argumento, 'info')
-			} else { 
+			} else {
 				OpenAlert("Atenção!", "Não foi possível buscar os argumentos de venda!", "danger");
 			}
 		});
 	}
 
 	function jsFiltrarTreinamentos(obj)
-	{ 
+	{
 		var valorFiltro = $(obj).val();
 
 		if (valorFiltro.length <= 0) {
 			$('#contentTreinamentos>div').each(function () {
 				$(this).show();
 			});
-		} else { 
+		} else {
 			$('#contentTreinamentos>div').each(function () {
 
 				var valor = $(this).data('value');
@@ -155,11 +155,79 @@
 
 				if (valor.toUpperCase().match(re)) {
 					$(this).show();
-				} else { 
+				} else {
 					$(this).hide();
 				}
 			});
 		}
 	}
+
+	function jsRemoverProduto(id)
+	{
+		var data = {
+			codigoPedido: '@Html.Raw(Model.Codigo)',
+			codigoProduto: id
+		}
+
+		$.ajax({
+			url: "/CabecalhoPedido/RemoverItemVendido",
+			data: data,
+			type: 'POST',
+			success: function (result) {
+				if (result.sucesso) {
+					$("#qtde_" + id).val(0);
+					$("#acrescimo_" + id).val(0);
+					$('#total_' + id).val((0).formatMoney());
+					$('#btnRemoverItem_' + id).hide();
+					$('#btnArgumentosItem_' + id).show();
+				} else {
+					OpenAlert("Erro!", result.mensagemErro, "danger");
+				}
+			}
+		});
+	}
+
+	function jsAtualizaItemVendido(obj)
+	{
+		var id = $(obj).data('id');
+		var qtde = $("#qtde_" + id).val();
+		var valorUnitario = $("#valorTabela_" + id).val().replace("R$", "").replace(",",".");
+		var acrescimo = $("#acrescimo_" + id).val().replace(",", ".");
+
+		var valorVenda = parseFloat(valorUnitario) + parseFloat(acrescimo);
+
+		if (qtde > 0) {
+
+			var data = {
+				codigoPedido: '@Html.Raw(Model.Codigo)',
+				codigoProduto: id,
+				quantidade: qtde,
+				valorVenda: valorVenda.toString().replace(".", ","),
+				cobrarEncargos: true,																			//FIXME
+				codigoMotivo: null
+			}
+
+			$.ajax({
+				url: "/CabecalhoPedido/InserirItemResumido",
+				data: data,
+				type: 'POST',
+				success: function (result) {
+					if (result.sucesso) {
+						$('#total_' + id).val((result.item.subtotal).formatMoney());
+						$('#btnArgumentosItem_' + id).hide();
+						$('#btnRemoverItem_' + id).show();
+					} else {
+						OpenAlert("Erro!", result.mensagemErro, "danger");
+					}
+				}
+			});
+
+		} else {
+			//REMOVER PRODUTO VENDIDO
+			jsRemoverProduto(id);
+		}
+	}
+
+
 
 </script>

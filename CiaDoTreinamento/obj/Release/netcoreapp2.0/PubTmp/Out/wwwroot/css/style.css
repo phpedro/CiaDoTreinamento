@@ -56,7 +56,7 @@
 }
 
 .panel-body {
-	padding: 10px 20px 20px 20px;
+	padding: 20px;
 	background-color: white;
 }
 
@@ -458,4 +458,30 @@ td .zmdi-assignment-check {
 .bodyTableProd {
 	max-height: 310px;
 	overflow: auto;
+}
+
+.divProdsTab>div:nth-child(2) {
+	display: flex;
+	overflow-y: auto;
+}
+
+.contentProd {
+	max-width: 202px;
+	min-height: 500px;
+	border: 1px solid #ccc;
+	margin: 2px;
+	text-align: center;
+}
+
+.contentProd .row {
+	margin: 20px 0;
+}
+	
+.contentProd img {
+	height: 100px;
+	width: 200px;
+}
+
+.contentProd>div:nth-child(1) {
+	min-height: 175px;	
 }

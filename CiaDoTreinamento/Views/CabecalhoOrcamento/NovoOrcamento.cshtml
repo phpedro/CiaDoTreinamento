@@ -57,6 +57,19 @@
 		@Html.Hidden("ProdVendido", prodVendidos)
 	}
 
+	//GET EMAILS CLIENTE
+	CODE.EmailClienteBLL emailClienteBLL = new CODE.EmailClienteBLL();
+	List<CODE.EmailCliente> emails = emailClienteBLL.GetEmails((int)Model.Cliente.Codigo, out mensagemErro);
+	List<SelectListItem> listaEmails = new List<SelectListItem>();
+	foreach (CODE.EmailCliente item in emails)
+	{
+		listaEmails.Add(new SelectListItem()
+		{
+			Text = item.Descricao,
+			Value = item.Codigo.ToString()
+		});
+	}
+
 }
 
 <section id="main-content">
@@ -121,7 +134,7 @@
 							<!--DADOS DE RASTREABILIDADE-->
 							<div class="panel">
 								<header class="panel-heading">
-									<h4>Dados Cadastrais - Estabelecimento</h4>
+									<h4>Dados Cadastrais - Cia do Treinamento</h4>
 								</header>
 								<div class="panel-body">
 									<div class="row">
@@ -157,14 +170,14 @@
 								</header>
 								<div class="panel-body">
 									<div class="row">
-										<div class="form-group form-group--float col-sm-4">
-											<input type="text" class="form-control" id="txtPrazo" name="txtPrazo" value="30 dias úteis" onblur="AtualizaPrazoEntrega();" />
+										<div class="form-group col-sm-4">
 											<label>Prazo de Entrega</label>
+											<input type="text" class="form-control" id="txtPrazo" name="txtPrazo" value="30 dias úteis" onblur="AtualizaPrazoEntrega();" />
 											<i class="form-group__bar"></i>
 										</div>
-										<div class="form-group form-group--float col-sm-4">
-											@Html.TextBoxFor(x => Model.ValidadeOrcamento, new { @class = "form-control noBlank", @onkeypress="return jsSomenteNumero(arguments[0] || window.event);", @onblur = "AtualizaValidadeProposta();" })
+										<div class="form-group col-sm-4">
 											<label>Validade da Proposta</label>
+											@Html.TextBoxFor(x => Model.ValidadeOrcamento, new { @class = "form-control noBlank", @type="number", @max="100", @onkeypress="return jsSomenteNumero(arguments[0] || window.event);", @onblur = "AtualizaValidadeProposta();" })
 											<i class="form-group__bar"></i>
 										</div>
 										<div class="form-group col-sm-4">
@@ -657,6 +670,14 @@
 											<i class="form-group__bar"></i>
 										</div>
 									</div>
+									<div class="row">
+										<!--LISTA EMAILS-->
+										<div class="form-group col-sm-3">
+											<label>Email</label>
+											@Html.DropDownList("ddlEmails", listaEmails, "Selecione...", new { @class = "select2", @multiple = "multiple" })
+											<i class="form-group__bar"></i>
+										</div>
+									</div>
 								</div>
 							</div>
 							<!--DADOS DA CIA-->
@@ -1018,6 +1039,7 @@
 			CodigoStatus: $('#StatusOrcamento_Codigo option:selected').val(),
 			ValidadeOrcamento: $('#ValidadeOrcamento').val(),
 			TelefoneContato: $('#TelefoneContato').val(),
+			Emails: $('#ddlEmails').val(),
 			itensJson: JSON.stringify(produtosVendidos)
 		};
 

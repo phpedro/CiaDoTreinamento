@@ -8,6 +8,7 @@ D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento
 --file=D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\BandeiraPosto\List.cshtml
 --file=D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\CabecalhoOrcamento\NovoOrcamento.cshtml
 --file=D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\CabecalhoPedido\NovoPedido.cshtml
+--file=D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\CabecalhoPedido\NovoPedido2.cshtml
 --file=D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\Cidade\Edit.cshtml
 --file=D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\Cidade\List.cshtml
 --file=D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\Cliente\Edit.cshtml
@@ -81,6 +82,7 @@ D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento
 --file=D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\Shared\PartialTelefones.cshtml
 --file=D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\Shared\Produto\PartialItemPedido.cshtml
 --file=D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\Shared\Produto\PartialProdutos.cshtml
+--file=D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\Shared\Produto\_PartialProdutos.cshtml
 --file=D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\Shared\Roteirizacao\PartialConfirmarPedidoRota.cshtml
 --file=D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\Shared\Roteirizacao\PartialDetalhesPedidoRota.cshtml
 --file=D:\Projetos externos\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\Views\Shared\Roteirizacao\PartialProdutosResumidoRoteirizacao.cshtml
