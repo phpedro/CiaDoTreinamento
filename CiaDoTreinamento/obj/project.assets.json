@@ -5430,6 +5430,7 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v2.0",
         "dependencies": {
+          "Microsoft.AspNetCore.All": "2.0.0",
           "MySql.Data.Core": "7.0.4-IR-191",
           "Newtonsoft.Json": "10.0.3",
           "iTextSharp.LGPLv2.Core": "1.4.0"
@@ -14116,7 +14117,9 @@
     ".NETCoreApp,Version=v2.0": [
       "CODE >= 1.0.0",
       "DinkToPdf >= 1.0.8",
+      "Microsoft.AspNetCore >= 2.0.0",
       "Microsoft.AspNetCore.All >= 2.0.0",
+      "Microsoft.AspNetCore.Mvc >= 2.0.0",
       "Microsoft.NETCore.App >= 2.0.0",
       "Microsoft.VisualStudio.Web.CodeGeneration.Design >= 2.0.0",
       "MySql.Data.Core >= 7.0.4-IR-191",
@@ -14125,26 +14128,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\luksc\\.nuget\\packages\\": {},
+    "C:\\Users\\PedroHenrique\\.nuget\\packages\\": {},
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
-    "restoreSettings": {
-      "hideWarningsAndErrors": true
-    },
     "restore": {
-      "projectUniqueName": "D:\\Projetos externos\\CIA\\Repositorio\\CiaDoTreinamento\\CiaDoTreinamento\\CiaDoTreinamento.csproj",
+      "projectUniqueName": "C:\\Users\\PedroHenrique\\Source\\Repos\\CiaDoTreinamento\\CiaDoTreinamento\\CiaDoTreinamento.csproj",
       "projectName": "CiaDoTreinamento",
-      "projectPath": "D:\\Projetos externos\\CIA\\Repositorio\\CiaDoTreinamento\\CiaDoTreinamento\\CiaDoTreinamento.csproj",
-      "packagesPath": "C:\\Users\\luksc\\.nuget\\packages\\",
-      "outputPath": "D:\\Projetos externos\\CIA\\Repositorio\\CiaDoTreinamento\\CiaDoTreinamento\\obj\\",
+      "projectPath": "C:\\Users\\PedroHenrique\\Source\\Repos\\CiaDoTreinamento\\CiaDoTreinamento\\CiaDoTreinamento.csproj",
+      "packagesPath": "C:\\Users\\PedroHenrique\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\PedroHenrique\\Source\\Repos\\CiaDoTreinamento\\CiaDoTreinamento\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\luksc\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\PedroHenrique\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -14157,8 +14157,8 @@
       "frameworks": {
         "netcoreapp2.0": {
           "projectReferences": {
-            "D:\\Projetos externos\\CIA\\Repositorio\\CiaDoTreinamento\\CODE\\CODE.csproj": {
-              "projectPath": "D:\\Projetos externos\\CIA\\Repositorio\\CiaDoTreinamento\\CODE\\CODE.csproj"
+            "C:\\Users\\PedroHenrique\\Source\\Repos\\CiaDoTreinamento\\CODE\\CODE.csproj": {
+              "projectPath": "C:\\Users\\PedroHenrique\\Source\\Repos\\CiaDoTreinamento\\CODE\\CODE.csproj"
             }
           }
         }
@@ -14172,34 +14172,42 @@
     "frameworks": {
       "netcoreapp2.0": {
         "dependencies": {
-          "MySql.Data.Core": {
+          "DinkToPdf": {
             "target": "Package",
-            "version": "7.0.4-IR-191"
+            "version": "[1.0.8, )"
           },
-          "SimpleMvcSitemap": {
+          "Microsoft.AspNetCore": {
             "target": "Package",
-            "version": "3.1.0"
-          },
-          "Microsoft.VisualStudio.Web.CodeGeneration.Design": {
-            "target": "Package",
-            "version": "2.0.0"
-          },
-          "iTextSharp.LGPLv2.Core": {
-            "target": "Package",
-            "version": "1.4.0"
-          },
-          "Microsoft.NETCore.App": {
-            "target": "Package",
-            "version": "2.0.0",
-            "autoReferenced": true
+            "version": "[2.0.0, )"
           },
           "Microsoft.AspNetCore.All": {
             "target": "Package",
-            "version": "2.0.0"
+            "version": "[2.0.0, )"
           },
-          "DinkToPdf": {
+          "Microsoft.AspNetCore.Mvc": {
             "target": "Package",
-            "version": "1.0.8"
+            "version": "[2.0.0, )"
+          },
+          "Microsoft.NETCore.App": {
+            "target": "Package",
+            "version": "[2.0.0, )",
+            "autoReferenced": true
+          },
+          "Microsoft.VisualStudio.Web.CodeGeneration.Design": {
+            "target": "Package",
+            "version": "[2.0.0, )"
+          },
+          "MySql.Data.Core": {
+            "target": "Package",
+            "version": "[7.0.4-IR-191, )"
+          },
+          "SimpleMvcSitemap": {
+            "target": "Package",
+            "version": "[3.1.0, )"
+          },
+          "iTextSharp.LGPLv2.Core": {
+            "target": "Package",
+            "version": "[1.4.0, )"
           }
         },
         "imports": [

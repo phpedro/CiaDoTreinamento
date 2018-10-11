@@ -1,0 +1,104 @@
+﻿@{
+	string mensagemErro;
+
+	//GET INSTRUTORES
+	List<CODE.Funcionario> agentesInstrutores = CODE.FuncionarioBLL.getFuncionarioByPerfil(10, out mensagemErro);
+	List<SelectListItem> listaInstrutores = new List<SelectListItem>();
+	foreach (CODE.Funcionario func in agentesInstrutores)
+	{
+		listaInstrutores.Add(new SelectListItem()
+		{
+			Text = func.Nome,
+			Value = func.Codigo.ToString()
+		});
+	}
+}
+
+<div id="divModalRoteirizacao" class="modalAlerta animate-zoom" style="display: none">
+	<div class="contentModal">
+		<!--MODAL HEADER-->
+		<div class="modal-header">
+			<h5>INFORMAR DADOS PARA ROTEIRIZAÇÃO</h5>
+		</div>
+		<!--MODAL CONTENT-->
+		<div class="modal-content" style="max-height:400px; overflow-y:auto">
+			<div class="panel">
+				<header class="panel-heading">
+					<h4>RETORNO PEDIDO</h4>
+				</header>
+				<div class="panel-body">
+                    <div class="table-responsive">
+                        <div class="form-group form-group--float col-sm-4">
+                            <label>Motivo:</label>
+                            <input type="text" class="form-control" name="txtMotivoRetorno" id="txtMotivoRetorno" />
+                            <i class="form-group__bar"></i>
+                        </div>
+                    </div>
+				</div>
+			</div>
+		</div>
+		<!--MODAL FOOTER-->
+        <div class="modal-footer">
+            <button id="btnPendenteRota" class="btn btn-secondary pendente" onclick="jsAtualizaStatus(15, txtMotivoRetorno)" style="display:none">VOLTAR VENDAS</button>
+            &nbsp;
+            <button id="btnPendenteRota" class="btn btn-secondary pendente" onclick="jsAtualizaStatus(17, txtMotivoRetorno)" style="display:none">VOLTAR ROTA</button>
+            &nbsp;
+            <button id="btnPendenteVistoria" class="btn btn-secondary pendente" onclick="jsAtualizaStatus(18, txtMotivoRetorno)" style="display:none">PENDENTE VISTORIA</button>
+            &nbsp;
+            <button id="btnCancelar" class="btn btn-secondary cancelar" onclick="closeModal(this)">CANCELAR</button>
+        </div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	var detalheRetornoPedido = txtMotivoRetorno.val;
+
+    function openModalVoltaPedido(codigoPedido) {
+
+		$('#hfCodigoPedido').val(codigoPedido);
+	}
+
+    function jsAtualizaStatus(codigoStatus, detalheRetornoPedido) {
+		var data = {
+			codigoPedido: $('#hfCodigoPedido').val(),
+			codigoStatus: codigoStatus,
+			detalheRetornoPedido: detalheRetornoPedido
+		};
+
+		$.ajax({
+			type: "POST",
+			url: "/Roteirizacao/AtualizarPedidoRota/",
+			data: data,
+			success: function (data) {
+				if (data.sucesso) {
+					$('#divModalRoteirizacao').hide();
+					OpenAlert("Sucesso!", "Dados atualizados com sucesso!", "success");
+					return true;
+				} else {
+					OpenAlert("Atenção!", data.mensagemErro, "danger");
+					return false;
+				}
+			}
+		});
+	}
+</script>
+
+<style type="text/css">
+	.panel-heading {
+		background-color: #32c787;
+	}
+
+	.confirmar {
+		background-color: #11b400;
+	}
+
+	.pendente {
+		background-color: #de6600;
+	}
+
+	.cancelar {
+		background-color: red;
+	}
+
+</style>

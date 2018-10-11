@@ -270,8 +270,260 @@ namespace CODE
 
 		}
 
-		//INSERT
-		public static bool insertCabecalhoPedido(CabecalhoPedido cabecalho, out string mensagemErro)
+        public static List<CabecalhoPedido> BuscaPedidosAdmRota(string txtCnpjFiltro, int? txtCodigoPedidoFiltro, string txtRazaoSocialFiltro, int? ddlAgenteVendasFiltro,
+                                                        int? ddlInstrutorFiltro, int? ddlEstadosFiltro, int? ddlCidadesFiltro, DateTime? dtpDataInicioFechamentoPedido,
+                                                        DateTime? dtpDataFinalFechamentoPedido, out string mensagemErro)
+        {
+
+            List<CabecalhoPedido> listaPedidos = new List<CabecalhoPedido>();
+            StringBuilder sql = new StringBuilder();
+            mensagemErro = "";
+
+            sql.AppendLine("SELECT DISTINCT CP.*");
+            sql.AppendLine("FROM CABECALHOS_PEDIDOS AS CP");
+            sql.AppendLine("	INNER JOIN CLIENTES AS CL ON CP.CODIGO_CLIENTE = CL.CODIGO");
+            sql.AppendLine("	INNER JOIN CIDADES AS CI ON CL.CODIGO_CIDADE = CI.CODIGO");
+            sql.AppendLine("	INNER JOIN ITENS_PEDIDOS IP ON CP.CODIGO = IP.CODIGO_PEDIDO");
+            sql.AppendLine("WHERE CP.CODIGO_STATUS = 13");
+            sql.AppendLine("AND ENVIAR_POR_CORREIO = 0");
+
+            if (ddlAgenteVendasFiltro.HasValue && ddlAgenteVendasFiltro > 0)
+            {
+                sql.AppendLine("	AND CP.CODIGO_FUNCIONARIO_VENDEDOR = " + ddlAgenteVendasFiltro);
+            }
+
+            if (ddlInstrutorFiltro.HasValue && ddlInstrutorFiltro > 0)
+            {
+                sql.AppendLine("	AND CP.CODIGO_FUNCIONARIO_INSTRUTOR	 = " + ddlInstrutorFiltro);
+            }
+
+            if (!String.IsNullOrEmpty(txtRazaoSocialFiltro))
+            {
+                sql.AppendLine("	AND CL.RAZAO_SOCIAL LIKE CONCAT('%','" + txtRazaoSocialFiltro + "','%') OR CL.NOME_CLIENTE LIKE CONCAT('%','" + txtRazaoSocialFiltro + "','%')");
+            }
+
+            if (ddlCidadesFiltro.HasValue && ddlCidadesFiltro > 0)
+            {
+                sql.AppendLine("	AND CL.CODIGO_CIDADE = " + ddlCidadesFiltro);
+            }
+
+            if (ddlEstadosFiltro.HasValue && ddlEstadosFiltro > 0)
+            {
+                sql.AppendLine("	AND CI.ESTADO = '" + ddlEstadosFiltro + "'");
+            }
+
+            if (dtpDataInicioFechamentoPedido.HasValue)
+            {
+                sql.AppendLine("	AND CP.DATA_FECHAMENTO >= '" + Convert.ToDateTime(dtpDataInicioFechamentoPedido).ToString("yyyy-MM-dd") + "'");
+            }
+
+            if (dtpDataFinalFechamentoPedido.HasValue)
+            {
+                sql.AppendLine("	AND CP.DATA_FECHAMENTO <= '" + Convert.ToDateTime(dtpDataFinalFechamentoPedido).ToString("yyyy-MM-dd") + "'");
+            }
+
+            if (txtCodigoPedidoFiltro.HasValue && txtCodigoPedidoFiltro > 0)
+            {
+                sql.AppendLine("	AND CP.CODIGO = '" + txtCodigoPedidoFiltro + "'");
+            }
+            
+            sql.AppendLine("ORDER BY CI.ESTADO ASC");
+
+            Command cmd = new Command();
+            cmd.CommandText = sql.ToString();
+
+            DataTable retorno = cmd.GetData();
+
+            if (retorno.Rows.Count > 0)
+            {
+                foreach (DataRow linha in retorno.Rows)
+                {
+                    listaPedidos.Add(new CabecalhoPedido()
+                    {
+                        Codigo = Convert.ToInt32(linha["CODIGO"].ToString()),
+                        Cliente = new Cliente(Convert.ToInt32(linha["CODIGO_CLIENTE"].ToString())),
+                        FuncionarioInstrutor = new Funcionario(Convert.ToInt32(linha["CODIGO_FUNCIONARIO_INSTRUTOR"].ToString())),
+                        FuncionarioVendedor = new Funcionario(Convert.ToInt32(linha["CODIGO_FUNCIONARIO_VENDEDOR"].ToString())),
+                        ValorTotal = (linha["VALOR_TOTAL"].ToString() == "" ? 0 : Convert.ToDecimal(linha["VALOR_TOTAL"].ToString())),
+                      
+                    });
+                }
+            }
+
+            return listaPedidos;
+
+        }
+
+        public static List<CabecalhoPedido> BuscaPedidosAdmVistoria(string txtCnpjFiltro, int? txtCodigoPedidoFiltro, string txtRazaoSocialFiltro, int? ddlAgenteVendasFiltro,
+                                                        int? ddlInstrutorFiltro, int? ddlEstadosFiltro, int? ddlCidadesFiltro, DateTime? dtpDataInicioFechamentoPedido,
+                                                        DateTime? dtpDataFinalFechamentoPedido, out string mensagemErro)
+        {
+
+            List<CabecalhoPedido> listaPedidos = new List<CabecalhoPedido>();
+            StringBuilder sql = new StringBuilder();
+            mensagemErro = "";
+
+            sql.AppendLine("SELECT DISTINCT CP.*");
+            sql.AppendLine("FROM CABECALHOS_PEDIDOS AS CP");
+            sql.AppendLine("	INNER JOIN CLIENTES AS CL ON CP.CODIGO_CLIENTE = CL.CODIGO");
+            sql.AppendLine("	INNER JOIN CIDADES AS CI ON CL.CODIGO_CIDADE = CI.CODIGO");
+            sql.AppendLine("	INNER JOIN ITENS_PEDIDOS IP ON CP.CODIGO = IP.CODIGO_PEDIDO");
+            sql.AppendLine("WHERE CP.CODIGO_STATUS = 14");
+
+            if (ddlAgenteVendasFiltro.HasValue && ddlAgenteVendasFiltro > 0)
+            {
+                sql.AppendLine("	AND CP.CODIGO_FUNCIONARIO_VENDEDOR = " + ddlAgenteVendasFiltro);
+            }
+
+            if (ddlInstrutorFiltro.HasValue && ddlInstrutorFiltro > 0)
+            {
+                sql.AppendLine("	AND CP.CODIGO_FUNCIONARIO_INSTRUTOR	 = " + ddlInstrutorFiltro);
+            }
+
+            if (!String.IsNullOrEmpty(txtRazaoSocialFiltro))
+            {
+                sql.AppendLine("	AND CL.RAZAO_SOCIAL LIKE CONCAT('%','" + txtRazaoSocialFiltro + "','%') OR CL.NOME_CLIENTE LIKE CONCAT('%','" + txtRazaoSocialFiltro + "','%')");
+            }
+
+            if (ddlCidadesFiltro.HasValue && ddlCidadesFiltro > 0)
+            {
+                sql.AppendLine("	AND CL.CODIGO_CIDADE = " + ddlCidadesFiltro);
+            }
+
+            if (ddlEstadosFiltro.HasValue && ddlEstadosFiltro > 0)
+            {
+                sql.AppendLine("	AND CI.ESTADO = '" + ddlEstadosFiltro + "'");
+            }
+
+            if (dtpDataInicioFechamentoPedido.HasValue)
+            {
+                sql.AppendLine("	AND CP.DATA_FECHAMENTO >= '" + Convert.ToDateTime(dtpDataInicioFechamentoPedido).ToString("yyyy-MM-dd") + "'");
+            }
+
+            if (dtpDataFinalFechamentoPedido.HasValue)
+            {
+                sql.AppendLine("	AND CP.DATA_FECHAMENTO <= '" + Convert.ToDateTime(dtpDataFinalFechamentoPedido).ToString("yyyy-MM-dd") + "'");
+            }
+
+            if (txtCodigoPedidoFiltro.HasValue && txtCodigoPedidoFiltro > 0)
+            {
+                sql.AppendLine("	AND CP.CODIGO = '" + txtCodigoPedidoFiltro + "'");
+            }
+
+            sql.AppendLine("ORDER BY CI.ESTADO ASC");
+
+            Command cmd = new Command();
+            cmd.CommandText = sql.ToString();
+
+            DataTable retorno = cmd.GetData();
+
+            if (retorno.Rows.Count > 0)
+            {
+                foreach (DataRow linha in retorno.Rows)
+                {
+                    listaPedidos.Add(new CabecalhoPedido()
+                    {
+                        Codigo = Convert.ToInt32(linha["CODIGO"].ToString()),
+                        Cliente = new Cliente(Convert.ToInt32(linha["CODIGO_CLIENTE"].ToString())),
+                        FuncionarioInstrutor = new Funcionario(Convert.ToInt32(linha["CODIGO_FUNCIONARIO_INSTRUTOR"].ToString())),
+                        FuncionarioVendedor = new Funcionario(Convert.ToInt32(linha["CODIGO_FUNCIONARIO_VENDEDOR"].ToString())),
+                        ValorTotal = (linha["VALOR_TOTAL"].ToString() == "" ? 0 : Convert.ToDecimal(linha["VALOR_TOTAL"].ToString())),
+
+                    });
+                }
+            }
+
+            return listaPedidos;
+
+        }
+
+        public static List<CabecalhoPedido> BuscaPedidosAdmCorreio(string txtCnpjFiltro, int? txtCodigoPedidoFiltro, string txtRazaoSocialFiltro, int? ddlAgenteVendasFiltro,
+                                                int? ddlInstrutorFiltro, int? ddlEstadosFiltro, int? ddlCidadesFiltro, DateTime? dtpDataInicioFechamentoPedido,
+                                                DateTime? dtpDataFinalFechamentoPedido, out string mensagemErro)
+        {
+
+            List<CabecalhoPedido> listaPedidos = new List<CabecalhoPedido>();
+            StringBuilder sql = new StringBuilder();
+            mensagemErro = "";
+
+            sql.AppendLine("SELECT DISTINCT CP.*");
+            sql.AppendLine("FROM CABECALHOS_PEDIDOS AS CP");
+            sql.AppendLine("	INNER JOIN CLIENTES AS CL ON CP.CODIGO_CLIENTE = CL.CODIGO");
+            sql.AppendLine("	INNER JOIN CIDADES AS CI ON CL.CODIGO_CIDADE = CI.CODIGO");
+            sql.AppendLine("	INNER JOIN ITENS_PEDIDOS IP ON CP.CODIGO = IP.CODIGO_PEDIDO");
+            sql.AppendLine("WHERE CP.CODIGO_STATUS = 13");
+            sql.AppendLine("AND ENVIAR_POR_CORREIO = 1");
+
+            if (ddlAgenteVendasFiltro.HasValue && ddlAgenteVendasFiltro > 0)
+            {
+                sql.AppendLine("	AND CP.CODIGO_FUNCIONARIO_VENDEDOR = " + ddlAgenteVendasFiltro);
+            }
+
+            if (ddlInstrutorFiltro.HasValue && ddlInstrutorFiltro > 0)
+            {
+                sql.AppendLine("	AND CP.CODIGO_FUNCIONARIO_INSTRUTOR	 = " + ddlInstrutorFiltro);
+            }
+
+            if (!String.IsNullOrEmpty(txtRazaoSocialFiltro))
+            {
+                sql.AppendLine("	AND CL.RAZAO_SOCIAL LIKE CONCAT('%','" + txtRazaoSocialFiltro + "','%') OR CL.NOME_CLIENTE LIKE CONCAT('%','" + txtRazaoSocialFiltro + "','%')");
+            }
+
+            if (ddlCidadesFiltro.HasValue && ddlCidadesFiltro > 0)
+            {
+                sql.AppendLine("	AND CL.CODIGO_CIDADE = " + ddlCidadesFiltro);
+            }
+
+            if (ddlEstadosFiltro.HasValue && ddlEstadosFiltro > 0)
+            {
+                sql.AppendLine("	AND CI.ESTADO = '" + ddlEstadosFiltro + "'");
+            }
+
+            if (dtpDataInicioFechamentoPedido.HasValue)
+            {
+                sql.AppendLine("	AND CP.DATA_FECHAMENTO >= '" + Convert.ToDateTime(dtpDataInicioFechamentoPedido).ToString("yyyy-MM-dd") + "'");
+            }
+
+            if (dtpDataFinalFechamentoPedido.HasValue)
+            {
+                sql.AppendLine("	AND CP.DATA_FECHAMENTO <= '" + Convert.ToDateTime(dtpDataFinalFechamentoPedido).ToString("yyyy-MM-dd") + "'");
+            }
+
+            if (txtCodigoPedidoFiltro.HasValue && txtCodigoPedidoFiltro > 0)
+            {
+                sql.AppendLine("	AND CP.CODIGO = '" + txtCodigoPedidoFiltro + "'");
+            }
+
+            sql.AppendLine("ORDER BY CI.ESTADO ASC");
+
+            Command cmd = new Command();
+            cmd.CommandText = sql.ToString();
+
+            DataTable retorno = cmd.GetData();
+
+            if (retorno.Rows.Count > 0)
+            {
+                foreach (DataRow linha in retorno.Rows)
+                {
+                    listaPedidos.Add(new CabecalhoPedido()
+                    {
+                        Codigo = Convert.ToInt32(linha["CODIGO"].ToString()),
+                        Cliente = new Cliente(Convert.ToInt32(linha["CODIGO_CLIENTE"].ToString())),
+                        FuncionarioInstrutor = new Funcionario(Convert.ToInt32(linha["CODIGO_FUNCIONARIO_INSTRUTOR"].ToString())),
+                        FuncionarioVendedor = new Funcionario(Convert.ToInt32(linha["CODIGO_FUNCIONARIO_VENDEDOR"].ToString())),
+                        ValorTotal = (linha["VALOR_TOTAL"].ToString() == "" ? 0 : Convert.ToDecimal(linha["VALOR_TOTAL"].ToString())),
+
+                    });
+                }
+            }
+
+            return listaPedidos;
+
+        }
+
+
+        //INSERT
+        public static bool insertCabecalhoPedido(CabecalhoPedido cabecalho, out string mensagemErro)
 		{
 			mensagemErro = "";
 

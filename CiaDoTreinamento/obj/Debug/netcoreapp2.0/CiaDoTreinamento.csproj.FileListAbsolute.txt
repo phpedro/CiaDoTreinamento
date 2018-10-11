@@ -11,3 +11,17 @@ D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Debug\netcoreapp2.0\Cia
 D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\obj\Debug\netcoreapp2.0\CiaDoTreinamento.pdb
 D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Debug\netcoreapp2.0\CODE.dll
 D:\CIA\Repositorio\CiaDoTreinamento\CiaDoTreinamento\bin\Debug\netcoreapp2.0\CODE.pdb
+C:\Users\PedroHenrique\Source\Repos\CiaDoTreinamento\CiaDoTreinamento\bin\Debug\netcoreapp2.0\CiaDoTreinamento.deps.json
+C:\Users\PedroHenrique\Source\Repos\CiaDoTreinamento\CiaDoTreinamento\bin\Debug\netcoreapp2.0\CiaDoTreinamento.runtimeconfig.json
+C:\Users\PedroHenrique\Source\Repos\CiaDoTreinamento\CiaDoTreinamento\bin\Debug\netcoreapp2.0\CiaDoTreinamento.runtimeconfig.dev.json
+C:\Users\PedroHenrique\Source\Repos\CiaDoTreinamento\CiaDoTreinamento\bin\Debug\netcoreapp2.0\CiaDoTreinamento.dll
+C:\Users\PedroHenrique\Source\Repos\CiaDoTreinamento\CiaDoTreinamento\bin\Debug\netcoreapp2.0\CiaDoTreinamento.pdb
+C:\Users\PedroHenrique\Source\Repos\CiaDoTreinamento\CiaDoTreinamento\bin\Debug\netcoreapp2.0\CODE.dll
+C:\Users\PedroHenrique\Source\Repos\CiaDoTreinamento\CiaDoTreinamento\bin\Debug\netcoreapp2.0\CODE.pdb
+C:\Users\PedroHenrique\Source\Repos\CiaDoTreinamento\CiaDoTreinamento\obj\Debug\netcoreapp2.0\CiaDoTreinamento.csprojAssemblyReference.cache
+C:\Users\PedroHenrique\Source\Repos\CiaDoTreinamento\CiaDoTreinamento\obj\Debug\netcoreapp2.0\CiaDoTreinamento.csproj.CoreCompileInputs.cache
+C:\Users\PedroHenrique\Source\Repos\CiaDoTreinamento\CiaDoTreinamento\obj\Debug\netcoreapp2.0\CiaDoTreinamento.AssemblyInfoInputs.cache
+C:\Users\PedroHenrique\Source\Repos\CiaDoTreinamento\CiaDoTreinamento\obj\Debug\netcoreapp2.0\CiaDoTreinamento.AssemblyInfo.cs
+C:\Users\PedroHenrique\Source\Repos\CiaDoTreinamento\CiaDoTreinamento\obj\Debug\netcoreapp2.0\CiaDoTreinamento.csproj.CopyComplete
+C:\Users\PedroHenrique\Source\Repos\CiaDoTreinamento\CiaDoTreinamento\obj\Debug\netcoreapp2.0\CiaDoTreinamento.dll
+C:\Users\PedroHenrique\Source\Repos\CiaDoTreinamento\CiaDoTreinamento\obj\Debug\netcoreapp2.0\CiaDoTreinamento.pdb

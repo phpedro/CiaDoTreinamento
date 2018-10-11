@@ -1,0 +1,26 @@
+﻿@model CODE.CabecalhoPedido
+@{
+    ViewBag.codigoPedido = Model.Codigo;
+}
+<section id="main-content">
+    <section class="content">
+        <div class="panel">
+            @Html.HiddenFor(x => Model.Codigo, new { @id = "hfCodigoPedido" })
+            <header class="panel-heading">
+                <h4 class="accordion-toggle" data-toggle="collapse" href="#divNovoPedidoItensCollapse" aria-expanded="false">NOVO PEDIDO - ITENS</h4>
+                <div class="top-nav">
+                    <button id="btnSalvar" class="btn btn-primary" onclick="jsSalvar();"><span aria-hidden="true" class="zmdi zmdi-assignment-check"></span> &nbsp; FECHAR PEDIDO</button>
+                </div>
+            </header>
+            <div id="divNovoPedidoItensCollapse" class="panel-collapse collapse show">
+                <div class="panel-body">
+                    <!--PARTIAL PRODUTOS-->
+                    @Html.Partial("Produto/_PartialProdutos")
+                    <!--PARTIAL DADOS DO PEDIDO-->
+                    <!--PARTIAL CONFIRMAR ITENS-->
+                    <!--PARTIAL CLIENTE-->
+                </div>
+            </div>
+        </div>
+    </section>
+</section>
